@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1280">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Control</title>
+    <script type="text/javascript" src="js/slider.js"></script>
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/kushlavr.js"></script>
+    <link href="css/bootstrap.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <link href="css/slider.css" rel="stylesheet" />
+    <link rel="manifest" href="/manifest.json">
+</head>
+<body>
+    <div class="main">
+        <h5>
+            Wemos remote
+        </h5>
+        <form class="screen">
+            <button onclick="Slider.toggleFullScreen()" class="btn btn-outline-secondary full-screen">
+                Full screen
+            </button>
+
+            <input type="range" class="range round" min="1" max="100" value="50"
+                   style="width:450px;height:450px;position:absolute;left:20px;top:100px;">
+
+            <input type="range" class="range vertical-lowest-first round" min="1" max="100" value="50"
+                   style="width:450px;height:200px;position:absolute;right:0px;top:225px;">
+
+
+            <input type="range" name="a" value="50" /> = <output name="result" data-input="#a" class="output">0</output>
+
+        </form>
+
+    </div>
+
+
+    <script>
+        var slider = new Slider($(".main form"));
+        slider.init();
+    </script>
+</body>
+</html>

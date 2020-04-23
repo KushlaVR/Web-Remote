@@ -1,0 +1,20 @@
+﻿body {
+    width: 1280px;
+    padding: 0;
+    margin: auto;
+    background: #eee;
+}
+
+
+.main {
+}
+
+    .main .screen {
+        position: relative;
+    }
+
+.full-screen {
+    position: absolute;
+    top: 0;
+    right: 0px;
+}

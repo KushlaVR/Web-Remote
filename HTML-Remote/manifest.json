@@ -1,0 +1,14 @@
+﻿{
+  "short_name": "Kinlan's Amaze App",
+  "name": "WIFI RC car remote controll",
+  "icons": [
+    {
+      "src": "img/remote-control.svg",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/control.html",
+  "display": "standalone",
+  "orientation": "landscape"
+}
