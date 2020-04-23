@@ -20,7 +20,7 @@
             Wemos remote
         </h5>
         <form class="screen">
-            <button onclick="Slider.toggleFullScreen()" class="btn btn-outline-secondary full-screen">
+            <button onclick="Slider.toggleFullScreen(); return false;" class="btn btn-outline-secondary full-screen">
                 Full screen
             </button>
 
@@ -32,6 +32,13 @@
 
 
             <input type="range" name="a" value="50" /> = <output name="result" data-input="#a" class="output">0</output>
+
+
+            <div class="silder"
+                 style="width:50px; height:300px; left: 500px;">
+                <div class="pin">
+                </div>
+            </div>
 
         </form>
 
