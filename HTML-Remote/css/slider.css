@@ -1,9 +1,10 @@
-﻿.silder {
+﻿.slider {
     display: block;
     position: absolute;
+    border: 1px solid #ccc;
 }
 
-    .silder .pin {
+    .slider .pin {
         display: block;
         position: absolute;
         width: 50px;

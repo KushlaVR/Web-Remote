@@ -1,0 +1,2 @@
+var KVR={};KVR.load=function(){var n=$.get("/api/setup").done(function(n){$.each(n,function(n,t){console.log("Name: "+n+", Value: "+t);var i=$("#form");$("[name="+n+"]",i).val(t)})}).fail(function(){console.log("error")})};
+//# sourceMappingURL=kushlavr.min.js.map

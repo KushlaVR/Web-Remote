@@ -20,22 +20,24 @@
             Wemos remote
         </h5>
         <form class="screen">
-            <button onclick="Slider.toggleFullScreen(); return false;" class="btn btn-outline-secondary full-screen">
+            <button onclick="WorkSpace.toggleFullScreen(); return false;" class="btn btn-outline-secondary full-screen">
                 Full screen
             </button>
-
-            <input type="range" class="range round" min="1" max="100" value="50"
-                   style="width:450px;height:450px;position:absolute;left:20px;top:100px;">
-
-            <input type="range" class="range vertical-lowest-first round" min="1" max="100" value="50"
-                   style="width:450px;height:200px;position:absolute;right:0px;top:225px;">
 
 
             <input type="range" name="a" value="50" /> = <output name="result" data-input="#a" class="output">0</output>
 
 
-            <div class="silder"
-                 style="width:50px; height:300px; left: 500px;">
+            <div class="slider"
+                 style="width:50px; height:300px; left: 300px;"
+                 data-center="1">
+                <div class="pin">
+                </div>
+            </div>
+
+            <div class="slider"
+                 style="width:50px; height:300px; right: 300px;"
+                 data-center-x="1">
                 <div class="pin">
                 </div>
             </div>
@@ -46,8 +48,7 @@
 
 
     <script>
-        var slider = new Slider($(".main form"));
-        slider.init();
+        WorkSpace.init($(".main form"));
     </script>
 </body>
 </html>
