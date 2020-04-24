@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=1280">
+    <meta name="viewport" content="width=1280, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <title>Control</title>
@@ -24,23 +24,21 @@
                 Full screen
             </button>
 
-
-            <input type="range" name="a" value="50" /> = <output name="result" data-input="#a" class="output">0</output>
-
-
-            <div class="slider"
+            <div name="right" class="slider control"
                  style="width:50px; height:300px; left: 300px;"
                  data-center="1">
                 <div class="pin">
                 </div>
             </div>
 
-            <div class="slider"
+            <div name="left" class="slider control"
                  style="width:50px; height:300px; right: 300px;"
                  data-center-x="1">
                 <div class="pin">
                 </div>
             </div>
+
+
 
         </form>
 
