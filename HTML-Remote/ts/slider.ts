@@ -48,7 +48,9 @@ class Point {
 class Slider {
 
     private element: HTMLElement;
-    private pin: HTMLElement;
+    private handle: HTMLElement;
+    private pot: HTMLElement;
+
     private pressed: boolean = false;
 
     private moved: Point = new Point();
@@ -62,7 +64,11 @@ class Slider {
 
     constructor(element: any) {
         this.element = element;
-        this.pin = $(".pin", element)[0];
+        this.handle = $(".handle", element)[0];
+        var pot = $(".pot", element)
+        if (pot.length > 0) {
+            this.pot = pot[0];
+        }
 
         if ("ontouchstart" in document.documentElement) {
             this.element.addEventListener('touchstart', (event: any) => this.onTouchStart(event), false);
@@ -144,8 +150,21 @@ class Slider {
             if (this.moved.y > this.element.clientHeight) this.moved.y = this.element.clientHeight;
         }
 
-        this.pin.style.left = '' + (this.moved.x - (this.pin.clientWidth / 2)) + 'px';
-        this.pin.style.top = '' + (this.moved.y - (this.pin.clientHeight / 2)) + 'px';
+        this.handle.style.left = '' + (this.moved.x - (this.handle.clientWidth / 2)) + 'px';
+        this.handle.style.top = '' + (this.moved.y - (this.handle.clientHeight / 2)) + 'px';
+
+        if (this.pot) {
+            var pt: Point = new Point();
+            pt.x = this.moved.x;
+            pt.y = this.moved.y;
+            if (pt.x < 0) pt.x = 0;
+            if (pt.y < 0) pt.y = 0;
+            if (pt.x > this.element.clientWidth) pt.x = this.element.clientWidth;
+            if (pt.y > this.element.clientHeight) pt.y = this.element.clientHeight;
+
+            this.pot.style.left = '' + (pt.x - (this.pot.clientWidth / 2)) + 'px';
+            this.pot.style.top = '' + (pt.y - (this.pot.clientHeight / 2)) + 'px';
+        }
     }
 
     private static pointFromMouseEvent(container: HTMLElement, e: any): Point {

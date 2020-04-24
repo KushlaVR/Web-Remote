@@ -42,7 +42,11 @@ var Slider = (function () {
         this.autoCenterX = false;
         this.autoCenterY = false;
         this.element = element;
-        this.pin = $(".pin", element)[0];
+        this.handle = $(".handle", element)[0];
+        var pot = $(".pot", element);
+        if (pot.length > 0) {
+            this.pot = pot[0];
+        }
         if ("ontouchstart" in document.documentElement) {
             this.element.addEventListener('touchstart', function (event) { return _this.onTouchStart(event); }, false);
             this.element.addEventListener('touchmove', function (event) { return _this.onTouchMove(event); }, false);
@@ -115,8 +119,23 @@ var Slider = (function () {
             if (this.moved.y > this.element.clientHeight)
                 this.moved.y = this.element.clientHeight;
         }
-        this.pin.style.left = '' + (this.moved.x - (this.pin.clientWidth / 2)) + 'px';
-        this.pin.style.top = '' + (this.moved.y - (this.pin.clientHeight / 2)) + 'px';
+        this.handle.style.left = '' + (this.moved.x - (this.handle.clientWidth / 2)) + 'px';
+        this.handle.style.top = '' + (this.moved.y - (this.handle.clientHeight / 2)) + 'px';
+        if (this.pot) {
+            var pt = new Point();
+            pt.x = this.moved.x;
+            pt.y = this.moved.y;
+            if (pt.x < 0)
+                pt.x = 0;
+            if (pt.y < 0)
+                pt.y = 0;
+            if (pt.x > this.element.clientWidth)
+                pt.x = this.element.clientWidth;
+            if (pt.y > this.element.clientHeight)
+                pt.y = this.element.clientHeight;
+            this.pot.style.left = '' + (pt.x - (this.pot.clientWidth / 2)) + 'px';
+            this.pot.style.top = '' + (pt.y - (this.pot.clientHeight / 2)) + 'px';
+        }
     };
     Slider.pointFromMouseEvent = function (container, e) {
         var m_posx = 0, m_posy = 0, e_posx = 0, e_posy = 0;
