@@ -1,23 +1,42 @@
 ﻿body {
-    width: 800px;
     padding: 0;
     margin: auto;
     background: #eee;
+    width: 100vw;
+    overflow: hidden;
 }
 
+.grid {
+    background-image: repeating-linear-gradient(#efefef 0 1px, transparent 1px 100%), repeating-linear-gradient(90deg, #efefef 0 1px, transparent 1px 100%);
+    background-size: 10vw 10vw;
+}
 
 .main {
+
 }
 
     .main .screen {
         display: block;
         position: relative;
-        width: 800px;
-        height: 350px;
+        margin: 10px auto;
+        width: 95vw;
+        height: 47vw;
+        background-color: white;
+        border: 1px solid #ddd;
+        box-shadow: rgba(0,0,0,0.1) 0px 1px 10px;
+        border-radius: 5px;
     }
 
-.full-screen {
-    position: absolute;
-    top: 0;
-    right: 0px;
-}
+
+        .main .screen label,
+        .main .screen .form-control,
+        .main .screen button,
+        .main .screen input {
+            font-size: 2vw;
+        }
+
+        .full-screen {
+            position: absolute;
+            top: 0;
+            right: 0px;
+        }

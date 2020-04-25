@@ -1,25 +1,23 @@
 ﻿class WorkSpace {
-    public value: number = 0;
 
-    private static form: HTMLFormElement;
 
-    constructor() {
+    private form: HTMLFormElement;
+    private inputs: Array<Input> = new Array<Input>();
+    private outputs: Array<Output> = new Array<Input>();
+    values: Dictionary<string> = new Dictionary<string>();
+    tranCount: number = 0;
+
+    constructor(form: HTMLFormElement) {
+        this.form = form;
+        window.addEventListener('resize', (event: any) => this.UpdateLayout(), false);
     }
 
     public static init(form: JQuery) {
-        WorkSpace.form = <any>(form[0]);
-        WorkSpace.form.oninput = () => {
-            WorkSpace.form_input();
-        }
-        var controls = $(".slider", WorkSpace.form);
-        controls.each((index: number, element: any) => {
-            var slider: Slider = new Slider(element);
-        })
+        var workSpace: WorkSpace = new WorkSpace(<any>(form[0]));
+        workSpace.registerInputs();
+        workSpace.registerOutputs();
     }
 
-    private static form_input() {
-
-    }
 
     static toggleFullScreen(): void {
         var doc: any = window.document;
@@ -36,34 +34,171 @@
         }
     }
 
+    UpdateLayout() {
+        for (var i: number = 0; i < this.inputs.length; i++) {
+            this.inputs[i].initLayout();
+        }
+        for (var o: number = 0; i < this.outputs.length; i++) {
+            this.outputs[o].initLayout();
+        }
+    }
+
+    private registerInputs() {
+        var inputs = $(".input", this.form);
+
+        inputs.each((index: number, val: any) => {
+            let element: HTMLElement = val;
+            var input: Input;
+            if ($(element).hasClass("slider")) {
+                var slider: Slider = new Slider(element);
+                input = slider;
+            } else {
+                input = new Input(element);
+            }
+            this.addInput(input);
+        })
+    }
+
+    private addInput(input: Input): void {
+        input.workSpace = this;
+        this.inputs.push(input);
+        input.refreshValues();
+    }
+
+    private registerOutputs() {
+        var outputs = $(".output", this.form);
+
+        outputs.each((index: number, val: any) => {
+            let element: HTMLElement = val;
+            var output: Output;
+            output = new Output(element);
+            this.addOutput(output);
+        })
+    }
+
+    private addOutput(output: Output): void {
+        output.workSpace = this;
+        this.outputs.push(output);
+        output.refreshValues();
+    }
+
+
+    beginTransaction() {
+        this.tranCount += 1;
+    }
+
+    endTransaction() {
+        this.tranCount -= 1;
+        if (this.tranCount === 0) {
+            for (var i: number = 0; i < this.outputs.length; i++) {
+                this.outputs[i].refreshValues();
+            }
+        }
+    }
+
+
 }
 
+interface IDictionary<T> {
+    add(key: string, value: T): void;
+    remove(key: string): void;
+    containsKey(key: string): boolean;
+    keys(): string[];
+}
+
+class Dictionary<T> implements IDictionary<T> {
+
+    _keys: string[] = [];
+
+    constructor(init?: { key: string; value: T; }[]) {
+        if (init) {
+            for (var x = 0; x < init.length; x++) {
+                this[init[x].key] = init[x].value;
+                this._keys.push(init[x].key);
+            }
+        }
+    }
+
+    add(key: string, value: T) {
+        this[key] = value;
+        this._keys.push(key);
+    }
+
+    remove(key: string) {
+        var index = this._keys.indexOf(key, 0);
+        this._keys.splice(index, 1);
+        delete this[key];
+    }
+
+    keys(): string[] {
+        return this._keys;
+    }
+
+    containsKey(key: string) {
+        if (typeof this[key] === "undefined") {
+            return false;
+        }
+        return true;
+    }
+
+    toLookup(): IDictionary<T> {
+        return this;
+    }
+}
 
 class Point {
-    x: number;
-    y: number;
+    x: number = 0;
+    y: number = 0;
 }
 
+class Input {
 
-class Slider {
+    workSpace: WorkSpace;
+    element: HTMLElement;
+    jElement: JQuery;
+    name: string;
 
-    private element: HTMLElement;
+    constructor(element: any) {
+        this.element = element;
+        this.jElement = $(element);
+        this.name = this.jElement.attr("name");
+    }
+
+    refreshValues(): void {
+        if (!this.workSpace) return;
+        this.workSpace.beginTransaction();
+        let val: string = this.jElement.attr("value")
+        if (val) {
+            if (!this.workSpace.values.containsKey(this.name)) {
+                this.workSpace.values.add(this.name, val)
+            } else {
+                this.workSpace.values[this.name] = val;
+            }
+        }
+        this.workSpace.endTransaction();
+    }
+
+    initLayout(): void {
+
+    }
+}
+
+class Slider extends Input {
+
     private handle: HTMLElement;
     private pot: HTMLElement;
 
     private pressed: boolean = false;
 
-    private moved: Point = new Point();
-
+    private handlePos: Point = new Point();
+    private value: Point = new Point();
     private center: Point = new Point();
-
 
     public autoCenterX: boolean = false;
     public autoCenterY: boolean = false;
 
-
     constructor(element: any) {
-        this.element = element;
+        super(element);
         this.handle = $(".handle", element)[0];
         var pot = $(".pot", element)
         if (pot.length > 0) {
@@ -81,11 +216,7 @@ class Slider {
             this.element.addEventListener('mouseup', (event: any) => this.onMouseUp(event), false);
         }
 
-        this.center.x = this.element.clientWidth / 2;
-        this.center.y = this.element.clientHeight / 2;
-
-        this.moved.x = this.center.x;
-        this.moved.y = this.center.y;
+        this.initLayout();
 
         if ($(element).data("center")) {
             this.autoCenterX = true;
@@ -96,75 +227,131 @@ class Slider {
             this.autoCenterY = true;
         }
 
-        this.drawInternal(true);
-
+        this.refreshLayout(true);
     }
-
 
     private onTouchStart(event): void {
         this.pressed = true;
+        this.element.style.zIndex = "100";
     }
     private onTouchMove(event: TouchEvent) {
         // Prevent the browser from doing its default thing (scroll, zoom)
         event.preventDefault();
         if (this.pressed === true) {
-            this.moved = Slider.pointFromTouch(this.element, event.targetTouches[0])
-            this.drawInternal(false);
+            this.handlePos = Slider.pointFromTouch(this.element, event.targetTouches[0])
+            this.refreshLayout(false);
+            this.refreshValues();
         }
     }
     private onTouchEnd(event): void {
         this.pressed = false;
         // If required reset position store variable
         if (this.autoCenterX)
-            this.moved.x = this.center.x;
+            this.handlePos.x = this.center.x;
         if (this.autoCenterY)
-            this.moved.y = this.center.y;
-        this.drawInternal(true);
+            this.handlePos.y = this.center.y;
+        this.refreshLayout(true);
+        this.refreshValues();
+        this.element.style.zIndex = "0";
     }
 
     private onMouseDown(event): void {
         this.pressed = true;
+        this.element.style.zIndex = "100";
     }
     private onMouseMove(event): void {
         if (this.pressed === true /*&& event.target === this.element*/) {
-            this.moved = Slider.pointFromMouseEvent(this.element, event);
-            this.drawInternal(false);
+            this.handlePos = Slider.pointFromMouseEvent(this.element, event);
+            this.refreshLayout(false);
+            this.refreshValues();
         }
     }
     private onMouseUp(event): void {
         this.pressed = false;
         // If required reset position store variable
         if (this.autoCenterX)
-            this.moved.x = this.center.x;
+            this.handlePos.x = this.center.x;
         if (this.autoCenterY)
-            this.moved.y = this.center.y;
-        this.drawInternal(true);
+            this.handlePos.y = this.center.y;
+        this.refreshLayout(true);
+        this.refreshValues();
+        this.element.style.zIndex = "0";
     }
 
-
-    private drawInternal(clip: boolean): void {
+    private refreshLayout(clip: boolean): void {
         if (clip) {
-            if (this.moved.x < 0) this.moved.x = 0;
-            if (this.moved.y < 0) this.moved.y = 0;
-            if (this.moved.x > this.element.clientWidth) this.moved.x = this.element.clientWidth;
-            if (this.moved.y > this.element.clientHeight) this.moved.y = this.element.clientHeight;
+            if (this.handlePos.x < 0) this.handlePos.x = 0;
+            if (this.handlePos.y < 0) this.handlePos.y = 0;
+            if (this.handlePos.x > this.element.clientWidth) this.handlePos.x = this.element.clientWidth;
+            if (this.handlePos.y > this.element.clientHeight) this.handlePos.y = this.element.clientHeight;
         }
 
-        this.handle.style.left = '' + (this.moved.x - (this.handle.clientWidth / 2)) + 'px';
-        this.handle.style.top = '' + (this.moved.y - (this.handle.clientHeight / 2)) + 'px';
+        this.handle.style.left = '' + (this.handlePos.x - (this.handle.clientWidth / 2)) + 'px';
+        this.handle.style.top = '' + (this.handlePos.y - (this.handle.clientHeight / 2)) + 'px';
+
+
+        var clipped: Point = new Point();
+        clipped.x = this.handlePos.x;
+        clipped.y = this.handlePos.y;
+        if (clipped.x < 0) clipped.x = 0;
+        if (clipped.y < 0) clipped.y = 0;
+        if (clipped.x > this.element.clientWidth) clipped.x = this.element.clientWidth;
+        if (clipped.y > this.element.clientHeight) clipped.y = this.element.clientHeight;
+
+        let normalized: Point = new Point();
+        normalized.x = (this.center.x - clipped.x) * 100.0 / (this.element.clientWidth / 2.0);
+        normalized.y = (this.center.y - clipped.y) * 100.0 / (this.element.clientHeight / 2.0);
+
+        this.value = normalized;
 
         if (this.pot) {
-            var pt: Point = new Point();
-            pt.x = this.moved.x;
-            pt.y = this.moved.y;
-            if (pt.x < 0) pt.x = 0;
-            if (pt.y < 0) pt.y = 0;
-            if (pt.x > this.element.clientWidth) pt.x = this.element.clientWidth;
-            if (pt.y > this.element.clientHeight) pt.y = this.element.clientHeight;
-
-            this.pot.style.left = '' + (pt.x - (this.pot.clientWidth / 2)) + 'px';
-            this.pot.style.top = '' + (pt.y - (this.pot.clientHeight / 2)) + 'px';
+            this.pot.style.left = '' + (clipped.x - (this.pot.clientWidth / 2.0)) + 'px';
+            this.pot.style.top = '' + (clipped.y - (this.pot.clientHeight / 2.0)) + 'px';
         }
+    }
+
+    refreshValues(): void {
+        if (!this.workSpace) return;
+        this.workSpace.beginTransaction();
+        let key_x = this.name + "_x";
+        if (!this.workSpace.values.containsKey(key_x)) {
+            this.workSpace.values.add(key_x, Slider.numToString(this.value.x))
+        } else {
+            this.workSpace.values[key_x] = Slider.numToString(this.value.x);
+        }
+
+        let key_y = this.name + "_y";
+        if (!this.workSpace.values.containsKey(key_y)) {
+            this.workSpace.values.add(key_y, Slider.numToString(this.value.y))
+        } else {
+            this.workSpace.values[key_y] = Slider.numToString(this.value.y);
+        }
+        this.workSpace.endTransaction();
+    }
+
+    initLayout(): void {
+
+        this.center.x = this.element.clientWidth / 2;
+        this.center.y = this.element.clientHeight / 2;
+
+        let x = this.element.clientWidth / 2.0;
+        let y = this.element.clientHeight / 2.0;
+
+        this.handlePos.x = this.center.x - this.value.x * x / 100.0;
+        this.handlePos.y = this.center.y - this.value.y * y / 100.0;
+
+        this.handle.style.left = '' + (this.handlePos.x - (this.handle.clientWidth / 2)) + 'px';
+        this.handle.style.top = '' + (this.handlePos.y - (this.handle.clientHeight / 2)) + 'px';
+
+        if (this.pot) {
+            this.pot.style.left = '' + (this.handlePos.x - (this.pot.clientWidth / 2.0)) + 'px';
+            this.pot.style.top = '' + (this.handlePos.y - (this.pot.clientHeight / 2.0)) + 'px';
+        }
+
+    }
+
+    private static numToString(n: number): string {
+        return (Math.round(n * 100.0) / 100.0).toString(10);
     }
 
     private static pointFromMouseEvent(container: HTMLElement, e: any): Point {
@@ -226,6 +413,31 @@ class Slider {
 
 }
 
+class Output {
+    workSpace: WorkSpace;
+    element: HTMLElement;
+    jElement: JQuery;
+    name: string;
 
+    constructor(element: any) {
+        this.element = element;
+        this.jElement = $(element);
+        this.name = this.jElement.data("input");
+    }
+
+    refreshValues(): void {
+        if (this.workSpace.values.containsKey(this.name)) {
+            if (this.element.tagName.toUpperCase() == "INPUT") {
+                this.jElement.val(this.workSpace.values[this.name]);
+            } else {
+                this.jElement.text(this.workSpace.values[this.name]);
+            }
+        }
+    }
+
+    initLayout(): void {
+
+    }
+}
 
 
