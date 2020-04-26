@@ -25,6 +25,23 @@ var WorkSpace = (function () {
         var workSpace = new WorkSpace((form[0]));
         workSpace.registerInputs();
         workSpace.registerOutputs();
+        workSpace.Connect();
+    };
+    WorkSpace.prototype.Connect = function () {
+        var _this = this;
+        var jqxhr = $.get("/api/pipename")
+            .done(function (pipename) {
+            _this.socket = new WebSocket(pipename);
+            _this.socket.onmessage = function (msg) {
+                $("#message").text(msg);
+            };
+            _this.socket.onclose = function (event) {
+                alert('Disconnected');
+            };
+        })
+            .fail(function () {
+            console.log("error");
+        });
     };
     WorkSpace.toggleFullScreen = function () {
         var doc = window.document;
@@ -91,6 +108,8 @@ var WorkSpace = (function () {
             for (var i = 0; i < this.outputs.length; i++) {
                 this.outputs[i].refreshValues();
             }
+            if (this.socket)
+                this.socket.send(this.values);
         }
     };
     return WorkSpace;

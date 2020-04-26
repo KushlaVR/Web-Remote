@@ -2,6 +2,9 @@
 
 
     private form: HTMLFormElement;
+
+    socket: WebSocket;
+
     private inputs: Array<Input> = new Array<Input>();
     private outputs: Array<Output> = new Array<Input>();
     values: Dictionary<string> = new Dictionary<string>();
@@ -16,8 +19,26 @@
         var workSpace: WorkSpace = new WorkSpace(<any>(form[0]));
         workSpace.registerInputs();
         workSpace.registerOutputs();
+        workSpace.Connect();
     }
 
+
+    private Connect(): void {
+        var jqxhr = $.get("/api/pipename")
+            .done((pipename) => {
+                this.socket = new WebSocket(pipename);
+                this.socket.onmessage = (msg: any) => {
+                    $("#message").text(msg);
+                };
+
+                this.socket.onclose = (event: any) => {
+                    alert('Disconnected');
+                };
+            })
+            .fail(function () {
+                console.log("error");
+            });
+    }
 
     static toggleFullScreen(): void {
         var doc: any = window.document;
@@ -93,6 +114,7 @@
             for (var i: number = 0; i < this.outputs.length; i++) {
                 this.outputs[i].refreshValues();
             }
+            if (this.socket) this.socket.send(JSON.stringif(this.values));
         }
     }
 

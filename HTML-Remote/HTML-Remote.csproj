@@ -1,0 +1,543 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props')" />
+  <Import Project="..\WebRemote\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.0\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\WebRemote\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.0\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{F8D75A00-A638-4EBB-BC32-2E312EEC46DF}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>WebUI</RootNamespace>
+    <AssemblyName>WebUI</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <MvcBuildViews>false</MvcBuildViews>
+    <UseIISExpress>true</UseIISExpress>
+    <Use64BitIISExpress />
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
+    <UseGlobalApplicationHostFile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <TypeScriptToolsVersion>3.7</TypeScriptToolsVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.Web.Entity" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Abstractions" />
+    <Reference Include="System.Web.Routing" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\WebRemote\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http">
+    </Reference>
+    <Reference Include="System.Net.Http.WebRequest">
+    </Reference>
+    <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\WebRemote\packages\Microsoft.AspNet.WebPages.3.2.4\lib\net45\System.Web.Helpers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Mvc, Version=5.2.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\WebRemote\packages\Microsoft.AspNet.Mvc.5.2.4\lib\net45\System.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Optimization">
+      <HintPath>..\WebRemote\packages\Microsoft.AspNet.Web.Optimization.1.1.3\lib\net40\System.Web.Optimization.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\WebRemote\packages\Microsoft.AspNet.Razor.3.2.4\lib\net45\System.Web.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\WebRemote\packages\Microsoft.AspNet.WebPages.3.2.4\lib\net45\System.Web.WebPages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Deployment, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\WebRemote\packages\Microsoft.AspNet.WebPages.3.2.4\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\WebRemote\packages\Microsoft.AspNet.WebPages.3.2.4\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\WebRemote\packages\Newtonsoft.Json.11.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="WebGrease">
+      <Private>True</Private>
+      <HintPath>..\WebRemote\packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
+    </Reference>
+    <Reference Include="Antlr3.Runtime">
+      <Private>True</Private>
+      <HintPath>..\WebRemote\packages\Antlr.3.5.0.2\lib\Antlr3.Runtime.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Diagnostics.DiagnosticSource">
+      <HintPath>..\WebRemote\packages\System.Diagnostics.DiagnosticSource.4.4.1\lib\net45\System.Diagnostics.DiagnosticSource.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.TelemetryCorrelation">
+      <HintPath>..\WebRemote\packages\Microsoft.AspNet.TelemetryCorrelation.1.0.0\lib\net45\Microsoft.AspNet.TelemetryCorrelation.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform">
+      <HintPath>..\WebRemote\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.0\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App_Start\BundleConfig.cs" />
+    <Compile Include="App_Start\FilterConfig.cs" />
+    <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\ApiController.cs" />
+    <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Global.asax.cs">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+    <Compile Include="Pipe.ashx.cs">
+      <DependentUpon>Pipe.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="control.html" />
+    <Content Include="css\bootstrap.css" />
+    <Content Include="css\bootstrap.min.css">
+      <DependentUpon>bootstrap.css</DependentUpon>
+    </Content>
+    <Content Include="css\slider.css" />
+    <Content Include="css\style.css" />
+    <Content Include="favicon.ico" />
+    <Content Include="fonts\glyphicons-halflings-regular.svg" />
+    <Content Include="Global.asax" />
+    <Content Include="img\headlight.svg" />
+    <Content Include="img\remote-control.svg" />
+    <Content Include="img\speedometer.svg" />
+    <Content Include="img\warning.svg" />
+    <Content Include="index.html" />
+    <Content Include="js\bootstrap.js" />
+    <Content Include="js\bootstrap.min.js">
+      <DependentUpon>bootstrap.js</DependentUpon>
+    </Content>
+    <Content Include="js\jquery-validate.js" />
+    <Content Include="js\jquery-validate.min.js">
+      <DependentUpon>jquery-validate.js</DependentUpon>
+    </Content>
+    <Content Include="js\jquery.js" />
+    <Content Include="js\jquery.min.js">
+      <DependentUpon>jquery.js</DependentUpon>
+    </Content>
+    <Content Include="js\kushlavr.js" />
+    <Content Include="js\kushlavr.min.js" />
+    <Content Include="js\slider.js" />
+    <Content Include="js\slider.min.js" />
+    <Content Include="lib\bootstrap\dist\css\bootstrap-grid.css" />
+    <Content Include="lib\bootstrap\dist\css\bootstrap-grid.min.css" />
+    <Content Include="lib\bootstrap\dist\css\bootstrap-reboot.css" />
+    <Content Include="lib\bootstrap\dist\css\bootstrap-reboot.min.css" />
+    <Content Include="lib\bootstrap\dist\css\bootstrap.css" />
+    <Content Include="lib\bootstrap\dist\css\bootstrap.min.css" />
+    <Content Include="lib\bootstrap\dist\js\bootstrap.bundle.js" />
+    <Content Include="lib\bootstrap\dist\js\bootstrap.bundle.min.js" />
+    <Content Include="lib\bootstrap\dist\js\bootstrap.js" />
+    <Content Include="lib\bootstrap\dist\js\bootstrap.min.js" />
+    <Content Include="lib\bootstrap\js\dist\alert.js" />
+    <Content Include="lib\bootstrap\js\dist\button.js" />
+    <Content Include="lib\bootstrap\js\dist\carousel.js" />
+    <Content Include="lib\bootstrap\js\dist\collapse.js" />
+    <Content Include="lib\bootstrap\js\dist\dropdown.js" />
+    <Content Include="lib\bootstrap\js\dist\index.js" />
+    <Content Include="lib\bootstrap\js\dist\modal.js" />
+    <Content Include="lib\bootstrap\js\dist\popover.js" />
+    <Content Include="lib\bootstrap\js\dist\scrollspy.js" />
+    <Content Include="lib\bootstrap\js\dist\tab.js" />
+    <Content Include="lib\bootstrap\js\dist\toast.js" />
+    <Content Include="lib\bootstrap\js\dist\tooltip.js" />
+    <Content Include="lib\bootstrap\js\dist\util.js" />
+    <Content Include="lib\bootstrap\js\src\alert.js" />
+    <Content Include="lib\bootstrap\js\src\button.js" />
+    <Content Include="lib\bootstrap\js\src\carousel.js" />
+    <Content Include="lib\bootstrap\js\src\collapse.js" />
+    <Content Include="lib\bootstrap\js\src\dropdown.js" />
+    <Content Include="lib\bootstrap\js\src\index.js" />
+    <Content Include="lib\bootstrap\js\src\modal.js" />
+    <Content Include="lib\bootstrap\js\src\popover.js" />
+    <Content Include="lib\bootstrap\js\src\scrollspy.js" />
+    <Content Include="lib\bootstrap\js\src\tab.js" />
+    <Content Include="lib\bootstrap\js\src\toast.js" />
+    <Content Include="lib\bootstrap\js\src\tools\sanitizer.js" />
+    <Content Include="lib\bootstrap\js\src\tooltip.js" />
+    <Content Include="lib\bootstrap\js\src\util.js" />
+    <Content Include="lib\jquery-validate\additional-methods.js" />
+    <Content Include="lib\jquery-validate\additional-methods.min.js" />
+    <Content Include="lib\jquery-validate\jquery.validate.js" />
+    <Content Include="lib\jquery-validate\jquery.validate.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ar.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ar.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_az.js" />
+    <Content Include="lib\jquery-validate\localization\messages_az.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_bg.js" />
+    <Content Include="lib\jquery-validate\localization\messages_bg.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_bn_BD.js" />
+    <Content Include="lib\jquery-validate\localization\messages_bn_BD.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ca.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ca.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_cs.js" />
+    <Content Include="lib\jquery-validate\localization\messages_cs.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_da.js" />
+    <Content Include="lib\jquery-validate\localization\messages_da.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_de.js" />
+    <Content Include="lib\jquery-validate\localization\messages_de.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_el.js" />
+    <Content Include="lib\jquery-validate\localization\messages_el.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_es.js" />
+    <Content Include="lib\jquery-validate\localization\messages_es.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_es_AR.js" />
+    <Content Include="lib\jquery-validate\localization\messages_es_AR.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_es_PE.js" />
+    <Content Include="lib\jquery-validate\localization\messages_es_PE.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_et.js" />
+    <Content Include="lib\jquery-validate\localization\messages_et.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_eu.js" />
+    <Content Include="lib\jquery-validate\localization\messages_eu.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_fa.js" />
+    <Content Include="lib\jquery-validate\localization\messages_fa.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_fi.js" />
+    <Content Include="lib\jquery-validate\localization\messages_fi.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_fr.js" />
+    <Content Include="lib\jquery-validate\localization\messages_fr.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ge.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ge.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_gl.js" />
+    <Content Include="lib\jquery-validate\localization\messages_gl.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_he.js" />
+    <Content Include="lib\jquery-validate\localization\messages_he.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_hr.js" />
+    <Content Include="lib\jquery-validate\localization\messages_hr.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_hu.js" />
+    <Content Include="lib\jquery-validate\localization\messages_hu.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_hy_AM.js" />
+    <Content Include="lib\jquery-validate\localization\messages_hy_AM.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_id.js" />
+    <Content Include="lib\jquery-validate\localization\messages_id.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_is.js" />
+    <Content Include="lib\jquery-validate\localization\messages_is.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_it.js" />
+    <Content Include="lib\jquery-validate\localization\messages_it.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ja.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ja.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ka.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ka.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_kk.js" />
+    <Content Include="lib\jquery-validate\localization\messages_kk.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ko.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ko.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_lt.js" />
+    <Content Include="lib\jquery-validate\localization\messages_lt.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_lv.js" />
+    <Content Include="lib\jquery-validate\localization\messages_lv.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_mk.js" />
+    <Content Include="lib\jquery-validate\localization\messages_mk.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_my.js" />
+    <Content Include="lib\jquery-validate\localization\messages_my.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_nl.js" />
+    <Content Include="lib\jquery-validate\localization\messages_nl.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_no.js" />
+    <Content Include="lib\jquery-validate\localization\messages_no.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_pl.js" />
+    <Content Include="lib\jquery-validate\localization\messages_pl.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_pt_BR.js" />
+    <Content Include="lib\jquery-validate\localization\messages_pt_BR.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_pt_PT.js" />
+    <Content Include="lib\jquery-validate\localization\messages_pt_PT.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ro.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ro.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ru.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ru.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_sd.js" />
+    <Content Include="lib\jquery-validate\localization\messages_sd.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_si.js" />
+    <Content Include="lib\jquery-validate\localization\messages_si.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_sk.js" />
+    <Content Include="lib\jquery-validate\localization\messages_sk.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_sl.js" />
+    <Content Include="lib\jquery-validate\localization\messages_sl.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_sr.js" />
+    <Content Include="lib\jquery-validate\localization\messages_sr.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_sr_lat.js" />
+    <Content Include="lib\jquery-validate\localization\messages_sr_lat.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_sv.js" />
+    <Content Include="lib\jquery-validate\localization\messages_sv.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_th.js" />
+    <Content Include="lib\jquery-validate\localization\messages_th.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_tj.js" />
+    <Content Include="lib\jquery-validate\localization\messages_tj.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_tr.js" />
+    <Content Include="lib\jquery-validate\localization\messages_tr.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_uk.js" />
+    <Content Include="lib\jquery-validate\localization\messages_uk.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ur.js" />
+    <Content Include="lib\jquery-validate\localization\messages_ur.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_vi.js" />
+    <Content Include="lib\jquery-validate\localization\messages_vi.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_zh.js" />
+    <Content Include="lib\jquery-validate\localization\messages_zh.min.js" />
+    <Content Include="lib\jquery-validate\localization\messages_zh_TW.js" />
+    <Content Include="lib\jquery-validate\localization\messages_zh_TW.min.js" />
+    <Content Include="lib\jquery-validate\localization\methods_de.js" />
+    <Content Include="lib\jquery-validate\localization\methods_de.min.js" />
+    <Content Include="lib\jquery-validate\localization\methods_es_CL.js" />
+    <Content Include="lib\jquery-validate\localization\methods_es_CL.min.js" />
+    <Content Include="lib\jquery-validate\localization\methods_fi.js" />
+    <Content Include="lib\jquery-validate\localization\methods_fi.min.js" />
+    <Content Include="lib\jquery-validate\localization\methods_it.js" />
+    <Content Include="lib\jquery-validate\localization\methods_it.min.js" />
+    <Content Include="lib\jquery-validate\localization\methods_nl.js" />
+    <Content Include="lib\jquery-validate\localization\methods_nl.min.js" />
+    <Content Include="lib\jquery-validate\localization\methods_pt.js" />
+    <Content Include="lib\jquery-validate\localization\methods_pt.min.js" />
+    <Content Include="lib\jquery\jquery.js" />
+    <Content Include="lib\jquery\jquery.min.js" />
+    <Content Include="lib\jquery\jquery.slim.js" />
+    <Content Include="lib\jquery\jquery.slim.min.js" />
+    <Content Include="manifest.json" />
+    <Content Include="lib\bootstrap\dist\css\bootstrap-grid.css.map" />
+    <Content Include="lib\bootstrap\dist\css\bootstrap-grid.min.css.map" />
+    <Content Include="lib\bootstrap\dist\css\bootstrap-reboot.css.map" />
+    <Content Include="lib\bootstrap\dist\css\bootstrap-reboot.min.css.map" />
+    <Content Include="lib\bootstrap\dist\css\bootstrap.css.map" />
+    <Content Include="lib\bootstrap\dist\css\bootstrap.min.css.map" />
+    <Content Include="lib\bootstrap\dist\js\bootstrap.bundle.js.map" />
+    <Content Include="lib\bootstrap\dist\js\bootstrap.bundle.min.js.map" />
+    <Content Include="lib\bootstrap\dist\js\bootstrap.js.map" />
+    <Content Include="lib\bootstrap\dist\js\bootstrap.min.js.map" />
+    <Content Include="lib\bootstrap\js\dist\alert.js.map" />
+    <Content Include="lib\bootstrap\js\dist\button.js.map" />
+    <Content Include="lib\bootstrap\js\dist\carousel.js.map" />
+    <Content Include="lib\bootstrap\js\dist\collapse.js.map" />
+    <Content Include="lib\bootstrap\js\dist\dropdown.js.map" />
+    <Content Include="lib\bootstrap\js\dist\index.js.map" />
+    <Content Include="lib\bootstrap\js\dist\modal.js.map" />
+    <Content Include="lib\bootstrap\js\dist\popover.js.map" />
+    <Content Include="lib\bootstrap\js\dist\scrollspy.js.map" />
+    <Content Include="lib\bootstrap\js\dist\tab.js.map" />
+    <Content Include="lib\bootstrap\js\dist\toast.js.map" />
+    <Content Include="lib\bootstrap\js\dist\tooltip.js.map" />
+    <Content Include="lib\bootstrap\js\dist\util.js.map" />
+    <Content Include="lib\bootstrap\LICENSE" />
+    <Content Include="lib\bootstrap\package.json" />
+    <Content Include="lib\bootstrap\README.md" />
+    <Content Include="lib\bootstrap\scss\bootstrap-grid.scss" />
+    <Content Include="lib\bootstrap\scss\bootstrap-reboot.scss" />
+    <Content Include="lib\bootstrap\scss\bootstrap.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_alert.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_background-variant.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_badge.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_border-radius.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_box-shadow.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_breakpoints.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_buttons.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_caret.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_clearfix.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_deprecate.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_float.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_forms.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_gradients.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_grid-framework.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_grid.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_hover.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_image.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_list-group.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_lists.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_nav-divider.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_pagination.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_reset-text.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_resize.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_screen-reader.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_size.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_table-row.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_text-emphasis.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_text-hide.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_text-truncate.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_transition.scss" />
+    <Content Include="lib\bootstrap\scss\mixins\_visibility.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_align.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_background.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_borders.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_clearfix.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_display.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_embed.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_flex.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_float.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_overflow.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_position.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_screenreaders.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_shadows.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_sizing.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_spacing.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_stretched-link.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_text.scss" />
+    <Content Include="lib\bootstrap\scss\utilities\_visibility.scss" />
+    <Content Include="lib\bootstrap\scss\vendor\_rfs.scss" />
+    <Content Include="lib\bootstrap\scss\_alert.scss" />
+    <Content Include="lib\bootstrap\scss\_badge.scss" />
+    <Content Include="lib\bootstrap\scss\_breadcrumb.scss" />
+    <Content Include="lib\bootstrap\scss\_button-group.scss" />
+    <Content Include="lib\bootstrap\scss\_buttons.scss" />
+    <Content Include="lib\bootstrap\scss\_card.scss" />
+    <Content Include="lib\bootstrap\scss\_carousel.scss" />
+    <Content Include="lib\bootstrap\scss\_close.scss" />
+    <Content Include="lib\bootstrap\scss\_code.scss" />
+    <Content Include="lib\bootstrap\scss\_custom-forms.scss" />
+    <Content Include="lib\bootstrap\scss\_dropdown.scss" />
+    <Content Include="lib\bootstrap\scss\_forms.scss" />
+    <Content Include="lib\bootstrap\scss\_functions.scss" />
+    <Content Include="lib\bootstrap\scss\_grid.scss" />
+    <Content Include="lib\bootstrap\scss\_images.scss" />
+    <Content Include="lib\bootstrap\scss\_input-group.scss" />
+    <Content Include="lib\bootstrap\scss\_jumbotron.scss" />
+    <Content Include="lib\bootstrap\scss\_list-group.scss" />
+    <Content Include="lib\bootstrap\scss\_media.scss" />
+    <Content Include="lib\bootstrap\scss\_mixins.scss" />
+    <Content Include="lib\bootstrap\scss\_modal.scss" />
+    <Content Include="lib\bootstrap\scss\_nav.scss" />
+    <Content Include="lib\bootstrap\scss\_navbar.scss" />
+    <Content Include="lib\bootstrap\scss\_pagination.scss" />
+    <Content Include="lib\bootstrap\scss\_popover.scss" />
+    <Content Include="lib\bootstrap\scss\_print.scss" />
+    <Content Include="lib\bootstrap\scss\_progress.scss" />
+    <Content Include="lib\bootstrap\scss\_reboot.scss" />
+    <Content Include="lib\bootstrap\scss\_root.scss" />
+    <Content Include="lib\bootstrap\scss\_spinners.scss" />
+    <Content Include="lib\bootstrap\scss\_tables.scss" />
+    <Content Include="lib\bootstrap\scss\_toasts.scss" />
+    <Content Include="lib\bootstrap\scss\_tooltip.scss" />
+    <Content Include="lib\bootstrap\scss\_transitions.scss" />
+    <Content Include="lib\bootstrap\scss\_type.scss" />
+    <Content Include="lib\bootstrap\scss\_utilities.scss" />
+    <Content Include="lib\bootstrap\scss\_variables.scss" />
+    <Content Include="lib\jquery\jquery.min.map" />
+    <Content Include="lib\jquery\jquery.slim.min.map" />
+    <Content Include="libman.json" />
+    <Content Include="js\kushlavr.js.map" />
+    <Content Include="js\kushlavr.min.js.map" />
+    <Content Include="js\slider.js.map" />
+    <Content Include="js\slider.min.js.map" />
+    <Content Include="bundleconfig.json" />
+    <Content Include="Web.config" />
+    <Content Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Views\Web.config" />
+    <Content Include="Views\_ViewStart.cshtml" />
+    <Content Include="Views\Shared\Error.cshtml" />
+    <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\Home\Chat.cshtml" />
+    <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="ts\tsconfig.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="App_Data\" />
+    <Folder Include="Models\" />
+    <Folder Include="Views\Api\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="fonts\glyphicons-halflings-regular.woff2" />
+    <Content Include="fonts\glyphicons-halflings-regular.woff" />
+    <Content Include="fonts\glyphicons-halflings-regular.ttf" />
+    <Content Include="fonts\glyphicons-halflings-regular.eot" />
+    <Content Include="package.json" />
+    <None Include="packages.config" />
+    <Content Include="Pipe.ashx" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="ts\kushlavr.ts" />
+    <TypeScriptCompile Include="ts\slider.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
+    <AspNetCompiler VirtualPath="temp" PhysicalPath="$(WebProjectOutputDir)" />
+  </Target>
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>50150</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:50150/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\WebRemote\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.0\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\WebRemote\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.0\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target> -->
+</Project>

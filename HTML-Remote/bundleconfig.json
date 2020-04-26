@@ -1,7 +1,7 @@
 // Configure bundling and minification for the project.
 // More info at https://go.microsoft.com/fwlink/?LinkId=808241
 [
-   {
+  {
     "outputFileName": "js/kushlavr.js",
     // An array of relative input file paths. Globbing patterns supported
     "inputFiles": [
@@ -21,6 +21,20 @@
     // An array of relative input file paths. Globbing patterns supported
     "inputFiles": [
       "lib/jquery/jquery.js"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
+    "sourceMap": false
+  },
+
+  {
+    "outputFileName": "js/jquery-validate.js",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "lib/jquery-validate/jquery.validate.js"
     ],
     // Optionally specify minification options
     "minify": {
