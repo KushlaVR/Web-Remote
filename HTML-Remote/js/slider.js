@@ -33,15 +33,23 @@ var WorkSpace = (function () {
             .done(function (pipename) {
             _this.socket = new WebSocket(pipename);
             _this.socket.onmessage = function (msg) {
-                $("#message").text(msg);
+                $("#message").text(msg.data);
             };
             _this.socket.onclose = function (event) {
-                alert('Disconnected');
+                $("#message").text("Disconnect...");
             };
+            _this.setFormat();
         })
             .fail(function () {
-            console.log("error");
+            $("#message").text("error");
         });
+    };
+    WorkSpace.prototype.setFormat = function () {
+        var fields = new Array();
+        for (var i = 0; i < this.inputs.length; i++) {
+            fields.push(this.inputs[i].name);
+        }
+        this.socket.send(JSON.stringify({ fields: fields }));
     };
     WorkSpace.toggleFullScreen = function () {
         var doc = window.document;
@@ -109,32 +117,24 @@ var WorkSpace = (function () {
                 this.outputs[i].refreshValues();
             }
             if (this.socket)
-                this.socket.send(this.values);
+                this.socket.send(JSON.stringify(this.values));
         }
     };
     return WorkSpace;
 }());
 var Dictionary = (function () {
     function Dictionary(init) {
-        this._keys = [];
         if (init) {
             for (var x = 0; x < init.length; x++) {
                 this[init[x].key] = init[x].value;
-                this._keys.push(init[x].key);
             }
         }
     }
     Dictionary.prototype.add = function (key, value) {
         this[key] = value;
-        this._keys.push(key);
     };
     Dictionary.prototype.remove = function (key) {
-        var index = this._keys.indexOf(key, 0);
-        this._keys.splice(index, 1);
         delete this[key];
-    };
-    Dictionary.prototype.keys = function () {
-        return this._keys;
     };
     Dictionary.prototype.containsKey = function (key) {
         if (typeof this[key] === "undefined") {

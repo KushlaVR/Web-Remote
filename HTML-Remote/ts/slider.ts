@@ -27,17 +27,30 @@
         var jqxhr = $.get("/api/pipename")
             .done((pipename) => {
                 this.socket = new WebSocket(pipename);
-                this.socket.onmessage = (msg: any) => {
-                    $("#message").text(msg);
+                this.socket.onmessage = (msg: MessageEvent) => {
+                    $("#message").text(msg.data);
                 };
 
-                this.socket.onclose = (event: any) => {
-                    alert('Disconnected');
+                this.socket.onclose = (event: CloseEvent) => {
+                    $("#message").text("Disconnect...");
                 };
+
+                this.setFormat();
+
             })
-            .fail(function () {
-                console.log("error");
+            .fail(() => {
+                $("#message").text("error");
             });
+    }
+
+    private setFormat(): void {
+        var fields = new Array();
+
+        for (var i: number = 0; i < this.inputs.length; i++) {
+            fields.push(this.inputs[i].name);
+        }
+
+        this.socket.send(JSON.stringify({ fields: fields }));
     }
 
     static toggleFullScreen(): void {
@@ -114,7 +127,7 @@
             for (var i: number = 0; i < this.outputs.length; i++) {
                 this.outputs[i].refreshValues();
             }
-            if (this.socket) this.socket.send(JSON.stringif(this.values));
+            if (this.socket) this.socket.send(JSON.stringify(this.values));
         }
     }
 
@@ -125,35 +138,25 @@ interface IDictionary<T> {
     add(key: string, value: T): void;
     remove(key: string): void;
     containsKey(key: string): boolean;
-    keys(): string[];
 }
 
 class Dictionary<T> implements IDictionary<T> {
 
-    _keys: string[] = [];
 
     constructor(init?: { key: string; value: T; }[]) {
         if (init) {
             for (var x = 0; x < init.length; x++) {
                 this[init[x].key] = init[x].value;
-                this._keys.push(init[x].key);
             }
         }
     }
 
     add(key: string, value: T) {
         this[key] = value;
-        this._keys.push(key);
     }
 
     remove(key: string) {
-        var index = this._keys.indexOf(key, 0);
-        this._keys.splice(index, 1);
         delete this[key];
-    }
-
-    keys(): string[] {
-        return this._keys;
     }
 
     containsKey(key: string) {

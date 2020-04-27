@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,7 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Script.Serialization;
 using System.Web.WebSockets;
 
 namespace WebUI
@@ -18,8 +18,70 @@ namespace WebUI
     public class Pipe : IHttpHandler
     {
 
+        public class Client
+        {
+
+            public WebSocket socket;
+
+            public List<String> format;
+            public Dictionary<string, string> received;
+
+            public async Task<bool> sendAsync(Dictionary<string, string> values)
+            {
+                if (format == null) return true;
+
+                ArraySegment<byte> data;
+                try
+                {
+                    Locker.EnterWriteLock();
+                    string ret = null;
+                    ret = JsonConvert.SerializeObject(values);
+                    data = new ArraySegment<byte>(Encoding.ASCII.GetBytes(ret));
+                }
+                finally
+                {
+                    Locker.ExitWriteLock();
+                }
+
+                try
+                {
+                    if (socket.State == WebSocketState.Open)
+                    {
+                        await socket.SendAsync(data, WebSocketMessageType.Text, true, CancellationToken.None);
+                        return true;
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+                return false;
+            }
+
+            internal async Task<bool> receiveNextAsync()
+            {
+                var buffer = new ArraySegment<byte>(new byte[1024]);
+
+                var result = await socket.ReceiveAsync(buffer, CancellationToken.None);
+                Stream str = new MemoryStream(buffer.ToArray());
+                StreamReader reader = new StreamReader(str);
+                string json = reader.ReadToEnd();
+
+                var v = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+                if (v.ContainsKey("fields"))
+                {
+                    розпарсити формат
+                    return true;
+                }
+
+                received = v;
+                return true;
+            }
+        }
+
         private static readonly Dictionary<string, string> values = new Dictionary<string, string>();
         private static readonly Dictionary<string, string> sendValues = new Dictionary<string, string>();
+
+
 
 
         public void ProcessRequest(HttpContext context)
@@ -37,7 +99,7 @@ namespace WebUI
         }
 
         // Список всех клиентов
-        private static readonly List<WebSocket> Clients = new List<WebSocket>();
+        private static readonly List<Client> Clients = new List<Client>();
 
         // Блокировка для обеспечения потокабезопасности
         private static readonly ReaderWriterLockSlim Locker = new ReaderWriterLockSlim();
@@ -47,13 +109,12 @@ namespace WebUI
         private async Task WebSocketRequest(AspNetWebSocketContext context)
         {
             // Получаем сокет клиента из контекста запроса
-            var socket = context.WebSocket;
-
+            var client = new Client() { socket = context.WebSocket };
             // Добавляем его в список клиентов
             Locker.EnterWriteLock();
             try
             {
-                Clients.Add(socket);
+                Clients.Add(client);
             }
             finally
             {
@@ -63,96 +124,76 @@ namespace WebUI
             // Слушаем его
             while (true)
             {
-                var buffer = new ArraySegment<byte>(new byte[1024]);
-
-                var result = await socket.ReceiveAsync(buffer, CancellationToken.None);
-                Stream str = new MemoryStream(buffer.ToArray());
-                StreamReader reader = new StreamReader(str);
-                string json = reader.ReadToEnd();
-                JavaScriptSerializer json_serializer = new JavaScriptSerializer();
-                Dictionary<string, string> v = (Dictionary<string, string>)json_serializer.DeserializeObject(json);
-
-                bool changed = false;
-
-
-                Locker.EnterWriteLock();
-                try
+                if (await client.receiveNextAsync())
                 {
-                    foreach (string key in v.Keys)
+                    if (client.received != null)
                     {
-                        if (values.ContainsKey(key))
-                        {
-                            values[key] = v[key];
-                        }
-                        else
-                        {
-                            values.Add(key, v[key]);
-                        }
-                    }
+                        bool changed = false;
 
-                    foreach (string key in values.Keys)
-                    {
-                        if (!sendValues.ContainsKey(key))
-                        {
-                            changed = true;
-                            break;
-                        }
-                        else
-                        {
-                            if (values[key] != sendValues[key])
-                            {
-                                changed = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                finally
-                {
-                    Locker.ExitWriteLock();
-                }
-
-                if (changed)
-                {
-                    ArraySegment<byte> data;
-                    try
-                    {
                         Locker.EnterWriteLock();
-                    string ret = null;
-                        ret = json_serializer.Serialize(values);
-                        data = new ArraySegment<byte>(Encoding.ASCII.GetBytes(ret));
-                    }
-                    finally
-                    {
-                        Locker.ExitWriteLock();
-                    }
-
-                    //Передаём сообщение всем клиентам
-                    for (int i = 0; i < Clients.Count; i++)
-                    {
-                        WebSocket client = Clients[i];
                         try
                         {
-                            if (client.State == WebSocketState.Open)
+                            foreach (string key in client.received.Keys)
                             {
-                                await client.SendAsync(data, WebSocketMessageType.Text, true, CancellationToken.None);
+                                if (values.ContainsKey(key))
+                                {
+                                    values[key] = client.received[key];
+                                }
+                                else
+                                {
+                                    values.Add(key, client.received[key]);
+                                }
+                            }
+
+                            foreach (string key in values.Keys)
+                            {
+                                if (!sendValues.ContainsKey(key))
+                                {
+                                    changed = true;
+                                    break;
+                                }
+                                else
+                                {
+                                    if (values[key] != sendValues[key])
+                                    {
+                                        changed = true;
+                                        break;
+                                    }
+                                }
                             }
                         }
-                        catch (ObjectDisposedException)
+                        finally
                         {
-                            Locker.EnterWriteLock();
-                            try
+                            Locker.ExitWriteLock();
+                        }
+
+                        if (changed)
+                        {
+                            //Передаём сообщение всем клиентам
+                            for (int i = 0; i < Clients.Count; i++)
                             {
-                                Clients.Remove(client);
-                                i--;
-                            }
-                            finally
-                            {
-                                Locker.ExitWriteLock();
+                                Client nextClient = Clients[i];
+                                if (!await client.sendAsync(values))
+                                {
+                                    Locker.EnterWriteLock();
+                                    try
+                                    {
+                                        Clients.Remove(client);
+                                        i--;
+                                    }
+                                    finally
+                                    {
+                                        Locker.ExitWriteLock();
+                                    }
+                                };
                             }
                         }
                     }
+
+
+
                 }
+
             }
         }
     }
