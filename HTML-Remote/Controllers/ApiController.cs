@@ -14,4 +14,4 @@ namespace WebUI.Controllers
             return new ContentResult() {ContentType = "text/plain", Content = "ws://" + Request.Url.Host + ":" + Request.Url.Port +"/pipe.ashx" };
         }
     }
-}
+} 
