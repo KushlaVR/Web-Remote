@@ -20,7 +20,7 @@ var WorkSpace = (function () {
         this.sent = new Dictionary();
         this.tranCount = 0;
         this.timer = 0;
-        this.reportInterval = 5000;
+        this.reportInterval = 100;
         this.form = form;
         window.addEventListener('resize', function (event) { return _this.UpdateLayout(); }, false);
     }
@@ -66,11 +66,18 @@ var WorkSpace = (function () {
             if (this.socket) {
                 if (this.socket.bufferedAmount == 0) {
                     var v = new Array();
-                    $.each((this.values), function (name, value) {
+                    var changed = false;
+                    for (var i = 0; i < this.fields.length; i++) {
+                        var key = this.fields[i];
+                        var value = this.values[key];
                         v.push(value);
-                        _this.sent[name] = value;
-                    });
-                    this.socket.send(JSON.stringify({ values: v }));
+                        if (this.sent[key] !== this.values[key])
+                            changed = true;
+                        this.sent[key] = value;
+                    }
+                    if (changed == true) {
+                        this.socket.send(JSON.stringify({ values: v }));
+                    }
                 }
             }
             this.timer = setTimeout(function () {
@@ -85,8 +92,11 @@ var WorkSpace = (function () {
             for (var i = 0; i < this.fields.length; i++) {
                 var key = this.fields[i];
                 var val = parcel.values[i];
-                this.values[key] = val;
-                this.refreshInput(key, val);
+                if (this.sent[key] != val) {
+                    this.sent[key] = val;
+                    this.values[key] = val;
+                    this.refreshInput(key, val);
+                }
             }
             this.refreshOutput();
         }
@@ -338,6 +348,8 @@ var Slider = (function (_super) {
         this.workSpace.endTransaction();
     };
     Slider.prototype.loadValue = function (key, value) {
+        if (this.pressed == true)
+            return;
         var key_x = this.name + "_x";
         var key_y = this.name + "_y";
         var refresh = false;

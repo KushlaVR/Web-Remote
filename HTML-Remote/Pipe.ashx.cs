@@ -111,7 +111,7 @@ namespace WebUI
         private static readonly Dictionary<string, string> sendValues = new Dictionary<string, string>();
 
 
-        private static Timer timer = new Timer(timer_tick, null, 0, 1000);
+        private static Timer timer = new Timer(timer_tick, null, 0, 500);
 
         private static void timer_tick(object state)
         {
@@ -123,12 +123,12 @@ namespace WebUI
 
         private static async Task<bool> timer_tickAsync(object state)
         {
-            if (currentValues.ContainsKey("gun_x"))
-            {
-                int v = int.Parse(currentValues["gun_x"]) + 1;
-                if (v > 100) v = -100;
-                currentValues["gun_x"] = v.ToString();
-            }
+            //if (currentValues.ContainsKey("gun_x"))
+            //{
+            //    int v = int.Parse(currentValues["gun_x"]) + 1;
+            //    if (v > 100) v = -100;
+            //    currentValues["gun_x"] = v.ToString();
+            //}
             return await sendAll();
         }
 
@@ -136,24 +136,32 @@ namespace WebUI
         {
 
             bool changed = false;
-
-
-            foreach (string key in currentValues.Keys)
+            Locker.EnterWriteLock();
+            try
             {
-                if (!sendValues.ContainsKey(key))
+                foreach (string key in currentValues.Keys)
                 {
-                    changed = true;
-                    break;
-                }
-                else
-                {
-                    if (currentValues[key] != sendValues[key])
+                    if (!sendValues.ContainsKey(key))
                     {
                         changed = true;
                         break;
                     }
+                    else
+                    {
+                        if (currentValues[key] != sendValues[key])
+                        {
+                            changed = true;
+                            break;
+                        }
+                    }
                 }
             }
+            finally
+            {
+                Locker.ExitWriteLock();
+            }
+
+            
 
             if (changed)
             {

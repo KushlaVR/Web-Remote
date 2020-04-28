@@ -11,7 +11,7 @@
     sent: Dictionary<string> = new Dictionary<string>();
     tranCount: number = 0;
     timer: number = 0;
-    reportInterval: number = 5000;//Інтервал синхронізації даних
+    reportInterval: number = 100;//Інтервал синхронізації даних
     fields: Array<string>;
 
     constructor(form: HTMLFormElement) {
@@ -74,11 +74,17 @@
             if (this.socket) {
                 if (this.socket.bufferedAmount == 0) {
                     var v = new Array<string>();
-                    $.each(<any>(this.values), (name: string, value: string) => {
+                    var changed: boolean = false;
+                    for (var i: number = 0; i < this.fields.length; i++) {
+                        var key: string = this.fields[i];
+                        var value = this.values[key];
                         v.push(value);
-                        this.sent[name] = value;
-                    });
-                    this.socket.send(JSON.stringify({ values: v }));
+                        if (this.sent[key] !== this.values[key]) changed = true;
+                        this.sent[key] = value;
+                    }
+                    if (changed == true) {
+                        this.socket.send(JSON.stringify({ values: v }));
+                    }
                 }
             }
 
@@ -99,8 +105,11 @@
             for (var i: number = 0; i < this.fields.length; i++) {
                 var key = this.fields[i];
                 var val = parcel.values[i];
-                this.values[key] = val;
-                this.refreshInput(key, val);
+                if (this.sent[key] != val) {
+                    this.sent[key] = val;
+                    this.values[key] = val;
+                    this.refreshInput(key, val);
+                }
             }
             this.refreshOutput();
         }
@@ -415,6 +424,7 @@ class Slider extends Input {
     }
 
     loadValue(key: string, value: string): void {
+        if (this.pressed == true) return;
         let key_x = this.name + "_x";
         let key_y = this.name + "_y";
         let refresh: boolean = false;
