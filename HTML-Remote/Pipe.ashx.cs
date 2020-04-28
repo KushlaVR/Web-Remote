@@ -18,6 +18,13 @@ namespace WebUI
     public class Pipe : IHttpHandler
     {
 
+        public class Parcel
+        {
+            public string[] fields { get; set; }
+            public string[] values { get; set; }
+
+        }
+
         public class Client
         {
 
@@ -29,14 +36,18 @@ namespace WebUI
             public async Task<bool> sendAsync(Dictionary<string, string> values)
             {
                 if (format == null) return true;
-
-                ArraySegment<byte> data;
+                var v = new List<String>();
                 try
                 {
                     Locker.EnterWriteLock();
-                    string ret = null;
-                    ret = JsonConvert.SerializeObject(values);
-                    data = new ArraySegment<byte>(Encoding.ASCII.GetBytes(ret));
+                    for (int i = 0; i < format.Count; i++)
+                    {
+                        string key = format[i];
+                        if (values.ContainsKey(key))
+                            v.Add(values[key]);
+                        else
+                            v.Add("");
+                    }
                 }
                 finally
                 {
@@ -47,6 +58,9 @@ namespace WebUI
                 {
                     if (socket.State == WebSocketState.Open)
                     {
+                        string ret = null;
+                        ret = JsonConvert.SerializeObject(new Parcel() { values = v.ToArray() });
+                        ArraySegment<byte> data = new ArraySegment<byte>(Encoding.ASCII.GetBytes(ret));
                         await socket.SendAsync(data, WebSocketMessageType.Text, true, CancellationToken.None);
                         return true;
                     }
@@ -66,19 +80,34 @@ namespace WebUI
                 StreamReader reader = new StreamReader(str);
                 string json = reader.ReadToEnd();
 
-                var v = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
-                if (v.ContainsKey("fields"))
+                var v = JsonConvert.DeserializeObject<Parcel>(json);
+                if (v.fields != null)
                 {
-                    розпарсити формат
+                    format = new List<string>(v.fields);
                     return true;
                 }
 
-                received = v;
+                if (format != null && v.values != null)
+                {
+                    Dictionary<string, string> values = new Dictionary<string, string>();
+                    for (int i = 0; i < format.Count; i++)
+                    {
+                        if (i < v.values.Length)
+                        {
+                            values.Add(format[i], v.values[i]);
+                        }
+                        else
+                        {
+                            values.Add(format[i], "");
+                        }
+                    }
+                    received = values;
+                }
                 return true;
             }
         }
 
-        private static readonly Dictionary<string, string> values = new Dictionary<string, string>();
+        private static readonly Dictionary<string, string> currentValues = new Dictionary<string, string>();
         private static readonly Dictionary<string, string> sendValues = new Dictionary<string, string>();
 
 
@@ -135,17 +164,17 @@ namespace WebUI
                         {
                             foreach (string key in client.received.Keys)
                             {
-                                if (values.ContainsKey(key))
+                                if (currentValues.ContainsKey(key))
                                 {
-                                    values[key] = client.received[key];
+                                    currentValues[key] = client.received[key];
                                 }
                                 else
                                 {
-                                    values.Add(key, client.received[key]);
+                                    currentValues.Add(key, client.received[key]);
                                 }
                             }
 
-                            foreach (string key in values.Keys)
+                            foreach (string key in currentValues.Keys)
                             {
                                 if (!sendValues.ContainsKey(key))
                                 {
@@ -154,7 +183,7 @@ namespace WebUI
                                 }
                                 else
                                 {
-                                    if (values[key] != sendValues[key])
+                                    if (currentValues[key] != sendValues[key])
                                     {
                                         changed = true;
                                         break;
@@ -173,7 +202,7 @@ namespace WebUI
                             for (int i = 0; i < Clients.Count; i++)
                             {
                                 Client nextClient = Clients[i];
-                                if (!await client.sendAsync(values))
+                                if (!await client.sendAsync(currentValues))
                                 {
                                     Locker.EnterWriteLock();
                                     try
@@ -187,13 +216,16 @@ namespace WebUI
                                     }
                                 };
                             }
+                            foreach (string key in currentValues.Keys)
+                            {
+                                if (!sendValues.ContainsKey(key))
+                                    sendValues.Add(key, currentValues[key]);
+                                else
+                                    sendValues[key] = currentValues[key];
+                            }
                         }
                     }
-
-
-
                 }
-
             }
         }
     }

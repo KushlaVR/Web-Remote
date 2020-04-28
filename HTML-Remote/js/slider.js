@@ -17,7 +17,10 @@ var WorkSpace = (function () {
         this.inputs = new Array();
         this.outputs = new Array();
         this.values = new Dictionary();
+        this.sent = new Dictionary();
         this.tranCount = 0;
+        this.timer = 0;
+        this.reportInterval = 5000;
         this.form = form;
         window.addEventListener('resize', function (event) { return _this.UpdateLayout(); }, false);
     }
@@ -32,13 +35,17 @@ var WorkSpace = (function () {
         var jqxhr = $.get("/api/pipename")
             .done(function (pipename) {
             _this.socket = new WebSocket(pipename);
+            _this.socket.onopen = function (ev) {
+                _this.setFormat();
+                _this.sendData();
+            };
             _this.socket.onmessage = function (msg) {
                 $("#message").text(msg.data);
+                _this.receiveData(msg);
             };
             _this.socket.onclose = function (event) {
                 $("#message").text("Disconnect...");
             };
-            _this.setFormat();
         })
             .fail(function () {
             $("#message").text("error");
@@ -46,10 +53,42 @@ var WorkSpace = (function () {
     };
     WorkSpace.prototype.setFormat = function () {
         var fields = new Array();
-        for (var i = 0; i < this.inputs.length; i++) {
-            fields.push(this.inputs[i].name);
-        }
+        var v = new Array();
+        $.each((this.values), function (name, value) {
+            fields.push(name);
+        });
         this.socket.send(JSON.stringify({ fields: fields }));
+    };
+    WorkSpace.prototype.sendData = function () {
+        var _this = this;
+        if (this.timer === 0) {
+            if (this.socket) {
+                if (this.socket.bufferedAmount == 0) {
+                    var v = new Array();
+                    $.each((this.values), function (name, value) {
+                        v.push(value);
+                        _this.sent[name] = value;
+                    });
+                    this.socket.send(JSON.stringify({ values: v }));
+                }
+            }
+            this.timer = setTimeout(function () {
+                _this.timer = 0;
+                _this.sendData();
+            }, this.reportInterval);
+        }
+    };
+    WorkSpace.prototype.receiveData = function (msg) {
+        var _this = this;
+        if (msg.data) {
+            $.each(msg.data.values, function (name, value) {
+                if (_this.sent[name] !== value) {
+                    _this.values[name] = value;
+                    _this.refreshInput(name, value);
+                }
+            });
+            this.refreshOutput();
+        }
     };
     WorkSpace.toggleFullScreen = function () {
         var doc = window.document;
@@ -90,7 +129,7 @@ var WorkSpace = (function () {
     WorkSpace.prototype.addInput = function (input) {
         input.workSpace = this;
         this.inputs.push(input);
-        input.refreshValues();
+        input.saveValue();
     };
     WorkSpace.prototype.registerOutputs = function () {
         var _this = this;
@@ -105,7 +144,7 @@ var WorkSpace = (function () {
     WorkSpace.prototype.addOutput = function (output) {
         output.workSpace = this;
         this.outputs.push(output);
-        output.refreshValues();
+        output.loadValue();
     };
     WorkSpace.prototype.beginTransaction = function () {
         this.tranCount += 1;
@@ -114,10 +153,18 @@ var WorkSpace = (function () {
         this.tranCount -= 1;
         if (this.tranCount === 0) {
             for (var i = 0; i < this.outputs.length; i++) {
-                this.outputs[i].refreshValues();
+                this.outputs[i].loadValue();
             }
-            if (this.socket)
-                this.socket.send(JSON.stringify(this.values));
+        }
+    };
+    WorkSpace.prototype.refreshInput = function (key, value) {
+        for (var i = 0; i < this.inputs.length; i++) {
+            this.inputs[i].loadValue(key, value);
+        }
+    };
+    WorkSpace.prototype.refreshOutput = function () {
+        for (var i = 0; i < this.outputs.length; i++) {
+            this.outputs[i].loadValue();
         }
     };
     return WorkSpace;
@@ -130,21 +177,6 @@ var Dictionary = (function () {
             }
         }
     }
-    Dictionary.prototype.add = function (key, value) {
-        this[key] = value;
-    };
-    Dictionary.prototype.remove = function (key) {
-        delete this[key];
-    };
-    Dictionary.prototype.containsKey = function (key) {
-        if (typeof this[key] === "undefined") {
-            return false;
-        }
-        return true;
-    };
-    Dictionary.prototype.toLookup = function () {
-        return this;
-    };
     return Dictionary;
 }());
 var Point = (function () {
@@ -160,20 +192,20 @@ var Input = (function () {
         this.jElement = $(element);
         this.name = this.jElement.attr("name");
     }
-    Input.prototype.refreshValues = function () {
+    Input.prototype.saveValue = function () {
         if (!this.workSpace)
             return;
         this.workSpace.beginTransaction();
         var val = this.jElement.attr("value");
         if (val) {
-            if (!this.workSpace.values.containsKey(this.name)) {
-                this.workSpace.values.add(this.name, val);
-            }
-            else {
-                this.workSpace.values[this.name] = val;
-            }
+            this.workSpace.values[this.name] = val;
         }
         this.workSpace.endTransaction();
+    };
+    Input.prototype.loadValue = function (key, value) {
+        if (key == name) {
+            this.jElement.attr("value", value);
+        }
     };
     Input.prototype.initLayout = function () {
     };
@@ -227,7 +259,7 @@ var Slider = (function (_super) {
         if (this.pressed === true) {
             this.handlePos = Slider.pointFromTouch(this.element, event.targetTouches[0]);
             this.refreshLayout(false);
-            this.refreshValues();
+            this.saveValue();
         }
     };
     Slider.prototype.onTouchEnd = function (event) {
@@ -237,7 +269,7 @@ var Slider = (function (_super) {
         if (this.autoCenterY)
             this.handlePos.y = this.center.y;
         this.refreshLayout(true);
-        this.refreshValues();
+        this.saveValue();
         this.element.style.zIndex = "0";
     };
     Slider.prototype.onMouseDown = function (event) {
@@ -248,7 +280,7 @@ var Slider = (function (_super) {
         if (this.pressed === true) {
             this.handlePos = Slider.pointFromMouseEvent(this.element, event);
             this.refreshLayout(false);
-            this.refreshValues();
+            this.saveValue();
         }
     };
     Slider.prototype.onMouseUp = function (event) {
@@ -258,7 +290,7 @@ var Slider = (function (_super) {
         if (this.autoCenterY)
             this.handlePos.y = this.center.y;
         this.refreshLayout(true);
-        this.refreshValues();
+        this.saveValue();
         this.element.style.zIndex = "0";
     };
     Slider.prototype.refreshLayout = function (clip) {
@@ -294,25 +326,31 @@ var Slider = (function (_super) {
             this.pot.style.top = '' + (clipped.y - (this.pot.clientHeight / 2.0)) + 'px';
         }
     };
-    Slider.prototype.refreshValues = function () {
+    Slider.prototype.saveValue = function () {
         if (!this.workSpace)
             return;
         this.workSpace.beginTransaction();
         var key_x = this.name + "_x";
-        if (!this.workSpace.values.containsKey(key_x)) {
-            this.workSpace.values.add(key_x, Slider.numToString(this.value.x));
-        }
-        else {
-            this.workSpace.values[key_x] = Slider.numToString(this.value.x);
-        }
+        this.workSpace.values[key_x] = Slider.numToString(this.value.x);
         var key_y = this.name + "_y";
-        if (!this.workSpace.values.containsKey(key_y)) {
-            this.workSpace.values.add(key_y, Slider.numToString(this.value.y));
-        }
-        else {
-            this.workSpace.values[key_y] = Slider.numToString(this.value.y);
-        }
+        this.workSpace.values[key_y] = Slider.numToString(this.value.y);
         this.workSpace.endTransaction();
+    };
+    Slider.prototype.loadValue = function (key, value) {
+        var key_x = this.name + "_x";
+        var key_y = this.name + "_y";
+        var refresh = false;
+        if (key == key_x) {
+            this.value.x = value;
+            refresh = true;
+        }
+        if (key == key_y) {
+            this.value.y = value;
+            refresh = true;
+        }
+        if (refresh == true) {
+            this.initLayout();
+        }
     };
     Slider.prototype.initLayout = function () {
         this.center.x = this.element.clientWidth / 2;
@@ -388,8 +426,8 @@ var Output = (function () {
         this.jElement = $(element);
         this.name = this.jElement.data("input");
     }
-    Output.prototype.refreshValues = function () {
-        if (this.workSpace.values.containsKey(this.name)) {
+    Output.prototype.loadValue = function () {
+        if (!(this.workSpace.values[this.name] == "undefined")) {
             if (this.element.tagName.toUpperCase() == "INPUT") {
                 this.jElement.val(this.workSpace.values[this.name]);
             }

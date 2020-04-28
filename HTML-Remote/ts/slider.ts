@@ -6,9 +6,12 @@
     socket: WebSocket;
 
     private inputs: Array<Input> = new Array<Input>();
-    private outputs: Array<Output> = new Array<Input>();
+    private outputs: Array<Output> = new Array<Output>();
     values: Dictionary<string> = new Dictionary<string>();
+    sent: Dictionary<string> = new Dictionary<string>();
     tranCount: number = 0;
+    timer: number = 0;
+    reportInterval: number = 5000;//Інтервал синхронізації даних
 
     constructor(form: HTMLFormElement) {
         this.form = form;
@@ -22,37 +25,89 @@
         workSpace.Connect();
     }
 
-
+    /**
+     * Підєднуємось
+     * */
     private Connect(): void {
         var jqxhr = $.get("/api/pipename")
             .done((pipename) => {
                 this.socket = new WebSocket(pipename);
+                this.socket.onopen = (ev: Event) => {
+                    this.setFormat();
+                    this.sendData();
+                }
                 this.socket.onmessage = (msg: MessageEvent) => {
                     $("#message").text(msg.data);
+                    this.receiveData(msg);
                 };
 
                 this.socket.onclose = (event: CloseEvent) => {
                     $("#message").text("Disconnect...");
                 };
-
-                this.setFormat();
-
             })
             .fail(() => {
                 $("#message").text("error");
             });
     }
 
+    /** 
+     *  Повідомляємо серверу в якій послідовності розміжено значення елементів керування
+     */
     private setFormat(): void {
         var fields = new Array();
 
-        for (var i: number = 0; i < this.inputs.length; i++) {
-            fields.push(this.inputs[i].name);
-        }
+        var v = new Array<string>();
+        $.each(<any>(this.values), (name: string, value: string) => {
+            fields.push(name);
+        });
 
         this.socket.send(JSON.stringify({ fields: fields }));
     }
 
+    /**
+     * Запускаємо механізм відправки повідомлень
+     * */
+    private sendData(): void {
+        //Якщо таймер не заведено, відправляємо пакет і запускаємо таймер
+        if (this.timer === 0) {
+            if (this.socket) {
+                if (this.socket.bufferedAmount == 0) {
+                    var v = new Array<string>();
+                    $.each(<any>(this.values), (name: string, value: string) => {
+                        v.push(value);
+                        this.sent[name] = value;
+                    });
+                    this.socket.send(JSON.stringify({ values: v }));
+                }
+            }
+
+            this.timer = setTimeout(() => {
+                this.timer = 0;
+                this.sendData();
+            }, this.reportInterval);
+        }
+    }
+
+    /**
+     * Розбирає отримані по сокету дані
+     * @param msg те що прийшло по сокету
+     */
+    private receiveData(msg: MessageEvent): void {
+        if (msg.data) {
+            $.each(msg.data.values, (name: string, value: string) => {
+                if (this.sent[name] !== value) {
+                    //Якщо значення відмінне від того що ми послаи => поновляємо елементи керування на екрані
+                    this.values[name] = value;
+                    this.refreshInput(name, value);
+                }
+            });
+            this.refreshOutput();
+        }
+    }
+
+    /**
+     * Включити/виключити повноекранний режим
+     * */
     static toggleFullScreen(): void {
         var doc: any = window.document;
         var docEl: any = doc.documentElement;
@@ -68,6 +123,9 @@
         }
     }
 
+    /**
+     * Проводить повторну ініціалізацію елементів у відповідності до нових розмірів екрану
+     */
     UpdateLayout() {
         for (var i: number = 0; i < this.inputs.length; i++) {
             this.inputs[i].initLayout();
@@ -77,6 +135,9 @@
         }
     }
 
+    /**
+     * ініціалізує та реєструє всі елементи керування
+     */
     private registerInputs() {
         var inputs = $(".input", this.form);
 
@@ -96,9 +157,12 @@
     private addInput(input: Input): void {
         input.workSpace = this;
         this.inputs.push(input);
-        input.refreshValues();
+        input.saveValue();
     }
 
+    /**
+     * Ініціалізує та реєструє всі поля виводу інформації
+     * */
     private registerOutputs() {
         var outputs = $(".output", this.form);
 
@@ -113,35 +177,54 @@
     private addOutput(output: Output): void {
         output.workSpace = this;
         this.outputs.push(output);
-        output.refreshValues();
+        output.loadValue();
     }
 
-
+    /**
+     * Розпочинає трансакцію вводу/виводу
+     * */
     beginTransaction() {
         this.tranCount += 1;
     }
 
+
+    /**
+     * Закінчує трансакцію вводу/виводу
+     * Під час закінчення трансакції - надсилається поточний стан
+     * */
     endTransaction() {
         this.tranCount -= 1;
         if (this.tranCount === 0) {
             for (var i: number = 0; i < this.outputs.length; i++) {
-                this.outputs[i].refreshValues();
+                this.outputs[i].loadValue();
             }
-            if (this.socket) this.socket.send(JSON.stringify(this.values));
         }
     }
 
 
+    /**
+     * Проставляє в елемент керування прийняте значення
+     * @param key назва значення
+     * @param value значення
+     */
+    private refreshInput(key: string, value: string): void {
+        for (var i: number = 0; i < this.inputs.length; i++) {
+            this.inputs[i].loadValue(key, value);
+        }
+    }
+
+    /**
+    * Проставляє в поля прийняті значення
+    */
+    private refreshOutput(): void {
+        for (var i: number = 0; i < this.outputs.length; i++) {
+            this.outputs[i].loadValue();
+        }
+    }
 }
 
-interface IDictionary<T> {
-    add(key: string, value: T): void;
-    remove(key: string): void;
-    containsKey(key: string): boolean;
-}
 
-class Dictionary<T> implements IDictionary<T> {
-
+class Dictionary<T> {
 
     constructor(init?: { key: string; value: T; }[]) {
         if (init) {
@@ -151,24 +234,6 @@ class Dictionary<T> implements IDictionary<T> {
         }
     }
 
-    add(key: string, value: T) {
-        this[key] = value;
-    }
-
-    remove(key: string) {
-        delete this[key];
-    }
-
-    containsKey(key: string) {
-        if (typeof this[key] === "undefined") {
-            return false;
-        }
-        return true;
-    }
-
-    toLookup(): IDictionary<T> {
-        return this;
-    }
 }
 
 class Point {
@@ -189,18 +254,20 @@ class Input {
         this.name = this.jElement.attr("name");
     }
 
-    refreshValues(): void {
+    saveValue(): void {
         if (!this.workSpace) return;
         this.workSpace.beginTransaction();
         let val: string = this.jElement.attr("value")
         if (val) {
-            if (!this.workSpace.values.containsKey(this.name)) {
-                this.workSpace.values.add(this.name, val)
-            } else {
-                this.workSpace.values[this.name] = val;
-            }
+            this.workSpace.values[this.name] = val;
         }
         this.workSpace.endTransaction();
+    }
+
+    loadValue(key: string, value: string): void {
+        if (key == name) {
+            this.jElement.attr("value", value);
+        }
     }
 
     initLayout(): void {
@@ -265,7 +332,7 @@ class Slider extends Input {
         if (this.pressed === true) {
             this.handlePos = Slider.pointFromTouch(this.element, event.targetTouches[0])
             this.refreshLayout(false);
-            this.refreshValues();
+            this.saveValue();
         }
     }
     private onTouchEnd(event): void {
@@ -276,7 +343,7 @@ class Slider extends Input {
         if (this.autoCenterY)
             this.handlePos.y = this.center.y;
         this.refreshLayout(true);
-        this.refreshValues();
+        this.saveValue();
         this.element.style.zIndex = "0";
     }
 
@@ -288,7 +355,7 @@ class Slider extends Input {
         if (this.pressed === true /*&& event.target === this.element*/) {
             this.handlePos = Slider.pointFromMouseEvent(this.element, event);
             this.refreshLayout(false);
-            this.refreshValues();
+            this.saveValue();
         }
     }
     private onMouseUp(event): void {
@@ -299,7 +366,7 @@ class Slider extends Input {
         if (this.autoCenterY)
             this.handlePos.y = this.center.y;
         this.refreshLayout(true);
-        this.refreshValues();
+        this.saveValue();
         this.element.style.zIndex = "0";
     }
 
@@ -335,23 +402,32 @@ class Slider extends Input {
         }
     }
 
-    refreshValues(): void {
+    saveValue(): void {
         if (!this.workSpace) return;
         this.workSpace.beginTransaction();
         let key_x = this.name + "_x";
-        if (!this.workSpace.values.containsKey(key_x)) {
-            this.workSpace.values.add(key_x, Slider.numToString(this.value.x))
-        } else {
-            this.workSpace.values[key_x] = Slider.numToString(this.value.x);
-        }
+        this.workSpace.values[key_x] = Slider.numToString(this.value.x);
 
         let key_y = this.name + "_y";
-        if (!this.workSpace.values.containsKey(key_y)) {
-            this.workSpace.values.add(key_y, Slider.numToString(this.value.y))
-        } else {
-            this.workSpace.values[key_y] = Slider.numToString(this.value.y);
-        }
+        this.workSpace.values[key_y] = Slider.numToString(this.value.y);
         this.workSpace.endTransaction();
+    }
+
+    loadValue(key: string, value: string): void {
+        let key_x = this.name + "_x";
+        let key_y = this.name + "_y";
+        let refresh: boolean = false;
+        if (key == key_x) {
+            this.value.x = <any>value;
+            refresh = true;
+        }
+        if (key == key_y) {
+            this.value.y = <any>value;
+            refresh = true;
+        }
+        if (refresh == true) {
+            this.initLayout();
+        }
     }
 
     initLayout(): void {
@@ -450,8 +526,8 @@ class Output {
         this.name = this.jElement.data("input");
     }
 
-    refreshValues(): void {
-        if (this.workSpace.values.containsKey(this.name)) {
+    loadValue(): void {
+        if (!(this.workSpace.values[this.name] == "undefined")) {
             if (this.element.tagName.toUpperCase() == "INPUT") {
                 this.jElement.val(this.workSpace.values[this.name]);
             } else {
