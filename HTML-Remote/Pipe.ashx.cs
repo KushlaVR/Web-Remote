@@ -111,7 +111,82 @@ namespace WebUI
         private static readonly Dictionary<string, string> sendValues = new Dictionary<string, string>();
 
 
+        private static Timer timer = new Timer(timer_tick, null, 0, 1000);
 
+        private static void timer_tick(object state)
+        {
+            if (timer_tickAsync(state).Result)
+            {
+
+            }
+        }
+
+        private static async Task<bool> timer_tickAsync(object state)
+        {
+            if (currentValues.ContainsKey("gun_x"))
+            {
+                int v = int.Parse(currentValues["gun_x"]) + 1;
+                if (v > 100) v = -100;
+                currentValues["gun_x"] = v.ToString();
+            }
+            return await sendAll();
+        }
+
+        private static Task<bool> sendAll()
+        {
+
+            bool changed = false;
+
+
+            foreach (string key in currentValues.Keys)
+            {
+                if (!sendValues.ContainsKey(key))
+                {
+                    changed = true;
+                    break;
+                }
+                else
+                {
+                    if (currentValues[key] != sendValues[key])
+                    {
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+
+            if (changed)
+            {
+                //Передаём сообщение всем клиентам
+                for (int i = 0; i < Clients.Count; i++)
+                {
+                    Client nextClient = Clients[i];
+                    if (!nextClient.sendAsync(currentValues).Result)
+                    {
+                        Locker.EnterWriteLock();
+                        try
+                        {
+                            Clients.Remove(nextClient);
+                            i--;
+                        }
+                        finally
+                        {
+                            Locker.ExitWriteLock();
+                        }
+                    };
+                }
+                foreach (string key in currentValues.Keys)
+                {
+                    if (!sendValues.ContainsKey(key))
+                        sendValues.Add(key, currentValues[key]);
+                    else
+                        sendValues[key] = currentValues[key];
+                }
+            }
+
+            return Task.FromResult(true);
+
+        }
 
         public void ProcessRequest(HttpContext context)
         {
@@ -132,8 +207,6 @@ namespace WebUI
 
         // Блокировка для обеспечения потокабезопасности
         private static readonly ReaderWriterLockSlim Locker = new ReaderWriterLockSlim();
-
-
 
         private async Task WebSocketRequest(AspNetWebSocketContext context)
         {
@@ -157,7 +230,6 @@ namespace WebUI
                 {
                     if (client.received != null)
                     {
-                        bool changed = false;
 
                         Locker.EnterWriteLock();
                         try
@@ -174,59 +246,17 @@ namespace WebUI
                                 }
                             }
 
-                            foreach (string key in currentValues.Keys)
-                            {
-                                if (!sendValues.ContainsKey(key))
-                                {
-                                    changed = true;
-                                    break;
-                                }
-                                else
-                                {
-                                    if (currentValues[key] != sendValues[key])
-                                    {
-                                        changed = true;
-                                        break;
-                                    }
-                                }
-                            }
                         }
                         finally
                         {
                             Locker.ExitWriteLock();
                         }
 
-                        if (changed)
-                        {
-                            //Передаём сообщение всем клиентам
-                            for (int i = 0; i < Clients.Count; i++)
-                            {
-                                Client nextClient = Clients[i];
-                                if (!await client.sendAsync(currentValues))
-                                {
-                                    Locker.EnterWriteLock();
-                                    try
-                                    {
-                                        Clients.Remove(client);
-                                        i--;
-                                    }
-                                    finally
-                                    {
-                                        Locker.ExitWriteLock();
-                                    }
-                                };
-                            }
-                            foreach (string key in currentValues.Keys)
-                            {
-                                if (!sendValues.ContainsKey(key))
-                                    sendValues.Add(key, currentValues[key]);
-                                else
-                                    sendValues[key] = currentValues[key];
-                            }
-                        }
+
                     }
                 }
             }
         }
+
     }
 }

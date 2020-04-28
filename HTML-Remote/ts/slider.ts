@@ -12,6 +12,7 @@
     tranCount: number = 0;
     timer: number = 0;
     reportInterval: number = 5000;//Інтервал синхронізації даних
+    fields: Array<string>;
 
     constructor(form: HTMLFormElement) {
         this.form = form;
@@ -54,14 +55,14 @@
      *  Повідомляємо серверу в якій послідовності розміжено значення елементів керування
      */
     private setFormat(): void {
-        var fields = new Array();
+        this.fields = new Array();
 
         var v = new Array<string>();
         $.each(<any>(this.values), (name: string, value: string) => {
-            fields.push(name);
+            this.fields.push(name);
         });
 
-        this.socket.send(JSON.stringify({ fields: fields }));
+        this.socket.send(JSON.stringify({ fields: this.fields }));
     }
 
     /**
@@ -94,13 +95,13 @@
      */
     private receiveData(msg: MessageEvent): void {
         if (msg.data) {
-            $.each(msg.data.values, (name: string, value: string) => {
-                if (this.sent[name] !== value) {
-                    //Якщо значення відмінне від того що ми послаи => поновляємо елементи керування на екрані
-                    this.values[name] = value;
-                    this.refreshInput(name, value);
-                }
-            });
+            var parcel = JSON.parse(msg.data);
+            for (var i: number = 0; i < this.fields.length; i++) {
+                var key = this.fields[i];
+                var val = parcel.values[i];
+                this.values[key] = val;
+                this.refreshInput(key, val);
+            }
             this.refreshOutput();
         }
     }

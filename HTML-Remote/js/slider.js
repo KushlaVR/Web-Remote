@@ -52,12 +52,13 @@ var WorkSpace = (function () {
         });
     };
     WorkSpace.prototype.setFormat = function () {
-        var fields = new Array();
+        var _this = this;
+        this.fields = new Array();
         var v = new Array();
         $.each((this.values), function (name, value) {
-            fields.push(name);
+            _this.fields.push(name);
         });
-        this.socket.send(JSON.stringify({ fields: fields }));
+        this.socket.send(JSON.stringify({ fields: this.fields }));
     };
     WorkSpace.prototype.sendData = function () {
         var _this = this;
@@ -79,14 +80,14 @@ var WorkSpace = (function () {
         }
     };
     WorkSpace.prototype.receiveData = function (msg) {
-        var _this = this;
         if (msg.data) {
-            $.each(msg.data.values, function (name, value) {
-                if (_this.sent[name] !== value) {
-                    _this.values[name] = value;
-                    _this.refreshInput(name, value);
-                }
-            });
+            var parcel = JSON.parse(msg.data);
+            for (var i = 0; i < this.fields.length; i++) {
+                var key = this.fields[i];
+                var val = parcel.values[i];
+                this.values[key] = val;
+                this.refreshInput(key, val);
+            }
             this.refreshOutput();
         }
     };
