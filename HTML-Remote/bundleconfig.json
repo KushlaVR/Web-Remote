@@ -136,6 +136,33 @@
     "sourceMap": false
   },
 
+
+  {
+    "outputFileName": "data/js/jquery.js",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "js/jquery.min.js"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    },
+    "sourceMap": false
+  },
+
+  {
+    "outputFileName": "data/manifest.json",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "manifest.json"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": true
+    },
+    "sourceMap": false
+  },
+
   {
     "outputFileName": "data/js/kushlavr.js",
     // An array of relative input file paths. Globbing patterns supported

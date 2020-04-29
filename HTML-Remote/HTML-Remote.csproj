@@ -160,6 +160,7 @@
     <Content Include="data\css\slider.css" />
     <Content Include="data\css\style.css" />
     <Content Include="data\js\bootstrap.js" />
+    <Content Include="data\js\jquery.js" />
     <Content Include="data\js\kushlavr.js" />
     <Content Include="data\js\slider.js" />
     <Content Include="favicon.ico" />
@@ -505,6 +506,7 @@
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
     <Content Include="package.json" />
+    <Content Include="data\manifest.json" />
     <None Include="packages.config" />
     <Content Include="Pipe.ashx" />
   </ItemGroup>
