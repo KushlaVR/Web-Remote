@@ -2,11 +2,11 @@ var KVR = (function () {
     function KVR() {
     }
     KVR.load = function () {
-        var jqxhr = $.get("/api/setup")
+        var form = $("#form");
+        $.get("/api/setup")
             .done(function (data) {
             $.each(data, function (name, value) {
                 console.log("Name: " + name + ", Value: " + value);
-                var form = $("#form");
                 $("[name=" + name + "]", form).val(value);
             });
         })

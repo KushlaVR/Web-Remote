@@ -1,4 +1,7 @@
-﻿class WorkSpace {
+﻿/**
+ * 
+ * */
+class WorkSpace {
 
 
     private form: HTMLFormElement;
