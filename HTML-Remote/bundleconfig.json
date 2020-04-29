@@ -78,6 +78,20 @@
     "sourceMap": false
   },
 
+
+  {
+    "outputFileName": "js/slider.min.js",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "js/slider.js"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": true
+    },
+    "sourceMap": false
+  },
+
   {
     "outputFileName": "css/style.min.css",
     // An array of relative input file paths. Globbing patterns supported
@@ -103,6 +117,8 @@
     },
     "sourceMap": false
   },
+
+
 
   /* 
     **********************************
