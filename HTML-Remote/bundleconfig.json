@@ -1,20 +1,6 @@
 // Configure bundling and minification for the project.
 // More info at https://go.microsoft.com/fwlink/?LinkId=808241
 [
-  {
-    "outputFileName": "js/kushlavr.js",
-    // An array of relative input file paths. Globbing patterns supported
-    "inputFiles": [
-      "ts/kushlavr.js"
-    ],
-    // Optionally specify minification options
-    "minify": {
-      "enabled": true,
-      "renameLocals": true
-    },
-    "sourceMap": true
-  },
-
 
   {
     "outputFileName": "js/jquery.js",
@@ -70,5 +56,149 @@
       "renameLocals": true
     },
     "sourceMap": false
+  },
+
+
+  /* 
+    **********************************
+      Source minifications
+    **********************************
+  */
+
+  {
+    "outputFileName": "css/slider.min.css",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "css/slider.css"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": true
+    },
+    "sourceMap": false
+  },
+
+  {
+    "outputFileName": "css/style.min.css",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "css/style.css"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": true
+    },
+    "sourceMap": false
+  },
+
+  {
+    "outputFileName": "control.min.html",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "control.html"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": true
+    },
+    "sourceMap": false
+  },
+
+  /* 
+    **********************************
+      Output to data catalog
+    **********************************
+  */
+
+  {
+    "outputFileName": "data/css/bootstrap.css",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "lib/bootstrap/dist/css/bootstrap.min.css"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    },
+    "sourceMap": false
+  },
+
+  {
+    "outputFileName": "data/js/bootstrap.js",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "lib/bootstrap/dist/js/bootstrap.min.js"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    },
+    "sourceMap": false
+  },
+
+  {
+    "outputFileName": "data/js/kushlavr.js",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "js/kushlavr.min.js"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    },
+    "sourceMap": false
+  },
+
+  {
+    "outputFileName": "data/js/slider.js",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "js/slider.min.js"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    },
+    "sourceMap": false
+  },
+
+  {
+    "outputFileName": "data/css/slider.css",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "css/slider.min.css"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    },
+    "sourceMap": false
+  },
+
+  {
+    "outputFileName": "data/css/style.css",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "css/style.min.css"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    },
+    "sourceMap": false
+  },
+
+  {
+    "outputFileName": "data/control.html",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "control.min.html"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    },
+    "sourceMap": false
   }
 ]
+

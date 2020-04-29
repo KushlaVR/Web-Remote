@@ -1,3 +1,6 @@
+/**
+ * 
+ * */
 class KVR {
     static load() {
         var form = $("#form");
@@ -13,3 +16,4 @@ class KVR {
             });
     }
 }
+

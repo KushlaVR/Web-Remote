@@ -140,12 +140,28 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="control.html" />
+    <Content Include="control.min.html">
+      <DependentUpon>control.html</DependentUpon>
+    </Content>
     <Content Include="css\bootstrap.css" />
     <Content Include="css\bootstrap.min.css">
       <DependentUpon>bootstrap.css</DependentUpon>
     </Content>
     <Content Include="css\slider.css" />
+    <Content Include="css\slider.min.css">
+      <DependentUpon>slider.css</DependentUpon>
+    </Content>
     <Content Include="css\style.css" />
+    <Content Include="css\style.min.css">
+      <DependentUpon>style.css</DependentUpon>
+    </Content>
+    <Content Include="data\control.html" />
+    <Content Include="data\css\bootstrap.css" />
+    <Content Include="data\css\slider.css" />
+    <Content Include="data\css\style.css" />
+    <Content Include="data\js\bootstrap.js" />
+    <Content Include="data\js\kushlavr.js" />
+    <Content Include="data\js\slider.js" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
