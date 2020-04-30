@@ -25,12 +25,17 @@ namespace WebUI.Controllers
         private static readonly ConcurrentQueue<StreamWriter> _streammessage = new ConcurrentQueue<StreamWriter>();
 
 
-        // GET: PipeName
-        //public ActionResult PipeName()
-        //{
-        //    return new ContentResult() { ContentType = "text/plain", Content = "ws://" + Request.Url.Host + ":" + Request.Url.Port + "/pipe.ashx" };
-        //}
+        //GET: PipeName
+        public ActionResult PipeName()
+        {
+            return new ContentResult() { ContentType = "text/plain", Content = "ws://" + Request.Url.Host + ":" + Request.Url.Port + "/pipe.ashx" };
+        }
 
+
+        public ActionResult EventSourceName()
+        {
+            return new ContentResult() { ContentType = "text/plain", Content = "ws://" + Request.Url.Host + ":" + Request.Url.Port + "/pipe.ashx" };
+        }
 
         /// <summary>
         /// When the user makes a GET request, 
@@ -46,10 +51,8 @@ namespace WebUI.Controllers
             //Response.Headers.Add("Connection", "Keep-Alive");
             do
             {
-
                 Response.Write("data:" + JsonConvert.SerializeObject(new Message() { text = "text", username= "username" }) + "\n\n");
                 Response.Flush();
-
                 Thread.Sleep(1000);
 
             } while (true);

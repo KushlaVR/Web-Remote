@@ -21,6 +21,7 @@ var WorkSpace = (function () {
         this.tranCount = 0;
         this.timer = 0;
         this.reportInterval = 100;
+        this._readyToSend = true;
         this.form = form;
         window.addEventListener('resize', function (event) { return _this.UpdateLayout(); }, false);
     }
@@ -28,11 +29,11 @@ var WorkSpace = (function () {
         var workSpace = new WorkSpace((form[0]));
         workSpace.registerInputs();
         workSpace.registerOutputs();
-        workSpace.Connect();
+        workSpace.ConnectAPI();
     };
-    WorkSpace.prototype.Connect = function () {
+    WorkSpace.prototype.ConnectWS = function () {
         var _this = this;
-        var jqxhr = $.get("/api/pipename")
+        $.get("/api/pipename")
             .done(function (pipename) {
             _this.socket = new WebSocket(pipename);
             _this.socket.onopen = function (ev) {
@@ -51,6 +52,29 @@ var WorkSpace = (function () {
             $("#message").text("error");
         });
     };
+    WorkSpace.prototype.ConnectAPI = function () {
+        var _this = this;
+        $.get("/api/EventSourceName")
+            .done(function (EventSourceName) {
+            if (!!window.EventSource) {
+                _this.eventSource = new EventSource(EventSourceName);
+                _this.eventSource.onopen = function (ev) {
+                    _this.setFormat();
+                    _this.sendData();
+                };
+                _this.eventSource.onmessage = function (msg) {
+                    $("#message").text(msg.data);
+                    _this.receiveData(msg);
+                };
+                _this.eventSource.onerror = function (event) {
+                    $("#message").text("Error...");
+                };
+            }
+        })
+            .fail(function () {
+            $("#message").text("error");
+        });
+    };
     WorkSpace.prototype.setFormat = function () {
         var _this = this;
         this.fields = new Array();
@@ -58,26 +82,56 @@ var WorkSpace = (function () {
         $.each((this.values), function (name, value) {
             _this.fields.push(name);
         });
-        this.socket.send(JSON.stringify({ fields: this.fields }));
+        this.send(JSON.stringify({ fields: this.fields }));
+    };
+    WorkSpace.prototype.readyToSend = function () {
+        if (this.eventSource)
+            return this._readyToSend;
+        if (this.socket)
+            return (this.socket.bufferedAmount == 0);
+        return false;
+    };
+    WorkSpace.prototype.send = function (value) {
+        var _this = this;
+        if (this.eventSource) {
+            this._readyToSend = false;
+            $.ajax({
+                url: "/api/post",
+                data: value,
+                cache: false,
+                type: 'GET',
+                dataType: "json",
+                contentType: 'application/json; charset=utf-8'
+            }).done(function () {
+                console.log("done!");
+                _this._readyToSend = true;
+            }).fail(function () {
+                console.log("fail!");
+                _this._readyToSend = true;
+            });
+        }
+        else if (this.socket) {
+            this._readyToSend = false;
+            this.socket.send(value);
+            this._readyToSend = true;
+        }
     };
     WorkSpace.prototype.sendData = function () {
         var _this = this;
         if (this.timer === 0) {
-            if (this.socket) {
-                if (this.socket.bufferedAmount == 0) {
-                    var v = new Array();
-                    var changed = false;
-                    for (var i = 0; i < this.fields.length; i++) {
-                        var key = this.fields[i];
-                        var value = this.values[key];
-                        v.push(value);
-                        if (this.sent[key] !== this.values[key])
-                            changed = true;
-                        this.sent[key] = value;
-                    }
-                    if (changed == true) {
-                        this.socket.send(JSON.stringify({ values: v }));
-                    }
+            if (this.readyToSend() == true) {
+                var v = new Array();
+                var changed = false;
+                for (var i = 0; i < this.fields.length; i++) {
+                    var key = this.fields[i];
+                    var value = this.values[key];
+                    v.push(value);
+                    if (this.sent[key] !== this.values[key])
+                        changed = true;
+                    this.sent[key] = value;
+                }
+                if (changed == true) {
+                    this.send(JSON.stringify({ values: v }));
                 }
             }
             this.timer = setTimeout(function () {

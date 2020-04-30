@@ -7,6 +7,7 @@ class WorkSpace {
     private form: HTMLFormElement;
 
     socket: WebSocket;
+    eventSource: EventSource;
 
     private inputs: Array<Input> = new Array<Input>();
     private outputs: Array<Output> = new Array<Output>();
@@ -20,20 +21,23 @@ class WorkSpace {
     constructor(form: HTMLFormElement) {
         this.form = form;
         window.addEventListener('resize', (event: any) => this.UpdateLayout(), false);
+
+
     }
 
     public static init(form: JQuery) {
         var workSpace: WorkSpace = new WorkSpace(<any>(form[0]));
         workSpace.registerInputs();
         workSpace.registerOutputs();
-        workSpace.Connect();
+        //workSpace.ConnectWS();
+        workSpace.ConnectAPI();
     }
 
     /**
      * Підєднуємось
      * */
-    private Connect(): void {
-        var jqxhr = $.get("/api/pipename")
+    private ConnectWS(): void {
+        $.get("/api/pipename")
             .done((pipename) => {
                 this.socket = new WebSocket(pipename);
                 this.socket.onopen = (ev: Event) => {
@@ -54,6 +58,29 @@ class WorkSpace {
             });
     }
 
+    private ConnectAPI(): void {
+        $.get("/api/EventSourceName")
+            .done((EventSourceName) => {
+                if (!!window.EventSource) {
+                    this.eventSource = new EventSource(EventSourceName);
+                    this.eventSource.onopen = (ev: Event) => {
+                        this.setFormat();
+                        this.sendData();
+                    }
+                    this.eventSource.onmessage = (msg: MessageEvent) => {
+                        $("#message").text(msg.data);
+                        this.receiveData(msg);
+                    };
+                    this.eventSource.onerror = (event: Event) => {
+                        $("#message").text("Error...");
+                    };
+                }
+            })
+            .fail(() => {
+                $("#message").text("error");
+            });
+    }
+
     /** 
      *  Повідомляємо серверу в якій послідовності розміжено значення елементів керування
      */
@@ -64,8 +91,40 @@ class WorkSpace {
         $.each(<any>(this.values), (name: string, value: string) => {
             this.fields.push(name);
         });
+        this.send(JSON.stringify({ fields: this.fields }));
+    }
 
-        this.socket.send(JSON.stringify({ fields: this.fields }));
+    private _readyToSend: boolean = true;
+    private readyToSend(): boolean {
+        if (this.eventSource)
+            return this._readyToSend;
+        if (this.socket) return (this.socket.bufferedAmount == 0);
+        return false;
+    }
+
+    private send(value: string): void {
+        if (this.eventSource) {
+            this._readyToSend = false;
+            $.ajax({
+                url: "/api/post",
+                data: value,
+                cache: false,
+                type: 'GET',
+                dataType: "json",
+                contentType: 'application/json; charset=utf-8'
+            }).done(() => {
+                console.log("done!");
+                this._readyToSend = true;
+            }).fail(() => {
+                console.log("fail!");
+                this._readyToSend = true;
+            });
+        } else
+            if (this.socket) {
+                this._readyToSend = false;
+                this.socket.send(value);
+                this._readyToSend = true;
+            }
     }
 
     /**
@@ -74,20 +133,18 @@ class WorkSpace {
     private sendData(): void {
         //Якщо таймер не заведено, відправляємо пакет і запускаємо таймер
         if (this.timer === 0) {
-            if (this.socket) {
-                if (this.socket.bufferedAmount == 0) {
-                    var v = new Array<string>();
-                    var changed: boolean = false;
-                    for (var i: number = 0; i < this.fields.length; i++) {
-                        var key: string = this.fields[i];
-                        var value = this.values[key];
-                        v.push(value);
-                        if (this.sent[key] !== this.values[key]) changed = true;
-                        this.sent[key] = value;
-                    }
-                    if (changed == true) {
-                        this.socket.send(JSON.stringify({ values: v }));
-                    }
+            if (this.readyToSend() == true) {
+                var v = new Array<string>();
+                var changed: boolean = false;
+                for (var i: number = 0; i < this.fields.length; i++) {
+                    var key: string = this.fields[i];
+                    var value = this.values[key];
+                    v.push(value);
+                    if (this.sent[key] !== this.values[key]) changed = true;
+                    this.sent[key] = value;
+                }
+                if (changed == true) {
+                    this.send(JSON.stringify({ values: v }));
                 }
             }
 
