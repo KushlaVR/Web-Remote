@@ -34,7 +34,7 @@ namespace WebUI.Controllers
 
         public ActionResult EventSourceName()
         {
-            return new ContentResult() { ContentType = "text/plain", Content = "ws://" + Request.Url.Host + ":" + Request.Url.Port + "/pipe.ashx" };
+            return new ContentResult() { ContentType = "text/plain", Content = "ws://" + Request.Url.Host + ":" + Request.Url.Port + "/api/get" };
         }
 
         /// <summary>
