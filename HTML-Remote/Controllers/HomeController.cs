@@ -18,6 +18,10 @@ namespace WebUI.Controllers
             ViewBag.Message = "Chat";
             return View();
         }
-        
+         public ActionResult Stream()
+        {
+            ViewBag.Message = "Stream";
+            return View();
+        }
     }
 }

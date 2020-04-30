@@ -1,0 +1,54 @@
+﻿
+<input type="text" id="usr" />
+<input type="text" id="msg" />
+<button id="btn">send</button>
+<div id="log"></div>
+
+
+<script>
+
+    $("#btn").click(function () {
+        $.ajax({
+            url: "http://localhost:49999/api/chat/",
+            data: JSON.stringify({ username: $("#usr").val(), text: $("#msg").val() }),
+            cache: false,
+            type: 'POST',
+            dataType: "json",
+            contentType: 'application/json; charset=utf-8'
+        });
+    });
+
+</script>
+
+<script>
+
+    if (!!window.EventSource) {
+        var es = new EventSource('http://localhost:50150/api/get');
+        es.onmessage = function (e) {
+            console.log(e.data);
+        };
+        es.onerror = function () {
+            console.log("error!");
+            //console.log(arguments);
+        };
+        es.onopen = function () {
+            console.log("open!");
+        };
+        //source.addEventListener('message', function (e) {
+        //    var json = JSON.parse(e.data);
+        //    console.log(json);
+        //}, false);
+        //source.addEventListener('open', function (e) {
+        //    console.log("open!");
+        //}, false);
+        //source.addEventListener('error', function (e) {
+        //    if (e.readyState == EventSource.CLOSED) {
+        //        console.log("error!");
+        //    }
+        //}, false);
+    } else {
+        // not supported!
+        //fallback to something else
+    }
+
+</script>
