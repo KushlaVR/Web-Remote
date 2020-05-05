@@ -7,23 +7,19 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Policy;
 using System.Threading;
 using System.Web;
-using System.Web.Http;
 using System.Web.Mvc;
+using WebUI.Models;
 
 namespace WebUI.Controllers
 {
     public class ApiController : Controller
     {
-        public class Message
-        {
-            public string username { get; set; }
-            public string text { get; set; }
-        }
 
-        private static readonly ConcurrentQueue<StreamWriter> _streammessage = new ConcurrentQueue<StreamWriter>();
-
+        //private static readonly ConcurrentQueue<StreamWriter> _streammessage = new ConcurrentQueue<StreamWriter>();
+        private static readonly WorkSpace ws = new WorkSpace();
 
         //GET: PipeName
         public ActionResult PipeName()
@@ -34,7 +30,7 @@ namespace WebUI.Controllers
 
         public ActionResult EventSourceName()
         {
-            return new ContentResult() { ContentType = "text/plain", Content = "ws://" + Request.Url.Host + ":" + Request.Url.Port + "/api/get" };
+            return new ContentResult() { ContentType = "text/plain", Content = "http://" + Request.Url.Host + ":" + Request.Url.Port + "/api/get?" + Server.UrlEncode("{\"client\":\"" + (Guid.NewGuid().ToString()) + "\"}") };
         }
 
         /// <summary>
@@ -45,44 +41,57 @@ namespace WebUI.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public HttpResponseMessage Get(HttpRequestMessage request)
+        public HttpResponseMessage Get()
         {
-            Response.ContentType = "text/event-stream";
-            //Response.Headers.Add("Connection", "Keep-Alive");
-            do
+            try
             {
-                Response.Write("data:" + JsonConvert.SerializeObject(new Message() { text = "text", username= "username" }) + "\n\n");
-                Response.Flush();
-                Thread.Sleep(1000);
+                var json = Server.UrlDecode(Request.QueryString[null]);
+                Parcel m = JsonConvert.DeserializeObject<Parcel>(json);
+                StreamClient client = ws.ClientByID(m.client) as StreamClient;
+                if (client == null)
+                {
+                    client = new StreamClient() { Response = Response, clientID = m.client };
+                    //client.SessionID = HttpContext.Session.SessionID;
+                    ws.AddClient(client);
+                    Response.ContentType = "text/event-stream";
+                    Response.Headers.Add("Connection", "Keep-Alive");
+                }
+                else
+                {
+                    client.Response = Response;
+                }
 
-            } while (true);
+                do
+                {
+                    if (!ws.SendOne(client).Result)
+                    {
+                        return null;
+                    };
+                    Response.Flush();
+                    Thread.Sleep(200);
+                } while (true);
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return null;
         }
 
         /// <summary>
         /// When the user makes a POST request, using model binidng we pull a 
         /// Message object out of the request and pass it off to MessageCallback
         /// </summary>
-        /// <param name="m"></param>
-        public void Post(Message m)
+        public void Post()
         {
-            MessageCallback(m);
-        }
-
-        private static void MessageCallback(Message m)
-        {
-            foreach (var subscriber in _streammessage)
+            var json = Server.UrlDecode(Request.QueryString[null]);
+            Parcel m = JsonConvert.DeserializeObject<Parcel>(json);
+            Client client = ws.ClientByID(m.client);
+            if (client != null)
             {
-                subscriber.WriteLine("data:" + JsonConvert.SerializeObject(m) + "n");
-                subscriber.Flush();
+                client.processParcel(m);
             }
         }
-
-
     }
-
-
-
-
-
 
 }

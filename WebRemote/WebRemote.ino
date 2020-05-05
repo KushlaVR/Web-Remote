@@ -11,8 +11,6 @@
 #include <DNSServer.h>
 #include <ESP8266mDNS.h>
 
-
-
 IPAddress apIP = IPAddress(192, 168, 4, 1);
 IPAddress netMsk = IPAddress(255, 255, 255, 0);
 
@@ -21,7 +19,6 @@ DNSServer dnsServer;
 
 WiFiServer server(8888);
 WiFiClient client;
-
 
 void setup()
 {
@@ -32,11 +29,9 @@ void setup()
     WiFi.softAP("Test", "1234567890");
     server.begin();
 
-
     /* Setup the DNS server redirecting all the domains to the apIP */
     dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     dnsServer.start(DNS_PORT, "*", apIP);
-
 
     Serial.println("");
     Serial.println(WiFi.localIP());

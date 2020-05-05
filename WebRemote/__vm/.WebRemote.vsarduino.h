@@ -18,12 +18,13 @@
 #define _VMDEBUG 1
 #define __ets__
 #define ICACHE_FLASH
+#define NONOSDK22x_191024 1
 #define F_CPU 160000000L
 #define LWIP_OPEN_SRC
 #define TCP_MSS 536
 #define LWIP_FEATURES 1
 #define LWIP_IPV6 0
-#define ARDUINO 108012
+#define ARDUINO 108010
 #define ARDUINO_ESP8266_WEMOS_D1MINI
 #define ARDUINO_ARCH_ESP8266
 #define FLASHMODE_DIO

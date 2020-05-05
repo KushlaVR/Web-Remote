@@ -3,9 +3,9 @@
  * */
 class WorkSpace {
 
-
     private form: HTMLFormElement;
 
+    client: string;
     socket: WebSocket;
     eventSource: EventSource;
 
@@ -62,8 +62,13 @@ class WorkSpace {
         $.get("/api/EventSourceName")
             .done((EventSourceName) => {
                 if (!!window.EventSource) {
+                    var s: string = EventSourceName;
+                    var json: string = decodeURI(s.substring(s.indexOf("?") + 1)).replace("%3a",":");
+                    var parcel: any = JSON.parse(json);
+                    this.client = parcel.client;
                     this.eventSource = new EventSource(EventSourceName);
                     this.eventSource.onopen = (ev: Event) => {
+
                         this.setFormat();
                         this.sendData();
                     }
@@ -91,7 +96,7 @@ class WorkSpace {
         $.each(<any>(this.values), (name: string, value: string) => {
             this.fields.push(name);
         });
-        this.send(JSON.stringify({ fields: this.fields }));
+        this.send(JSON.stringify({ client: this.client, fields: this.fields }));
     }
 
     private _readyToSend: boolean = true;
@@ -144,7 +149,7 @@ class WorkSpace {
                     this.sent[key] = value;
                 }
                 if (changed == true) {
-                    this.send(JSON.stringify({ values: v }));
+                    this.send(JSON.stringify({ client: this.client, values: v }));
                 }
             }
 

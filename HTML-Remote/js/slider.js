@@ -57,6 +57,10 @@ var WorkSpace = (function () {
         $.get("/api/EventSourceName")
             .done(function (EventSourceName) {
             if (!!window.EventSource) {
+                var s = EventSourceName;
+                var json = decodeURI(s.substring(s.indexOf("?") + 1)).replace("%3a", ":");
+                var parcel = JSON.parse(json);
+                _this.client = parcel.client;
                 _this.eventSource = new EventSource(EventSourceName);
                 _this.eventSource.onopen = function (ev) {
                     _this.setFormat();
@@ -82,7 +86,7 @@ var WorkSpace = (function () {
         $.each((this.values), function (name, value) {
             _this.fields.push(name);
         });
-        this.send(JSON.stringify({ fields: this.fields }));
+        this.send(JSON.stringify({ client: this.client, fields: this.fields }));
     };
     WorkSpace.prototype.readyToSend = function () {
         if (this.eventSource)
@@ -131,7 +135,7 @@ var WorkSpace = (function () {
                     this.sent[key] = value;
                 }
                 if (changed == true) {
-                    this.send(JSON.stringify({ values: v }));
+                    this.send(JSON.stringify({ client: this.client, values: v }));
                 }
             }
             this.timer = setTimeout(function () {
