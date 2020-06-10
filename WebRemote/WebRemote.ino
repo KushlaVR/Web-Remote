@@ -18,6 +18,9 @@
 #include "WebUIController.h"
 #include "Joypad.h"
 
+#define pinMotorLeft D7//лівий борт
+#define pinMotorRigh D6//правий борт
+
 char SSID[32];
 char SSID_password[20];
 
@@ -26,11 +29,10 @@ IPAddress netMsk = IPAddress(255, 255, 255, 0);
 
 const byte DNS_PORT = 53;
 DNSServer dnsServer;
+JoypadCollection joypads = JoypadCollection();
 
-WiFiServer server(8888);
-WiFiClient client;
-
-
+Servo lefMotor = Servo();
+Servo rightMotor = Servo();
 
 void setup()
 {
@@ -66,7 +68,6 @@ void setup()
 	WiFi.disconnect();
 	WiFi.mode(WIFI_AP);
 	WiFi.softAP("Test", "1234567890");
-	server.begin();
 
 	/* Setup the DNS server redirecting all the domains to the apIP */
 	dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
@@ -79,9 +80,8 @@ void setup()
 	webServer.on("/api/EventSourceName", EventSourceName);
 	webServer.on("/api/events", Events);
 	webServer.on("/api/post", Post);
-}
 
-JoypadCollection clients = JoypadCollection();
+}
 
 void EventSourceName() {
 	webServer.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -92,7 +92,7 @@ void EventSourceName() {
 	Joypad* j = new Joypad();
 	j->client = webServer.client();
 	j->clientIP = webServer.client().remoteIP();
-	clients.add(j);
+	joypads.add(j);
 
 	String ret = "http://" + apIP.toString() + ":80/api/events?{\"client\":\"" + String(j->id) + "\"}";
 
@@ -109,12 +109,17 @@ void Events() {
 	json += s;
 	int id = json.getInt("client");
 
-	console.printf("client:%i", id);
+	//console.printf("client:%i", id);
 
-	Joypad* j = clients.getById(id);
+	Joypad* j = joypads.getById(id);
+	if (j== nullptr){
+		console.printf("Unauthorized client %i\n", id);
+		webServer.handleNotFound();
+		return;
+	}
 	if (client.remoteIP() != j->clientIP) {
 		console.printf("wrong IP", id);
-		clients.remove(j);
+		joypads.remove(j);
 		webServer.handleNotFound();
 		return;
 	}
@@ -123,7 +128,7 @@ void Events() {
 	client.setSync(true);
 	webServer.setContentLength(CONTENT_LENGTH_UNKNOWN); // the payload can go on forever
 	webServer.sendContent_P(PSTR("HTTP/1.1 200 OK\nContent-Type: text/event-stream;\nConnection: keep-alive\nCache-Control: no-cache\nAccess-Control-Allow-Origin: *\n\n"));
-
+	console.flush();
 }
 
 void Post() {
@@ -132,30 +137,37 @@ void Post() {
 	json += s;
 	int id = json.getInt("client");
 
-	console.printf("client:%i", id);
+	//console.printf("client:%i\n", id);
 
-	Joypad* j = clients.getById(id);
+	Joypad* j = joypads.getById(id);
 	if (j == nullptr) {
 		webServer.handleNotFound();
 		return;
 	}
 	webServer.Ok();
 	if (j->processParcel(&json)) {
-		if (!j->sendValues()) {
-			clients.remove(j);
-		}
+		joypads.updateValuesFrom(j);
 	}
 }
 
 void loop()
 {
 	dnsServer.processNextRequest();
-	if (!client.connected()) 
-		client = server.available();
-	else 
-		if (client.available() > 0) console.write(client.read());
-
-	clients.keepAlive();
+	joypads.loop();
 	webServer.loop();
-	yield();
+
+	if (joypads.getCount() > 0) {
+		if (!lefMotor.attached) {
+			lefMotor.attach(pinMotorLeft);
+		}
+
+		if (!rightMotor.attached) {
+			rightMotor.attach(pinMotorRigh);
+		}
+
+		lefMotor.write(90);
+		rightMotor.write(90);
+
+
+	}
 }

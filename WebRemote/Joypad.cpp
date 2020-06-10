@@ -58,9 +58,10 @@ bool Joypad::processParcel(JsonString* json)
 			while (fieldsIndex >= 0) {
 				fieldsIndex++;
 				int endIndex = str.indexOf("\"", fieldsIndex);
-				Joypadfield* f = (Joypadfield *)(fields->get(i));
+				Joypadfield* f = (Joypadfield*)(fields->get(i++));
 				if (f != nullptr) {
 					f->value = str.substring(fieldsIndex, endIndex).toDouble();
+					//f->sent = f->value;
 				}
 				fieldsIndex = endIndex + 1;
 				fieldsIndex = str.indexOf("\"", endIndex + 1);
@@ -73,26 +74,28 @@ bool Joypad::processParcel(JsonString* json)
 
 bool Joypad::sendValues()
 {
-	JsonString ret = "";
-	ret.beginObject();
-	ret.beginArray("values");
-	if (fields == nullptr) return true;
-	Joypadfield* f = (Joypadfield*)(fields->getFirst());
-	while (f != nullptr) {
-		ret.appendComa();
-		ret += "\"" + String(f->value) + "\"";
-		f->sent = f->value;
-		f = (Joypadfield*)(f->next);
-	}
-	ret.endArray();
-	ret.endObject();
-
+	unsigned long m;
+	//m = millis(); Serial.printf("*1 %i\n", m);
 	if (this->client.connected()) {
-		Serial.printf_P(PSTR("Client %i is still connected\n"), id);
-		this->client.println(F("event: event\n"));
-		this->client.print(F("data: "));
+
+		JsonString ret = "event: event\n\ndata: ";
+		ret.beginObject();
+		ret.beginArray("values");
+		if (fields == nullptr) return true;
+		Joypadfield* f = (Joypadfield*)(fields->getFirst());
+		while (f != nullptr) {
+			ret.appendComa();
+			ret += "\"" + String(f->value) + "\"";
+			f->sent = f->value;
+			f = (Joypadfield*)(f->next);
+		}
+		ret.endArray();
+		ret.endObject();
+		ret += "\n\n";
+		//m = millis(); Serial.printf("*2 %i\n", m);
+		//Serial.printf("Client %i send values\n", id);
 		this->client.print(ret);
-		this->client.print(F("\n\n"));
+		//m = millis(); Serial.printf("*3 %i\n", m);
 		report = millis();
 		return true;
 	}
@@ -105,10 +108,19 @@ bool Joypad::sendValues()
 	}
 }
 
+bool Joypad::changed()
+{
+	if (fields == nullptr) return false;
+	Joypadfield* f = (Joypadfield*)(fields->getFirst());
+	while (f != nullptr) {
+		if (f->changed()) return true;
+		f = (Joypadfield*)(f->next);
+	}
+	return false;
+}
+
 JoypadCollection::JoypadCollection()
 {
-
-
 }
 
 Joypad* JoypadCollection::getById(int id)
@@ -121,13 +133,81 @@ Joypad* JoypadCollection::getById(int id)
 	return nullptr;
 }
 
-void JoypadCollection::keepAlive()
+void JoypadCollection::updateValuesFrom(Joypad* source)
+{
+	if (fields == nullptr) {
+		fields = new Collection();
+	}
+	Joypadfield* j = (Joypadfield*)(source->fields->getFirst());
+	while (j != nullptr) {
+		setValue(j->name, j->value);
+		j = (Joypadfield*)(j->next);
+	}
+}
+
+void JoypadCollection::setValue(String name, double value)
+{
+	//Проставляємо поточні значення
+	if (!JoypadCollection::setValue(fields, name, value)) {
+		//не знайшли, додаємо
+		Joypadfield* jf = new Joypadfield(name);
+		jf->value = value;
+		fields->add(jf);
+	};
+
+	//Поновляємо значення у всіх клієнтах
+	Joypad* j = (Joypad*)getFirst();
+	while (j != nullptr) {
+		JoypadCollection::setValue(j->fields, name, value);
+		j = (Joypad*)(j->next);
+	}
+}
+
+bool JoypadCollection::setValue(Collection* fields, String name, double value)
+{
+	if (fields == nullptr) return false;
+
+	Joypadfield* j = (Joypadfield*)(fields->getFirst());
+	while (j != nullptr) {
+		if (name == j->name) {//Знайшли
+			j->value = value;
+			return true;
+		}
+		j = (Joypadfield*)(j->next);
+	}
+	return false;
+}
+
+void JoypadCollection::loop()
 {
 	unsigned long m = millis();
 
 	Joypad* j = (Joypad*)getFirst();
 	while (j != nullptr) {
-		if (m - j->report > 10000) {
+		if (j->changed()) {
+			if ((m - j->report) > reportAliveInterval) {
+				
+				//Serial.print("id=");
+				//Serial.print(j->id);
+				//Serial.print("m=");
+				//Serial.println(m);
+
+				if (!j->sendValues()) {
+					//Немає звязку
+					Joypad* next = (Joypad*)(j->next);
+					remove(j);
+					delete j;
+					j = next;
+				}
+				else {
+					j = (Joypad*)(j->next);
+				}
+			}
+			else {
+				j = (Joypad*)(j->next);
+			}
+		}
+		else if ((m - j->report) > keepAliveInterval) {
 			if (!j->keepAlive()) {
 				//Немає звязку
 				Joypad* next = (Joypad*)(j->next);

@@ -41,13 +41,20 @@ public:
 };
 
 class JoypadCollection : public Collection {
+private:
+	Collection* fields = nullptr;
+
 public:
 	JoypadCollection();
 	~JoypadCollection() {};
 
+	unsigned long keepAliveInterval = 5000;
+	unsigned long reportAliveInterval = 100;
+
 	Joypad* getById(int id);
-
-	void keepAlive();
-
+	void updateValuesFrom(Joypad * source);
+	void setValue(String name, double value);
+	bool setValue(Collection * fields, String name, double value);
+	void loop();
 
 };

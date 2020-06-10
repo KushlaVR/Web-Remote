@@ -31,5 +31,6 @@ public:
 	void remove(Item * item);
 	void removeAt(int index);
 	void sort();
+	int getCount() { return count; }
 };
 
