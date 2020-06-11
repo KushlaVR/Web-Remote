@@ -1,6 +1,7 @@
 #include "Joypad.h"
 
 int Joypad_id = 0;
+int tran = 0;
 
 Joypad::Joypad()
 {
@@ -27,7 +28,14 @@ bool Joypad::keepAlive()
 
 bool Joypad::processParcel(JsonString* json)
 {
+	//Serial.print("json=");	Serial.println(*json);
+
+	int _tran = json->getInt("tran");
+	if (_tran >= tran) tran = _tran;
+	//Serial.print("tran=");	Serial.println(_tran);
+
 	int fieldsIndex = json->indexOf("fields");
+
 	if (fieldsIndex >= 0) {
 		String str = json->substring(fieldsIndex + 8);
 		fields = new Collection();
@@ -80,6 +88,7 @@ bool Joypad::sendValues()
 
 		JsonString ret = "event: event\n\ndata: ";
 		ret.beginObject();
+		ret.AddValue("tran", String(tran));
 		ret.beginArray("values");
 		if (fields == nullptr) return true;
 		Joypadfield* f = (Joypadfield*)(fields->getFirst());
@@ -145,6 +154,8 @@ void JoypadCollection::updateValuesFrom(Joypad* source)
 	}
 }
 
+
+
 void JoypadCollection::setValue(String name, double value)
 {
 	//Проставляємо поточні значення
@@ -161,6 +172,19 @@ void JoypadCollection::setValue(String name, double value)
 		JoypadCollection::setValue(j->fields, name, value);
 		j = (Joypad*)(j->next);
 	}
+}
+
+double JoypadCollection::getValue(String name)
+{
+	if (fields == nullptr) return 0;
+	Joypadfield* j = (Joypadfield*)(fields->getFirst());
+	while (j != nullptr) {
+		if (name == j->name) {//Знайшли
+			return j->value;
+		}
+		j = (Joypadfield*)(j->next);
+	}
+	return 0;
 }
 
 bool JoypadCollection::setValue(Collection* fields, String name, double value)
@@ -186,7 +210,7 @@ void JoypadCollection::loop()
 	while (j != nullptr) {
 		if (j->changed()) {
 			if ((m - j->report) > reportAliveInterval) {
-				
+
 				//Serial.print("id=");
 				//Serial.print(j->id);
 				//Serial.print("m=");

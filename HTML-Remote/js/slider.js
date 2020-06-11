@@ -21,6 +21,7 @@ var WorkSpace = (function () {
         this.tranCount = 0;
         this.timer = 0;
         this.reportInterval = 100;
+        this.tran = 0;
         this._readyToSend = true;
         this.form = form;
         window.addEventListener('resize', function (event) { return _this.UpdateLayout(); }, false);
@@ -135,7 +136,8 @@ var WorkSpace = (function () {
                     this.sent[key] = value;
                 }
                 if (changed == true) {
-                    this.send(JSON.stringify({ client: this.client, values: v }));
+                    this.tran += 1;
+                    this.send(JSON.stringify({ client: this.client, tran: this.tran.toString(), values: v }));
                 }
             }
             this.timer = setTimeout(function () {
@@ -147,13 +149,16 @@ var WorkSpace = (function () {
     WorkSpace.prototype.receiveData = function (msg) {
         if (msg.data) {
             var parcel = JSON.parse(msg.data);
-            for (var i = 0; i < this.fields.length; i++) {
-                var key = this.fields[i];
-                var val = parcel.values[i];
-                if (this.sent[key] != val) {
-                    this.sent[key] = val;
-                    this.values[key] = val;
-                    this.refreshInput(key, val);
+            if (this.tran < parcel.tran) {
+                this.tran = parseInt(parcel.tran, 10);
+                for (var i = 0; i < this.fields.length; i++) {
+                    var key = this.fields[i];
+                    var val = parcel.values[i];
+                    if (this.sent[key] != val) {
+                        this.sent[key] = val;
+                        this.values[key] = val;
+                        this.refreshInput(key, val);
+                    }
                 }
             }
             this.refreshOutput();

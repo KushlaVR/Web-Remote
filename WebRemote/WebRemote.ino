@@ -21,6 +21,12 @@
 #define pinMotorLeft D7//лівий борт
 #define pinMotorRigh D6//правий борт
 
+struct State {
+	int left;
+	int right;
+} state;
+
+
 char SSID[32];
 char SSID_password[20];
 
@@ -33,6 +39,8 @@ JoypadCollection joypads = JoypadCollection();
 
 Servo lefMotor = Servo();
 Servo rightMotor = Servo();
+
+
 
 void setup()
 {
@@ -112,7 +120,7 @@ void Events() {
 	//console.printf("client:%i", id);
 
 	Joypad* j = joypads.getById(id);
-	if (j== nullptr){
+	if (j == nullptr) {
 		console.printf("Unauthorized client %i\n", id);
 		webServer.handleNotFound();
 		return;
@@ -136,7 +144,7 @@ void Post() {
 	JsonString json = "";
 	json += s;
 	int id = json.getInt("client");
-
+	
 	//console.printf("client:%i\n", id);
 
 	Joypad* j = joypads.getById(id);
@@ -157,17 +165,30 @@ void loop()
 	webServer.loop();
 
 	if (joypads.getCount() > 0) {
-		if (!lefMotor.attached) {
+		if (!lefMotor.attached()) {
 			lefMotor.attach(pinMotorLeft);
 		}
 
-		if (!rightMotor.attached) {
+		if (!rightMotor.attached()) {
 			rightMotor.attach(pinMotorRigh);
 		}
 
-		lefMotor.write(90);
-		rightMotor.write(90);
+		int left = map(joypads.getValue("left_y"), -100.0, 100.0, 0.0, 180.0);
+		int right = map(joypads.getValue("right_y"), -100.0, 100.0, 0.0, 180.0);
 
+		if (left != state.left) {
+			lefMotor.write(left);
+			state.left = left;
+			console.print("left=");
+			console.println(left);
+		}
+
+		if (right != state.right) {
+			rightMotor.write(right);
+			state.right = right;
+			console.print("right=");
+			console.println(right);
+		}
 
 	}
 }

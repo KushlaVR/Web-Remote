@@ -43,9 +43,12 @@ String JsonString::getValue(char * key)
 		p = indexOf(":", p + 1);
 		if (p > 0) {
 			int startIndex = indexOf("\"", p + 1);
+			if (startIndex <= 0) startIndex = p + 1;
 			if (startIndex > 0) {
 				startIndex++;
 				int endIndex = indexOf("\"", startIndex);
+				if (endIndex <=0)
+					endIndex = indexOf(",", startIndex);
 				if (endIndex > 0) {
 					return substring(startIndex, endIndex);
 				}

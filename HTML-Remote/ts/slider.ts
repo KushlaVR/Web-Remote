@@ -17,6 +17,7 @@ class WorkSpace {
     timer: number = 0;
     reportInterval: number = 100;//Інтервал синхронізації даних
     fields: Array<string>;
+    tran: number = 0;
 
     constructor(form: HTMLFormElement) {
         this.form = form;
@@ -63,7 +64,7 @@ class WorkSpace {
             .done((EventSourceName) => {
                 if (!!window.EventSource) {
                     var s: string = EventSourceName;
-                    var json: string = decodeURI(s.substring(s.indexOf("?") + 1)).replace("%3a",":");
+                    var json: string = decodeURI(s.substring(s.indexOf("?") + 1)).replace("%3a", ":");
                     var parcel: any = JSON.parse(json);
                     this.client = parcel.client;
                     this.eventSource = new EventSource(EventSourceName);
@@ -149,7 +150,8 @@ class WorkSpace {
                     this.sent[key] = value;
                 }
                 if (changed == true) {
-                    this.send(JSON.stringify({ client: this.client, values: v }));
+                    this.tran += 1;
+                    this.send(JSON.stringify({ client: this.client, tran: this.tran.toString(), values: v }));
                 }
             }
 
@@ -167,13 +169,16 @@ class WorkSpace {
     private receiveData(msg: MessageEvent): void {
         if (msg.data) {
             var parcel = JSON.parse(msg.data);
-            for (var i: number = 0; i < this.fields.length; i++) {
-                var key = this.fields[i];
-                var val = parcel.values[i];
-                if (this.sent[key] != val) {
-                    this.sent[key] = val;
-                    this.values[key] = val;
-                    this.refreshInput(key, val);
+            if (this.tran < parcel.tran) {
+                this.tran = parseInt(parcel.tran, 10);
+                for (var i: number = 0; i < this.fields.length; i++) {
+                    var key = this.fields[i];
+                    var val = parcel.values[i];
+                    if (this.sent[key] != val) {
+                        this.sent[key] = val;
+                        this.values[key] = val;
+                        this.refreshInput(key, val);
+                    }
                 }
             }
             this.refreshOutput();

@@ -13,6 +13,7 @@ namespace WebUI.Models
 {
     public class Client
     {
+        public static int tran = 0;
 
         public WorkSpace ws;
         public List<String> format;
@@ -23,6 +24,8 @@ namespace WebUI.Models
 
         public bool processParcel(Parcel v)
         {
+            if (v.tran > tran) tran = v.tran;
+
             if (v.fields != null)
             {
                 format = new List<string>(v.fields);
@@ -72,7 +75,7 @@ namespace WebUI.Models
             try
             {
                 string ret = null;
-                ret = JsonConvert.SerializeObject(new Parcel() { values = v.ToArray() });
+                ret = JsonConvert.SerializeObject(new Parcel() {tran = tran, values = v.ToArray() });
                 if (await WeriteJson(ret))
                 {
                     foreach (string key in values.Keys)

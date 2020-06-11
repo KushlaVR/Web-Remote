@@ -49,11 +49,12 @@ public:
 	~JoypadCollection() {};
 
 	unsigned long keepAliveInterval = 5000;
-	unsigned long reportAliveInterval = 100;
+	unsigned long reportAliveInterval = 500;
 
 	Joypad* getById(int id);
 	void updateValuesFrom(Joypad * source);
 	void setValue(String name, double value);
+	double getValue(String name);
 	bool setValue(Collection * fields, String name, double value);
 	void loop();
 
