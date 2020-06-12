@@ -17,9 +17,14 @@
 #include "Collection.h"
 #include "WebUIController.h"
 #include "Joypad.h"
+#include "RoboconMotor.h"
 
-#define pinMotorLeft D7//лівий борт
-#define pinMotorRigh D6//правий борт
+#define pinLeftMotorA D4//лівий борт
+#define pinLeftMotorB D5//лівий борт
+
+#define pinRightMotorA D6//правий борт
+#define pinRightMotorB D7//правий борт
+
 
 struct State {
 	int left;
@@ -37,10 +42,15 @@ const byte DNS_PORT = 53;
 DNSServer dnsServer;
 JoypadCollection joypads = JoypadCollection();
 
-Servo lefMotor = Servo();
-Servo rightMotor = Servo();
+//Servo lefMotor = Servo();
+//Servo rightMotor = Servo();
 
 
+RoboEffects leftMotorEffect = RoboEffects();
+MotorBase* leftMotor = nullptr;
+
+RoboEffects rightMotorEffect = RoboEffects();
+MotorBase* rightMotor = nullptr;
 
 void setup()
 {
@@ -88,6 +98,19 @@ void setup()
 	webServer.on("/api/EventSourceName", EventSourceName);
 	webServer.on("/api/events", Events);
 	webServer.on("/api/post", Post);
+
+	leftMotor = new HBridge("Left motor", pinLeftMotorA, pinLeftMotorB, &leftMotorEffect);
+	leftMotor->responder = &console;
+	leftMotor->setWeight(100/*config.inertion*/);
+	leftMotor->reset();
+	leftMotor->isEnabled = true;
+
+
+	rightMotor = new HBridge("Right motor", pinRightMotorA, pinRightMotorB, &rightMotorEffect);
+	rightMotor->responder = &console;
+	rightMotor->setWeight(100/*config.inertion*/);
+	rightMotor->reset();
+	rightMotor->isEnabled = true;
 
 }
 
@@ -144,7 +167,7 @@ void Post() {
 	JsonString json = "";
 	json += s;
 	int id = json.getInt("client");
-	
+
 	//console.printf("client:%i\n", id);
 
 	Joypad* j = joypads.getById(id);
@@ -165,30 +188,26 @@ void loop()
 	webServer.loop();
 
 	if (joypads.getCount() > 0) {
-		if (!lefMotor.attached()) {
-			lefMotor.attach(pinMotorLeft);
-		}
 
-		if (!rightMotor.attached()) {
-			rightMotor.attach(pinMotorRigh);
-		}
-
-		int left = map(joypads.getValue("left_y"), -100.0, 100.0, 0.0, 180.0);
-		int right = map(joypads.getValue("right_y"), -100.0, 100.0, 0.0, 180.0);
+		int left = map(joypads.getValue("left_y"), -100.0, 100.0, -1024.0, 1024.0);
+		int right = map(joypads.getValue("right_y"), -100.0, 100.0, -1024.0, 1024.0);
 
 		if (left != state.left) {
-			lefMotor.write(left);
+			leftMotor->setSpeed(left);
 			state.left = left;
 			console.print("left=");
 			console.println(left);
 		}
 
 		if (right != state.right) {
-			rightMotor.write(right);
+			rightMotor->setSpeed(right);
 			state.right = right;
 			console.print("right=");
 			console.println(right);
 		}
 
 	}
+
+	leftMotor->loop();
+	rightMotor->loop();
 }
