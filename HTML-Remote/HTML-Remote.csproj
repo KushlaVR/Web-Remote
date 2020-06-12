@@ -169,6 +169,11 @@
     <Content Include="data\css\bootstrap.css" />
     <Content Include="data\css\slider.css" />
     <Content Include="data\css\style.css" />
+    <Content Include="data\img\aim.svg" />
+    <Content Include="data\img\person.svg" />
+    <Content Include="data\img\settings.svg" />
+    <Content Include="data\img\speedometer.svg" />
+    <Content Include="data\index.html" />
     <Content Include="data\js\bootstrap.js" />
     <Content Include="data\js\jquery.js" />
     <Content Include="data\js\kushlavr.js" />
@@ -176,11 +181,17 @@
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
+    <Content Include="img\aim.svg" />
     <Content Include="img\headlight.svg" />
+    <Content Include="img\person.svg" />
     <Content Include="img\remote-control.svg" />
+    <Content Include="img\settings.svg" />
     <Content Include="img\speedometer.svg" />
     <Content Include="img\warning.svg" />
     <Content Include="index.html" />
+    <Content Include="index.min.html">
+      <DependentUpon>index.html</DependentUpon>
+    </Content>
     <Content Include="js\bootstrap.js" />
     <Content Include="js\bootstrap.min.js">
       <DependentUpon>bootstrap.js</DependentUpon>

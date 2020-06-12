@@ -118,6 +118,18 @@
     "sourceMap": false
   },
 
+  {
+    "outputFileName": "index.min.html",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "index.html"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": true
+    },
+    "sourceMap": false
+  },
 
 
   /* 
@@ -242,6 +254,69 @@
       "enabled": false
     },
     "sourceMap": false
+  },
+
+
+  {
+    "outputFileName": "data/index.html",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "index.min.html"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    },
+    "sourceMap": false
+  },
+
+  {
+    "outputFileName": "data/img/aim.svg",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "img/aim.svg"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    }
+  },
+
+  {
+    "outputFileName": "data/img/person.svg",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "img/person.svg"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    }
+  },
+
+  {
+    "outputFileName": "data/img/speedometer.svg",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "img/speedometer.svg"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    }
+  },
+
+  {
+    "outputFileName": "data/img/settings.svg",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "img/settings.svg"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    }
   }
+
 ]
 

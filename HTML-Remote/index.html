@@ -1,41 +1,51 @@
 ﻿<!DOCTYPE html>
-
 <html>
 <head>
-    <title>Простой чат</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=800, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Web-remote</title>
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <link href="css/bootstrap.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <link rel="manifest" href="/manifest.json">
 </head>
 <body>
-    <input type="text" id="user" />
-    <input type="text" id="message" />
-    <input type="button" value="send" id="send" />
-    <div id='messages'></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-6">
+                <a class="btn btn-primary plate" href="control.html">
+                    <img src="img/person.svg" />
+                    All In One
+                </a>
+            </div>
 
-    <script type="text/javascript">
-        var socket,
-            $txt = document.getElementById('message'),
-            $user = document.getElementById('user'),
-            $messages = document.getElementById('messages');
+            <div class="col-6">
+                <a class="btn btn-outline-info plate" href="control.html">
+                    <img src="img/speedometer.svg" />
+                    Driver
+                </a>
+            </div>
 
-        if (typeof (WebSocket) !== 'undefined') {
-            socket = new WebSocket("ws://localhost/SimpleChatApplication/ChatHandler.ashx");
-        } else {
-            socket = new MozWebSocket("ws://localhost/SimpleChatApplication/ChatHandler.ashx");
-        }
+            <div class="col-6">
+                <a class="btn btn-outline-info plate" href="control.html">
+                    <img src="img/aim.svg" />
+                    Sniper
+                </a>
+            </div>
 
-        socket.onmessage = function (msg) {
-            var $el = document.createElement('p');
-            $el.innerHTML = msg.data;
-            $messages.appendChild($el);
-        };
+            <div class="col-6">
+                <div class="btn btn-outline-info plate">
+                    <img src="img/settings.svg" />
+                    Settings
+                </div>
+            </div>
 
-        socket.onclose = function (event) {
-            alert('Мы потеряли её. Пожалуйста, обновите страницу');
-        };
 
-        document.getElementById('send').onclick = function () {
-            socket.send($user.value + ' : ' + $txt.value);
-            $txt.value = '';
-        };
-    </script>
+        </div>
+    </div>
+
+
 </body>
 </html>

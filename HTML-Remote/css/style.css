@@ -12,7 +12,6 @@
 }
 
 .main {
-
 }
 
     .main .screen {
@@ -35,8 +34,21 @@
             font-size: 2vw;
         }
 
-        .full-screen {
-            position: absolute;
-            top: 0;
-            right: 0px;
-        }
+.full-screen {
+    position: absolute;
+    top: 0;
+    right: 0px;
+}
+
+.plate {
+    height: 6em;
+    width: 100%;
+    margin: 1em;
+}
+
+    .plate img {
+        display:block;
+        margin:auto;
+        width: 3em;
+        height: 3em;
+    }
