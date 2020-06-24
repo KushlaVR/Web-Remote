@@ -1,7 +1,7 @@
 ﻿.slider {
     display: block;
     position: absolute;
-    border: 1px solid #ccc;
+    border: 0.5vw solid #2DF6FF;
 }
 
     .slider .pot {
@@ -14,20 +14,34 @@
     .slider .handle {
         display: block;
         position: absolute;
-        width: 5vw;
-        height: 5vw;
+        width: 6vw;
+        height: 6vw;
         border-radius: 50%;
+        background-color: #032A42;
     }
 
     .slider .handle {
         background-color: gray;
     }
 
+        .slider .handle::before {
+            content: "";
+            display: block;
+            position: absolute;
+            width: 6.8vw;
+            height: 6.8vw;
+            margin-left: -0.47vw;
+            margin-top: -0.47vw;
+            border-radius: 50%;
+            background: none;
+            border: 0.5vw solid #2DF6FF;
+        }
+
         .slider .handle::after {
             content: "";
             display: block;
-            width: 15vw;
-            height: 15vw;
+            width: 16vw;
+            height: 16vw;
             margin-left: -5vw;
             margin-top: -5vw;
             border-radius: 5vw;
@@ -49,4 +63,11 @@
 
         .slider .handle.orange {
             background-color: orange;
+        }
+
+
+        .slider .info-img{
+            width:100%;
+            height: 100%
+
         }
