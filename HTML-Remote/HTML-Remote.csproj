@@ -149,6 +149,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="driver.html" />
+    <Content Include="control - Copy.min.html">
+      <DependentUpon>driver.html</DependentUpon>
+    </Content>
     <Content Include="control.html" />
     <Content Include="control.min.html">
       <DependentUpon>control.html</DependentUpon>
@@ -182,11 +186,18 @@
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
     <Content Include="img\aim.svg" />
+    <Content Include="img\cabin.svg" />
+    <Content Include="img\down.svg" />
     <Content Include="img\headlight.svg" />
+    <Content Include="img\left.svg" />
+    <Content Include="img\light.svg" />
     <Content Include="img\person.svg" />
     <Content Include="img\remote-control.svg" />
+    <Content Include="img\right.svg" />
     <Content Include="img\settings.svg" />
     <Content Include="img\speedometer.svg" />
+    <Content Include="img\up.svg" />
+    <Content Include="img\vehicle.svg" />
     <Content Include="img\warning.svg" />
     <Content Include="index.html" />
     <Content Include="index.min.html">

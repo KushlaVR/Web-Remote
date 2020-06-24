@@ -1,13 +1,17 @@
-﻿body {
+﻿* {
+    box-sizing: border-box;
+}
+
+body {
     padding: 0;
     margin: auto;
-    background: #eee;
+    background: #032A42;
     width: 100vw;
     overflow: hidden;
 }
 
 .grid {
-    background-image: repeating-linear-gradient(#efefef 0 1px, transparent 1px 100%), repeating-linear-gradient(90deg, #efefef 0 1px, transparent 1px 100%);
+    background-image: repeating-linear-gradient(#1C7175 0 1px, transparent 1px 100%), repeating-linear-gradient(90deg, #1C7175 0 1px, transparent 1px 100%);
     background-size: 10vw 10vw;
 }
 
@@ -20,8 +24,8 @@
         margin: 10px auto;
         width: 95vw;
         height: 47vw;
-        background-color: white;
-        border: 1px solid #ddd;
+        background-color: #001725;
+        border: 1px solid #2DF6FF;
         box-shadow: rgba(0,0,0,0.1) 0px 1px 10px;
         border-radius: 5px;
     }
@@ -33,6 +37,22 @@
         .main .screen input {
             font-size: 2vw;
         }
+
+    .main .form-control {
+        background-color: #032A42;
+        color: #2DF6FF;
+    }
+
+    .main .msg,
+    .main label {
+        color: #2DF6FF;
+    }
+
+    .main .msg {
+        opacity: 0.3;
+        font-size: 1vw;
+    }
+
 
 .full-screen {
     position: absolute;
@@ -47,8 +67,8 @@
 }
 
     .plate img {
-        display:block;
-        margin:auto;
+        display: block;
+        margin: auto;
         width: 3em;
         height: 3em;
     }

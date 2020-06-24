@@ -32,32 +32,11 @@ var WorkSpace = (function () {
         workSpace.registerOutputs();
         workSpace.ConnectAPI();
     };
-    WorkSpace.prototype.ConnectWS = function () {
-        var _this = this;
-        $.get("/api/pipename")
-            .done(function (pipename) {
-            _this.socket = new WebSocket(pipename);
-            _this.socket.onopen = function (ev) {
-                _this.setFormat();
-                _this.sendData();
-            };
-            _this.socket.onmessage = function (msg) {
-                $("#message").text(msg.data);
-                _this.receiveData(msg);
-            };
-            _this.socket.onclose = function (event) {
-                $("#message").text("Disconnect...");
-            };
-        })
-            .fail(function () {
-            $("#message").text("error");
-        });
-    };
     WorkSpace.prototype.ConnectAPI = function () {
         var _this = this;
         $.get("/api/EventSourceName")
             .done(function (EventSourceName) {
-            if (!!window.EventSource) {
+            if (window.EventSource) {
                 var s = EventSourceName;
                 var json = decodeURI(s.substring(s.indexOf("?") + 1)).replace("%3a", ":");
                 var parcel = JSON.parse(json);
@@ -180,7 +159,7 @@ var WorkSpace = (function () {
         for (var i = 0; i < this.inputs.length; i++) {
             this.inputs[i].initLayout();
         }
-        for (var o = 0; i < this.outputs.length; i++) {
+        for (var o = 0; o < this.outputs.length; o++) {
             this.outputs[o].initLayout();
         }
     };
@@ -212,6 +191,9 @@ var WorkSpace = (function () {
             var element = val;
             var output;
             output = new Output(element);
+            if (!(_this.values[output.name] != undefined)) {
+                _this.values[output.name] = 0;
+            }
             _this.addOutput(output);
         });
     };
@@ -503,7 +485,7 @@ var Output = (function () {
         this.name = this.jElement.data("input");
     }
     Output.prototype.loadValue = function () {
-        if (!(this.workSpace.values[this.name] == "undefined")) {
+        if (!(this.workSpace.values[this.name] == undefined)) {
             if (this.element.tagName.toUpperCase() == "INPUT") {
                 this.jElement.val(this.workSpace.values[this.name]);
             }

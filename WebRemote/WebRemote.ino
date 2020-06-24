@@ -19,12 +19,18 @@
 #include "Joypad.h"
 #include "RoboconMotor.h"
 
+#define pinLight D0
+
+#define pinGun D1
+#define pinCabin D2
+
 #define pinLeftMotorA D4//лівий борт
 #define pinLeftMotorB D5//лівий борт
 
 #define pinRightMotorA D6//правий борт
 #define pinRightMotorB D7//правий борт
 
+#define pinTacho D8
 
 struct State {
 	int left;
