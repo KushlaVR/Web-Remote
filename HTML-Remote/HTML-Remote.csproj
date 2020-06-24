@@ -149,6 +149,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="driver.html" />
+    <Content Include="control - Copy.min.html">
+      <DependentUpon>driver.html</DependentUpon>
+    </Content>
     <Content Include="control.html" />
     <Content Include="control.min.html">
       <DependentUpon>control.html</DependentUpon>

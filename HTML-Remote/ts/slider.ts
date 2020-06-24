@@ -37,7 +37,7 @@ class WorkSpace {
     /**
      * Підєднуємось
      * */
-    private ConnectWS(): void {
+    /*private ConnectWS(): void {
         $.get("/api/pipename")
             .done((pipename) => {
                 this.socket = new WebSocket(pipename);
@@ -57,12 +57,12 @@ class WorkSpace {
             .fail(() => {
                 $("#message").text("error");
             });
-    }
+    }*/
 
     private ConnectAPI(): void {
         $.get("/api/EventSourceName")
             .done((EventSourceName) => {
-                if (!!window.EventSource) {
+                if (window.EventSource) {
                     var s: string = EventSourceName;
                     var json: string = decodeURI(s.substring(s.indexOf("?") + 1)).replace("%3a", ":");
                     var parcel: any = JSON.parse(json);
@@ -97,6 +97,7 @@ class WorkSpace {
         $.each(<any>(this.values), (name: string, value: string) => {
             this.fields.push(name);
         });
+
         this.send(JSON.stringify({ client: this.client, fields: this.fields }));
     }
 
@@ -189,8 +190,8 @@ class WorkSpace {
      * Включити/виключити повноекранний режим
      * */
     static toggleFullScreen(): void {
-        var doc: any = window.document;
-        var docEl: any = doc.documentElement;
+        let doc: any = window.document;
+        let docEl: any = doc.documentElement;
 
         var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
         var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
@@ -207,10 +208,10 @@ class WorkSpace {
      * Проводить повторну ініціалізацію елементів у відповідності до нових розмірів екрану
      */
     UpdateLayout() {
-        for (var i: number = 0; i < this.inputs.length; i++) {
+        for (let i = 0; i < this.inputs.length; i++) {
             this.inputs[i].initLayout();
         }
-        for (var o: number = 0; i < this.outputs.length; i++) {
+        for (let o = 0; o < this.outputs.length; o++) {
             this.outputs[o].initLayout();
         }
     }
@@ -250,6 +251,9 @@ class WorkSpace {
             let element: HTMLElement = val;
             var output: Output;
             output = new Output(element);
+            if (!(this.values[output.name] != undefined)) {
+                this.values[output.name] = 0;
+            }
             this.addOutput(output);
         })
     }
@@ -608,7 +612,7 @@ class Output {
     }
 
     loadValue(): void {
-        if (!(this.workSpace.values[this.name] == "undefined")) {
+        if (!(this.workSpace.values[this.name] == undefined)) {
             if (this.element.tagName.toUpperCase() == "INPUT") {
                 this.jElement.val(this.workSpace.values[this.name]);
             } else {
