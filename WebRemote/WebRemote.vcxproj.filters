@@ -37,6 +37,19 @@
     <None Include="data\html\manifest.json">
       <Filter>Misc Files</Filter>
     </None>
+    <None Include="data\html\index.html" />
+    <None Include="data\html\driver.html" />
+    <None Include="data\html\img\aim.svg" />
+    <None Include="data\html\img\cabin.svg" />
+    <None Include="data\html\img\down.svg" />
+    <None Include="data\html\img\left.svg" />
+    <None Include="data\html\img\light.svg" />
+    <None Include="data\html\img\person.svg" />
+    <None Include="data\html\img\right.svg" />
+    <None Include="data\html\img\settings.svg" />
+    <None Include="data\html\img\speedometer.svg" />
+    <None Include="data\html\img\up.svg" />
+    <None Include="data\html\img\vehicle.svg" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.WebRemote.vsarduino.h">

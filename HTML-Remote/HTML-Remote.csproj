@@ -149,6 +149,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="data\driver.html" />
     <Content Include="data\img\cabin.svg" />
     <Content Include="data\img\down.svg" />
     <Content Include="data\img\left.svg" />
@@ -157,9 +158,6 @@
     <Content Include="data\img\up.svg" />
     <Content Include="data\img\vehicle.svg" />
     <Content Include="driver.html" />
-    <Content Include="control - Copy.min.html">
-      <DependentUpon>driver.html</DependentUpon>
-    </Content>
     <Content Include="control.html" />
     <Content Include="control.min.html">
       <DependentUpon>control.html</DependentUpon>
@@ -189,6 +187,9 @@
     <Content Include="data\js\jquery.js" />
     <Content Include="data\js\kushlavr.js" />
     <Content Include="data\js\slider.js" />
+    <Content Include="driver.min.html">
+      <DependentUpon>driver.html</DependentUpon>
+    </Content>
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />

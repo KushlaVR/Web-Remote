@@ -8,6 +8,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Items", "Items", "{464C4E74
 		tools\1 firmware.bat = tools\1 firmware.bat
 		tools\2 SPIFFS.bat = tools\2 SPIFFS.bat
 		tools\copy.bat = tools\copy.bat
+		tools\data.bat = tools\data.bat
 		README.md = README.md
 	EndProjectSection
 EndProject

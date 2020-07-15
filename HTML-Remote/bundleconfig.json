@@ -119,6 +119,19 @@
   },
 
   {
+    "outputFileName": "driver.min.html",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "driver.html"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": true
+    },
+    "sourceMap": false
+  },
+
+  {
     "outputFileName": "index.min.html",
     // An array of relative input file paths. Globbing patterns supported
     "inputFiles": [
@@ -256,6 +269,19 @@
     "sourceMap": false
   },
 
+
+  {
+    "outputFileName": "data/driver.html",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "driver.min.html"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    },
+    "sourceMap": false
+  },
 
   {
     "outputFileName": "data/index.html",
