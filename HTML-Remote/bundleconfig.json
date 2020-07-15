@@ -316,7 +316,89 @@
     "minify": {
       "enabled": false
     }
+  },
+
+  {
+    "outputFileName": "data/img/cabin.svg",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "img/cabin.svg"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    }
+  },
+
+  {
+    "outputFileName": "data/img/vehicle.svg",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "img/vehicle.svg"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    }
+  },
+
+  {
+    "outputFileName": "data/img/up.svg",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "img/up.svg"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    }
+  },
+
+  {
+    "outputFileName": "data/img/down.svg",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "img/down.svg"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    }
+  },
+
+  {
+    "outputFileName": "data/img/left.svg",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "img/left.svg"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    }
+  },
+
+  {
+    "outputFileName": "data/img/right.svg",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "img/right.svg"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    }
+  },
+
+  {
+    "outputFileName": "data/img/light.svg",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "img/light.svg"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    }
   }
-
 ]
-

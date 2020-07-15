@@ -6,41 +6,42 @@
 			All non-arduino files created by visual micro and all visual studio project or solution files can be freely deleted and are not required to compile a sketch (do not delete your own code!).
 			Note: debugger breakpoints are stored in '.sln' or '.asln' files, knowledge of last uploaded breakpoints is stored in the upload.vmps.xml file. Both files are required to continue a previous debug session without needing to compile and upload again
 	
-	Hardware: WEMOS LOLIN32, Platform=esp32, Package=espressif
+	Hardware: LOLIN(WEMOS) D1 R2 & mini, Platform=esp8266, Package=esp8266
 */
 
 #if defined(_VMICRO_INTELLISENSE)
 
 #ifndef _VSARDUINO_H_
 #define _VSARDUINO_H_
-#define __ESP32_esp32__
-#define __ESP32_ESP32__
-#define _VMDEBUG 1
-#define ESP_PLATFORM
-#define HAVE_CONFIG_H
-#define GCC_NOT_5_2_0 0
-#define WITH_POSIX
-#define F_CPU 240000000L
-#define ARDUINO 108012
-#define ARDUINO_LOLIN32
-#define ARDUINO_ARCH_ESP32
-#define ESP32
-#define CORE_DEBUG_LEVEL 0
+#define __ESP8266_esp8266__
+#define __ESP8266_ESP8266__
+#define __ets__
+#define ICACHE_FLASH
+#define NONOSDK22x_191024 1
+#define F_CPU 160000000L
+#define LWIP_OPEN_SRC
+#define TCP_MSS 536
+#define LWIP_FEATURES 1
+#define LWIP_IPV6 0
+#define ARDUINO 108010
+#define ARDUINO_ESP8266_WEMOS_D1MINI
+#define ARDUINO_ARCH_ESP8266
+#define FLASHMODE_DIO
+#define ESP8266
 #define __cplusplus 201103L
-
-#define _Pragma(x)
 #undef __cplusplus
 #define __cplusplus 201103L
-
 #define __STDC__
 #define __ARM__
 #define __arm__
 #define __inline__
-#define __asm__(...)
+#define __asm__(x)
+#define __asm__
 #define __extension__
 #define __ATTR_PURE__
 #define __ATTR_CONST__
 #define __volatile__
+
 
 #define __ASM
 #define __INLINE
@@ -54,7 +55,15 @@
 #define C4005
 #define _NEW
 
-typedef bool _Bool;
+//typedef int uint8_t;
+//#define __ARMCC_VERSION 400678
+//#define PROGMEM
+//#define string_literal
+//
+//#define prog_void
+//#define PGM_VOID_P int
+//
+
 typedef int _read;
 typedef int _seek;
 typedef int _write;
@@ -78,30 +87,27 @@ typedef int __gnuc_va_list;
 typedef unsigned char byte;
 extern "C" void __cxa_pure_virtual() {;}
 
+
 typedef long __INTPTR_TYPE__ ;
 typedef long __UINTPTR_TYPE__ ;
 typedef long __SIZE_TYPE__ 	;
 typedef long __PTRDIFF_TYPE__;
 
-typedef long pthread_t;
-typedef long pthread_key_t;
-typedef long pthread_once_t;
-typedef long pthread_mutex_t;
-typedef long pthread_mutex_t;
-typedef long pthread_cond_t;
 
+#include "new"
+#include "Esp.h"
 
 
 #include "arduino.h"
 #include <pins_arduino.h> 
 
-//#include "..\generic\Common.h"
-//#include "..\generic\pins_arduino.h"
+#include "..\generic\Common.h"
+#include "..\generic\pins_arduino.h"
 
-//#undef F
-//#define F(string_literal) ((const PROGMEM char *)(string_literal))
-//#undef PSTR
-//#define PSTR(string_literal) ((const PROGMEM char *)(string_literal))
+#undef F
+#define F(string_literal) ((const PROGMEM char *)(string_literal))
+#undef PSTR
+#define PSTR(string_literal) ((const PROGMEM char *)(string_literal))
 //current vc++ does not understand this syntax so use older arduino example for intellisense
 //todo:move to the new clang/gcc project types.
 #define interrupts() sei()
