@@ -21,6 +21,7 @@ var WorkSpace = (function () {
         this.tranCount = 0;
         this.timer = 0;
         this.reportInterval = 100;
+        this.readonlyFields = new Array();
         this.tran = 0;
         this._readyToSend = true;
         this.form = form;
@@ -140,6 +141,18 @@ var WorkSpace = (function () {
                     }
                 }
             }
+            else {
+                for (var i = 0; i < this.fields.length; i++) {
+                    var key = this.fields[i];
+                    var val = parcel.values[i];
+                    for (var rIndex = 0; rIndex < this.readonlyFields.length; rIndex++) {
+                        if (key == this.readonlyFields[rIndex]) {
+                            this.values[key] = val;
+                            break;
+                        }
+                    }
+                }
+            }
             this.refreshOutput();
         }
     };
@@ -170,8 +183,10 @@ var WorkSpace = (function () {
             var element = val;
             var input;
             if ($(element).hasClass("slider")) {
-                var slider = new Slider(element);
-                input = slider;
+                input = new Slider(element);
+            }
+            else if ($(element).hasClass("btn")) {
+                input = new Button(element);
             }
             else {
                 input = new Input(element);
@@ -188,10 +203,10 @@ var WorkSpace = (function () {
         var _this = this;
         var outputs = $(".output", this.form);
         outputs.each(function (index, val) {
-            var element = val;
-            var output;
-            output = new Output(element);
+            var output = null;
+            output = new Output(val);
             if (!(_this.values[output.name] != undefined)) {
+                _this.readonlyFields.push(output.name);
                 _this.values[output.name] = 0;
             }
             _this.addOutput(output);
@@ -477,6 +492,55 @@ var Slider = (function (_super) {
         return pt;
     };
     return Slider;
+}(Input));
+var Button = (function (_super) {
+    __extends(Button, _super);
+    function Button(element) {
+        var _this = _super.call(this, element) || this;
+        if ("ontouchstart" in document.documentElement) {
+            _this.element.addEventListener('touchstart', function (event) { return _this.onTouchStart(event); }, false);
+            _this.element.addEventListener('touchend', function (event) { return _this.onTouchEnd(event); }, false);
+        }
+        else {
+            _this.element.addEventListener('mousedown', function (event) { return _this.onMouseDown(event); }, false);
+            _this.element.addEventListener('mouseup', function (event) { return _this.onMouseUp(event); }, false);
+        }
+        return _this;
+    }
+    Button.prototype.onTouchStart = function (event) {
+        this.pressed = true;
+        this.saveValue();
+        event.preventDefault();
+    };
+    Button.prototype.onTouchEnd = function (event) {
+        this.pressed = false;
+        this.saveValue();
+        event.preventDefault();
+    };
+    Button.prototype.onMouseDown = function (event) {
+        this.pressed = true;
+        this.saveValue();
+        event.preventDefault();
+    };
+    Button.prototype.onMouseUp = function (event) {
+        this.pressed = false;
+        this.saveValue();
+        event.preventDefault();
+    };
+    Button.prototype.saveValue = function () {
+        if (!this.workSpace)
+            return;
+        this.workSpace.beginTransaction();
+        var key = this.name;
+        if (this.pressed) {
+            this.workSpace.values[key] = "1";
+        }
+        else {
+            this.workSpace.values[key] = "0";
+        }
+        this.workSpace.endTransaction();
+    };
+    return Button;
 }(Input));
 var Output = (function () {
     function Output(element) {

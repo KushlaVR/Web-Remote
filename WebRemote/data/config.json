@@ -1,0 +1,16 @@
+{
+  "ssid": "WEMOS",
+  "password": "12345678",
+  "mode": "debug",
+  "min_speed": "20",
+  "inertion": "800",
+  "gun_min": "20",
+  "gun_max": "40",
+  "fire_min": "20",
+  "fire_max": "40",
+  "fire_duration": "300",
+  "tacho_min": "20",
+  "tacho_max": "100",
+  "smoke_min": "20",
+  "smoke_max": "100"
+}

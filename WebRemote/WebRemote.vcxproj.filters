@@ -50,6 +50,9 @@
     <None Include="data\html\img\speedometer.svg" />
     <None Include="data\html\img\up.svg" />
     <None Include="data\html\img\vehicle.svg" />
+    <None Include="data\config.json">
+      <Filter>Misc Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.WebRemote.vsarduino.h">
@@ -76,6 +79,12 @@
     <ClInclude Include="Joypad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SetupController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Blinker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Button.cpp">
@@ -97,6 +106,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Joypad.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SetupController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Blinker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

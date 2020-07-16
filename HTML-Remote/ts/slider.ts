@@ -17,6 +17,7 @@ class WorkSpace {
     timer: number = 0;
     reportInterval: number = 100;//Інтервал синхронізації даних
     fields: Array<string>;
+    readonlyFields: Array<string> = new Array<string>();
     tran: number = 0;
 
     constructor(form: HTMLFormElement) {
@@ -33,31 +34,6 @@ class WorkSpace {
         //workSpace.ConnectWS();
         workSpace.ConnectAPI();
     }
-
-    /**
-     * Підєднуємось
-     * */
-    /*private ConnectWS(): void {
-        $.get("/api/pipename")
-            .done((pipename) => {
-                this.socket = new WebSocket(pipename);
-                this.socket.onopen = (ev: Event) => {
-                    this.setFormat();
-                    this.sendData();
-                }
-                this.socket.onmessage = (msg: MessageEvent) => {
-                    $("#message").text(msg.data);
-                    this.receiveData(msg);
-                };
-
-                this.socket.onclose = (event: CloseEvent) => {
-                    $("#message").text("Disconnect...");
-                };
-            })
-            .fail(() => {
-                $("#message").text("error");
-            });
-    }*/
 
     private ConnectAPI(): void {
         $.get("/api/EventSourceName")
@@ -172,13 +148,27 @@ class WorkSpace {
             var parcel = JSON.parse(msg.data);
             if (this.tran < parcel.tran) {
                 this.tran = parseInt(parcel.tran, 10);
-                for (var i: number = 0; i < this.fields.length; i++) {
-                    var key = this.fields[i];
-                    var val = parcel.values[i];
+                for (let i: number = 0; i < this.fields.length; i++) {
+                    let key = this.fields[i];
+                    let val = parcel.values[i];
                     if (this.sent[key] != val) {
                         this.sent[key] = val;
                         this.values[key] = val;
                         this.refreshInput(key, val);
+                    }
+                }
+            } else {
+                //відповідь на нашу посилку
+                //Поновляємо всі readonly поля
+                for (let i: number = 0; i < this.fields.length; i++) {
+                    let key = this.fields[i];
+                    let val = parcel.values[i];
+                    for (let rIndex: number = 0; rIndex < this.readonlyFields.length; rIndex++) {
+                        if (key == this.readonlyFields[rIndex]) {
+                            //this.sent[key] = val;
+                            this.values[key] = val;
+                            break;
+                        }
                     }
                 }
             }
@@ -226,8 +216,9 @@ class WorkSpace {
             let element: HTMLElement = val;
             var input: Input;
             if ($(element).hasClass("slider")) {
-                var slider: Slider = new Slider(element);
-                input = slider;
+                input = new Slider(element);
+            } else if ($(element).hasClass("btn")) {
+                input = new Button(element);
             } else {
                 input = new Input(element);
             }
@@ -248,10 +239,11 @@ class WorkSpace {
         var outputs = $(".output", this.form);
 
         outputs.each((index: number, val: any) => {
-            let element: HTMLElement = val;
-            var output: Output;
-            output = new Output(element);
+            let output: Output = null;
+            output = new Output(val);
             if (!(this.values[output.name] != undefined)) {
+                //Поле не зареєстроване, значить воно Readonly
+                this.readonlyFields.push(output.name);
                 this.values[output.name] = 0;
             }
             this.addOutput(output);
@@ -597,6 +589,61 @@ class Slider extends Input {
 
     }
 
+}
+
+class Button extends Input {
+
+    pressed: boolean;
+
+    constructor(element: any) {
+        super(element);
+        if ("ontouchstart" in document.documentElement) {
+            this.element.addEventListener('touchstart', (event: MouseEvent) => this.onTouchStart(event), false);
+            this.element.addEventListener('touchend', (event: MouseEvent) => this.onTouchEnd(event), false);
+        }
+        else {
+            this.element.addEventListener('mousedown', (event: MouseEvent) => this.onMouseDown(event), false);
+            this.element.addEventListener('mouseup', (event: MouseEvent) => this.onMouseUp(event), false);
+        }
+    }
+
+
+    private onTouchStart(event: MouseEvent): void {
+        this.pressed = true;
+        this.saveValue();
+        event.preventDefault();
+    }
+    
+    private onTouchEnd(event: MouseEvent): void {
+        this.pressed = false;
+        this.saveValue();
+        event.preventDefault();
+    }
+
+    private onMouseDown(event: MouseEvent): void {
+        this.pressed = true;
+        this.saveValue();
+        event.preventDefault();
+    }
+    
+    private onMouseUp(event: MouseEvent): void {
+        this.pressed = false;
+        this.saveValue();
+        event.preventDefault();
+    }
+
+    saveValue(): void {
+        if (!this.workSpace) return;
+        this.workSpace.beginTransaction();
+        let key = this.name;
+        if (this.pressed) {
+            this.workSpace.values[key] = "1";
+        }
+        else {
+            this.workSpace.values[key] = "0";
+        }
+        this.workSpace.endTransaction();
+    }
 }
 
 class Output {

@@ -86,6 +86,25 @@ namespace WebUI.Models
                         currentValues.Add(key, received[key]);
                     }
                 }
+
+                if (currentValues.ContainsKey("left"))
+                {
+                    currentValues["left"] = DateTime.Now.Second.ToString();
+                }
+                else
+                {
+                    currentValues.Add("left", DateTime.Now.Second.ToString());
+                }
+
+                if (currentValues.ContainsKey("right"))
+                {
+                    currentValues["right"] = DateTime.Now.Second.ToString();
+                }
+                else
+                {
+                    currentValues.Add("right", DateTime.Now.Second.ToString());
+                }
+
             }
             finally
             {

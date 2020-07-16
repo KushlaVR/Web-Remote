@@ -34,7 +34,8 @@ body {
         .main .screen label,
         .main .screen .form-control,
         .main .screen button,
-        .main .screen input {
+        .main .screen input,
+        .main .screen a {
             font-size: 2vw;
         }
 
@@ -52,6 +53,20 @@ body {
         opacity: 0.3;
         font-size: 1vw;
     }
+
+    .main .btn-round {
+        width: 9vw;
+        height: 9vw;
+        text-align: center;
+        border: 0.5vw solid #2DF6FF;
+        border-radius: 50%;
+        color: #2DF6FF;
+        padding: 1vw;
+    }
+
+        .main .btn-round:hover {
+            background: red;
+        }
 
 
 .full-screen {

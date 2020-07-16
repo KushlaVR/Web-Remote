@@ -16,8 +16,13 @@
 #include "Console.h"
 #include "Collection.h"
 #include "WebUIController.h"
+#include "SetupController.h"
 #include "Joypad.h"
 #include "RoboconMotor.h"
+#include "Blinker.h"
+
+
+
 
 #define pinLight D0
 
@@ -30,13 +35,25 @@
 #define pinRightMotorA D6//правий борт
 #define pinRightMotorB D7//правий борт
 
-#define pinTacho D8
+#define pinTacho D8//ШИМ для турбіни
+#define pinSmoke D3//ШИМ для димогенератора
+
+enum Ignition {
+	OFF = 0,
+	ON = 1,
+	RUN = 2
+};
 
 struct State {
 	int left;
 	int right;
+	int rpm;
+	int ignition;
 } state;
 
+void startStop_Pressed();
+
+ConfigStruct config;
 
 char SSID[32];
 char SSID_password[20];
@@ -47,6 +64,9 @@ IPAddress netMsk = IPAddress(255, 255, 255, 0);
 const byte DNS_PORT = 53;
 DNSServer dnsServer;
 JoypadCollection joypads = JoypadCollection();
+
+Blinker smoke = Blinker("Smoke");
+VirtualButton startStop = VirtualButton(startStop_Pressed);
 
 //Servo lefMotor = Servo();
 //Servo rightMotor = Servo();
@@ -88,10 +108,23 @@ void setup()
 	}
 
 
+
+	setupController.cfg = &config;
+	setupController.loadConfig();
+
+
 	WiFi.begin();
 	WiFi.disconnect();
 	WiFi.mode(WIFI_AP);
-	WiFi.softAP("Test", "1234567890");
+
+	s = config.ssid + "_" + WiFi.macAddress();
+	s.replace(":", "");
+	strcpy(&SSID[0], s.c_str());
+
+	s = config.password;
+	strcpy(&SSID_password[0], s.c_str());
+
+	WiFi.softAP(SSID, SSID_password);
 
 	/* Setup the DNS server redirecting all the domains to the apIP */
 	dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
@@ -117,6 +150,12 @@ void setup()
 	rightMotor->setWeight(100/*config.inertion*/);
 	rightMotor->reset();
 	rightMotor->isEnabled = true;
+
+	smoke.Add(pinSmoke, 0, 1024)
+		->Add(pinSmoke, 200, LOW)
+		->Add(pinSmoke, 300, LOW);
+
+	state.ignition = Ignition::OFF;
 
 }
 
@@ -187,6 +226,26 @@ void Post() {
 	}
 }
 
+void startStop_Pressed() {
+	state.ignition += 1;
+	if (state.ignition > Ignition::RUN) {
+		state.ignition = Ignition::OFF;
+	}
+	if (state.ignition == Ignition::OFF) {
+		if (smoke.isRunning()) smoke.end();
+		Serial.println("Engine stopped");
+	}
+	else if (state.ignition == Ignition::ON) {
+		Serial.println("Engine Started");
+		if (!smoke.isRunning()) smoke.begin();
+	}
+	else
+	{
+		Serial.println("Veichle Run");
+		if (!smoke.isRunning()) smoke.begin();
+	}
+}
+
 void loop()
 {
 	dnsServer.processNextRequest();
@@ -195,25 +254,92 @@ void loop()
 
 	if (joypads.getCount() > 0) {
 
-		int left = map(joypads.getValue("left_y"), -100.0, 100.0, -1024.0, 1024.0);
-		int right = map(joypads.getValue("right_y"), -100.0, 100.0, -1024.0, 1024.0);
+		startStop.setValue(joypads.getValue("start"));
 
-		if (left != state.left) {
-			leftMotor->setSpeed(left);
-			state.left = left;
-			console.print("left=");
-			console.println(left);
+		//Поточні значення з пульта шофера
+		double left_y = joypads.getValue("left_y");
+		double right_y = joypads.getValue("right_y");
+
+		//Поточні значення з універсального джойстика
+		double vehicle_x = joypads.getValue("vehicle_x");
+		double vehicle_y = joypads.getValue("vehicle_y");
+
+		int left = 0;
+		int right = 0;
+		//Якщо на універсальному джойстику не нульові значення, то вони мають пріоритет
+		if (vehicle_x != 0 || vehicle_y != 0) {
+			if (vehicle_x > 0) {
+				left = vehicle_y * (100.0 - vehicle_x) / 100.0;
+				right = vehicle_y;
+			}
+			else if (vehicle_x < 0) {
+				left = vehicle_y;
+				right = vehicle_y * (100.0 + vehicle_x) / 100.0;
+			}
+			else {
+				left = vehicle_y;
+				right = vehicle_y;
+			}
 		}
 
-		if (right != state.right) {
-			rightMotor->setSpeed(right);
-			state.right = right;
-			console.print("right=");
-			console.println(right);
+		if (left > 0 && right < 0) {
+			right = 0;
 		}
+		if (right > 0 && left < 0) {
+			left = 0;
+		}
+
+
+		int tacho;
+		if (state.ignition >= Ignition::ON) {
+			//Тахометр
+			tacho = abs(left);
+			if (abs(right) > tacho) tacho = abs(right);
+			int rpm = map(tacho, 0, 100, 800, 2300);
+			if (state.rpm != rpm) {
+				state.rpm = rpm;
+				analogWrite(pinTacho, map(tacho, 0, 100, config.tacho_min, config.tacho_max));
+				smoke.item(0)->offset = map(tacho, 0, 100, config.smoke_min, config.smoke_max);
+			}
+		}
+		else
+		{
+			state.rpm = 0;
+			smoke.item(0)->offset = 0;
+			analogWrite(pinTacho, 0);
+		}
+
+
+		//Двигуни
+		if (state.ignition >= Ignition::RUN) {
+			if (left != state.left) {
+				leftMotor->setSpeed(left);
+				state.left = left;
+				console.print("left=");
+				console.println(state.right);
+			}
+
+			if (right != state.right) {
+				rightMotor->setSpeed(right);
+				state.right = right;
+				console.print("right=");
+				console.println(state.right);
+			}
+		}
+		else
+		{
+			state.left = 0;
+			state.right = 0;
+		}
+
+
+		joypads.setValue("rpm", state.rpm);
+		joypads.setValue("left", state.left);
+		joypads.setValue("right", state.right);
 
 	}
 
 	leftMotor->loop();
 	rightMotor->loop();
+	startStop.handle();
 }

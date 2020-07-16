@@ -68,7 +68,7 @@ bool Joypad::processParcel(JsonString* json)
 				int endIndex = str.indexOf("\"", fieldsIndex);
 				Joypadfield* f = (Joypadfield*)(fields->get(i++));
 				if (f != nullptr) {
-					f->value = str.substring(fieldsIndex, endIndex).toDouble();
+					f->value = str.substring(fieldsIndex, endIndex).toFloat();
 					//f->sent = f->value;
 				}
 				fieldsIndex = endIndex + 1;
@@ -158,6 +158,9 @@ void JoypadCollection::updateValuesFrom(Joypad* source)
 
 void JoypadCollection::setValue(String name, double value)
 {
+	if (fields == nullptr) {
+		fields = new Collection();
+	}
 	//Проставляємо поточні значення
 	if (!JoypadCollection::setValue(fields, name, value)) {
 		//не знайшли, додаємо
