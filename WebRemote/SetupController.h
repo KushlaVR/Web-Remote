@@ -24,11 +24,11 @@ public:
 	int fire_max;
 	int fire_duration;
 
-	int tacho_min;
-	int tacho_max;
+	int tacho_min;//0..1024
+	int tacho_max;//0..1024
 
-	int smoke_min;
-	int smoke_max;
+	int smoke_min;//0..300
+	int smoke_max;//0..300
 
 };
 
