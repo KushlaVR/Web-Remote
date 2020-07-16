@@ -34,8 +34,11 @@ void SetupController::loadConfig()
 		cfg.AddValue("fire_duration", "300");
 
 
-		cfg.AddValue("tacho_min", "20");
-		cfg.AddValue("tacho_max", "100");
+		cfg.AddValue("turbine_min", "20");
+		cfg.AddValue("turbine_max", "100");
+
+		cfg.AddValue("turbine_frequency_min", "3");
+		cfg.AddValue("turbine_frequency_max", "10");
 
 		cfg.AddValue("smoke_min", "20");
 		cfg.AddValue("smoke_max", "100");
@@ -69,8 +72,11 @@ void SetupController::loadConfig()
 	this->cfg->fire_max = cfg.getInt("fire_max");
 	this->cfg->fire_duration = cfg.getInt("fire_duration");
 
-	this->cfg->tacho_min = cfg.getInt("tacho_min");
-	this->cfg->tacho_max = cfg.getInt("tacho_max");
+	this->cfg->turbine_min = cfg.getInt("turbine_min");
+	this->cfg->turbine_max = cfg.getInt("turbine_max");
+
+	this->cfg->turbine_frequency_min = cfg.getInt("turbine_frequency_min");
+	this->cfg->turbine_frequency_max = cfg.getInt("turbine_frequency_max");
 
 	this->cfg->smoke_min = cfg.getInt("smoke_min");
 	this->cfg->smoke_max = cfg.getInt("smoke_max");
@@ -104,8 +110,11 @@ void SetupController::printConfig(JsonString* out)
 	out->AddValue("fire_max", String(cfg->fire_max));
 	out->AddValue("fire_duration", String(cfg->fire_duration));
 
-	out->AddValue("tacho_min", String(cfg->tacho_min));
-	out->AddValue("tacho_max", String(cfg->tacho_max));
+	out->AddValue("turbine_min", String(cfg->turbine_min));
+	out->AddValue("turbine_max", String(cfg->turbine_max));
+
+	out->AddValue("turbine_frequency_min", String(cfg->turbine_frequency_min));
+	out->AddValue("turbine_frequency_max", String(cfg->turbine_frequency_max));
 
 	out->AddValue("smoke_min", String(cfg->smoke_min));
 	out->AddValue("smoke_max", String(cfg->smoke_max));
@@ -136,8 +145,11 @@ void SetupController::Setup_Post()
 	if (webServer.hasArg("fire_max")) { setupController.cfg->fire_max = webServer.arg("fire_max").toInt(); }
 	if (webServer.hasArg("fire_duration")) { setupController.cfg->fire_duration = webServer.arg("fire_duration").toInt(); }
 	
-	if (webServer.hasArg("tacho_min")) { setupController.cfg->tacho_min = webServer.arg("tacho_min").toInt(); }
-	if (webServer.hasArg("tacho_max")) { setupController.cfg->tacho_max = webServer.arg("tacho_max").toInt(); }
+	if (webServer.hasArg("turbine_min")) { setupController.cfg->turbine_min = webServer.arg("turbine_min").toInt(); }
+	if (webServer.hasArg("turbine_max")) { setupController.cfg->turbine_max = webServer.arg("turbine_max").toInt(); }
+
+	if (webServer.hasArg("turbine_frequency_min")) { setupController.cfg->turbine_frequency_min = webServer.arg("turbine_frequency_min").toInt(); }
+	if (webServer.hasArg("turbine_frequency_max")) { setupController.cfg->turbine_frequency_max = webServer.arg("turbine_frequency_max").toInt(); }
 
 	if (webServer.hasArg("smoke_min")) { setupController.cfg->smoke_min = webServer.arg("smoke_min").toInt(); }
 	if (webServer.hasArg("smoke_max")) { setupController.cfg->smoke_max = webServer.arg("smoke_max").toInt(); }

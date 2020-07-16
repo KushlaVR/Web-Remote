@@ -24,8 +24,10 @@ public:
 	int fire_max;
 	int fire_duration;
 
-	int tacho_min;//0..1024
-	int tacho_max;//0..1024
+	int turbine_min;//0..100
+	int turbine_max;//0..100
+	int turbine_frequency_min;
+	int turbine_frequency_max;
 
 	int smoke_min;//0..300
 	int smoke_max;//0..300

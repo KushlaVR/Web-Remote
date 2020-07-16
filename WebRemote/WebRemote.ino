@@ -35,8 +35,8 @@
 #define pinRightMotorA D6//правий борт
 #define pinRightMotorB D7//правий борт
 
-#define pinTacho D8//ШИМ для турбіни
-#define pinSmoke D3//ШИМ для димогенератора
+#define pinTacho D3//ШИМ для турбіни
+#define pinSmoke D8//ШИМ для димогенератора
 
 enum Ignition {
 	OFF = 0,
@@ -52,6 +52,7 @@ struct State {
 } state;
 
 void startStop_Pressed();
+void reloadConfig();
 
 ConfigStruct config;
 
@@ -65,7 +66,7 @@ const byte DNS_PORT = 53;
 DNSServer dnsServer;
 JoypadCollection joypads = JoypadCollection();
 
-Blinker smoke = Blinker("Smoke");
+Blinker turbine = Blinker("Turbine");
 VirtualButton startStop = VirtualButton(startStop_Pressed);
 
 //Servo lefMotor = Servo();
@@ -110,6 +111,7 @@ void setup()
 
 
 	setupController.cfg = &config;
+	setupController.reloadConfig = reloadConfig;
 	setupController.loadConfig();
 
 
@@ -140,24 +142,32 @@ void setup()
 
 	leftMotor = new HBridge("Left motor", pinLeftMotorA, pinLeftMotorB, &leftMotorEffect);
 	leftMotor->responder = &console;
-	leftMotor->setWeight(100/*config.inertion*/);
+	leftMotor->setWeight(config.inertion);
 	leftMotor->reset();
 	leftMotor->isEnabled = true;
 
 
 	rightMotor = new HBridge("Right motor", pinRightMotorA, pinRightMotorB, &rightMotorEffect);
 	rightMotor->responder = &console;
-	rightMotor->setWeight(100/*config.inertion*/);
+	rightMotor->setWeight(config.inertion);
 	rightMotor->reset();
 	rightMotor->isEnabled = true;
 
-	smoke.Add(pinSmoke, 0, 1024)
-		->Add(pinSmoke, 200, LOW)
-		->Add(pinSmoke, 300, LOW);
+	turbine.Add(pinTacho, 0, 1024)
+		->Add(pinTacho, (1000 / config.turbine_frequency_min) / 2, LOW)
+		->Add(pinTacho, 1000 / config.turbine_frequency_min, LOW);
 
 	state.ignition = Ignition::OFF;
 
 }
+
+void reloadConfig() {
+	leftMotor->setWeight(config.inertion);
+	rightMotor->setWeight(config.inertion);
+	turbine.item(1)->offset = (1000 / config.turbine_frequency_min) / 2;
+	turbine.item(2)->offset = (1000 / config.turbine_frequency_min);
+}
+
 
 void EventSourceName() {
 	webServer.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -232,17 +242,17 @@ void startStop_Pressed() {
 		state.ignition = Ignition::OFF;
 	}
 	if (state.ignition == Ignition::OFF) {
-		if (smoke.isRunning()) smoke.end();
+		if (turbine.isRunning()) turbine.end();
 		Serial.println("Engine stopped");
 	}
 	else if (state.ignition == Ignition::ON) {
 		Serial.println("Engine Started");
-		if (!smoke.isRunning()) smoke.begin();
+		if (!turbine.isRunning()) turbine.begin();
 	}
 	else
 	{
 		Serial.println("Veichle Run");
-		if (!smoke.isRunning()) smoke.begin();
+		if (!turbine.isRunning()) turbine.begin();
 	}
 }
 
@@ -298,15 +308,21 @@ void loop()
 			int rpm = map(tacho, 0, 100, 800, 2300);
 			if (state.rpm != rpm) {
 				state.rpm = rpm;
-				analogWrite(pinTacho, map(tacho, 0, 100, config.tacho_min, config.tacho_max));
-				smoke.item(0)->offset = map(tacho, 0, 100, config.smoke_min, config.smoke_max);
+				//Semoke PWM
+				analogWrite(pinSmoke, map(tacho, 0, 100, config.smoke_min, config.smoke_max));
+				//Turbo PWM
+				turbine.item(0)->value = map(tacho, 0, 100, config.turbine_min, config.turbine_max);
+				//Turbo pulse freq
+				int f = map(tacho, 0, 100, config.turbine_frequency_min, config.turbine_frequency_max);
+				turbine.item(1)->offset = (1000 / f) / 2;
+				turbine.item(2)->offset = (1000 / f);
 			}
 		}
 		else
 		{
 			state.rpm = 0;
-			smoke.item(0)->offset = 0;
-			analogWrite(pinTacho, 0);
+			turbine.item(0)->value = 0;
+			analogWrite(pinSmoke, 0);
 		}
 
 
@@ -338,7 +354,7 @@ void loop()
 		joypads.setValue("right", state.right);
 
 	}
-
+	turbine.loop();
 	leftMotor->loop();
 	rightMotor->loop();
 	startStop.handle();

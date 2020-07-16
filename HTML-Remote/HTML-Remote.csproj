@@ -149,6 +149,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="data\sniper.html" />
+    <Content Include="sniper.html" />
+    <Content Include="control - Copy.min.html">
+      <DependentUpon>sniper.html</DependentUpon>
+    </Content>
     <Content Include="data\driver.html" />
     <Content Include="data\img\cabin.svg" />
     <Content Include="data\img\down.svg" />
@@ -532,6 +537,9 @@
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="sniper.min.html">
+      <DependentUpon>sniper.html</DependentUpon>
+    </Content>
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>

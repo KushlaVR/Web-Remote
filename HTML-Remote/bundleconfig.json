@@ -131,6 +131,20 @@
     "sourceMap": false
   },
 
+
+  {
+    "outputFileName": "sniper.min.html",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "sniper.html"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": true
+    },
+    "sourceMap": false
+  },
+
   {
     "outputFileName": "index.min.html",
     // An array of relative input file paths. Globbing patterns supported
@@ -275,6 +289,20 @@
     // An array of relative input file paths. Globbing patterns supported
     "inputFiles": [
       "driver.min.html"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    },
+    "sourceMap": false
+  },
+
+
+  {
+    "outputFileName": "data/sniper.html",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "sniper.min.html"
     ],
     // Optionally specify minification options
     "minify": {

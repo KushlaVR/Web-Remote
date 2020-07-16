@@ -87,3 +87,10 @@ body {
         width: 3em;
         height: 3em;
     }
+
+
+.settings {
+    color: whitesmoke;
+    max-width: 500px;
+    margin:auto;
+}
