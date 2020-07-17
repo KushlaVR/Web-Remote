@@ -29,8 +29,8 @@ public:
 	int turbine_frequency_min;
 	int turbine_frequency_max;
 
-	int smoke_min;//0..300
-	int smoke_max;//0..300
+	int smoke_min;//0..100
+	int smoke_max;//0..100
 
 };
 

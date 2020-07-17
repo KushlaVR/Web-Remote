@@ -21,7 +21,8 @@
 #include "RoboconMotor.h"
 #include "Blinker.h"
 
-
+#define MOSFET_OFF 1024
+#define MOSFET_ON 0
 
 
 #define pinLight D0
@@ -29,8 +30,11 @@
 #define pinGun D1
 #define pinCabin D2
 
-#define pinLeftMotorA D4//лівий борт
-#define pinLeftMotorB D5//лівий борт
+//#define pinLeftMotor D4//лівий борт
+//#define pinRightMotor D5//правий борт
+
+#define pinLeftMotorA D4//правий борт
+#define pinLeftMotorB D5//правий борт
 
 #define pinRightMotorA D6//правий борт
 #define pinRightMotorB D7//правий борт
@@ -153,9 +157,9 @@ void setup()
 	rightMotor->reset();
 	rightMotor->isEnabled = true;
 
-	turbine.Add(pinTacho, 0, 1024)
-		->Add(pinTacho, (1000 / config.turbine_frequency_min) / 2, LOW)
-		->Add(pinTacho, 1000 / config.turbine_frequency_min, LOW);
+	turbine.Add(pinTacho, 0, MOSFET_ON)
+		->Add(pinTacho, (1000 / config.turbine_frequency_min) / 2, MOSFET_OFF)
+		->Add(pinTacho, 1000 / config.turbine_frequency_min, MOSFET_OFF);
 
 	state.ignition = Ignition::OFF;
 
@@ -309,9 +313,10 @@ void loop()
 			if (state.rpm != rpm) {
 				state.rpm = rpm;
 				//Semoke PWM
-				analogWrite(pinSmoke, map(tacho, 0, 100, config.smoke_min, config.smoke_max));
+				int smoke = map(tacho, 0, 100, config.smoke_min, config.smoke_max);
+				analogWrite(pinSmoke, MOSFET_OFF - map(smoke, 0, 100, 0, 1024));
 				//Turbo PWM
-				turbine.item(0)->value = map(tacho, 0, 100, config.turbine_min, config.turbine_max);
+				turbine.item(0)->value = MOSFET_ON;//map(tacho, 0, 100, 1024 - config.turbine_min, config.turbine_max);
 				//Turbo pulse freq
 				int f = map(tacho, 0, 100, config.turbine_frequency_min, config.turbine_frequency_max);
 				turbine.item(1)->offset = (1000 / f) / 2;
@@ -321,22 +326,22 @@ void loop()
 		else
 		{
 			state.rpm = 0;
-			turbine.item(0)->value = 0;
-			analogWrite(pinSmoke, 0);
+			turbine.item(0)->value = MOSFET_OFF;
+			analogWrite(pinSmoke, MOSFET_OFF);
 		}
 
 
 		//Двигуни
 		if (state.ignition >= Ignition::RUN) {
 			if (left != state.left) {
-				leftMotor->setSpeed(left);
+				leftMotor->setSpeed(map(left, 0, 100, 0, 1024));
 				state.left = left;
 				console.print("left=");
 				console.println(state.right);
 			}
 
 			if (right != state.right) {
-				rightMotor->setSpeed(right);
+				rightMotor->setSpeed(map(right, 0, 100, 0, 1024));
 				state.right = right;
 				console.print("right=");
 				console.println(state.right);
