@@ -24,8 +24,8 @@ public:
 	int fire_max;
 	int fire_duration;
 
-	int turbine_min;//0..100
-	int turbine_max;//0..100
+	int turbine_min;//0..180
+	int turbine_max;//0..180
 	int turbine_frequency_min;
 	int turbine_frequency_max;
 

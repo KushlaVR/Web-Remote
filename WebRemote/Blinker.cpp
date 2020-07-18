@@ -18,26 +18,32 @@ void Blinker::loop()
 {
 	if (startTime == 0) return;
 	unsigned long offset = millis() - startTime;//—к≥льки часу пройшло в≥д початку
-	BlinkerItem* item = current;
-	if (item == nullptr) return;//якщо немаЇ елемента на черз≥ - н≥чого не робимо
-	if (offset < item->offset) return;//якщо час ще не настав - виходимо
-	write(item->pin, item->value);//„ас настав
-	if (debug) {
-		console.print(name);
-		console.printf(": %i->%i\n", item->pin, item->value);
-	}
-	current = item->next;//ѕереходимо до наступного елемента
-	if (repeat) {
-		if (current == nullptr) {//к≥нець списку, починаЇмо з початку
-			current = first;
-			startTime = millis();
-			if (debug) {
-				console.print(name);
-				console.println(": ...");
+	if (current == nullptr) return;//якщо немаЇ елемента на черз≥ - н≥чого не робимо
+	while (true) {
+		BlinkerItem* item = current;
+		if (offset < item->offset) return;//якщо час ще не настав - виходимо
+		write(item->pin, item->value);//„ас настав
+		if (debug) {
+			console.print(name);
+			console.printf(": %i->%i\n", item->pin, item->value);
+		}
+		current = item->next;//ѕереходимо до наступного елемента
+
+		if (current == nullptr)//к≥нець списку
+		{
+			if (repeat) {//починаЇмо з початку
+				current = first;
+				startTime = millis();
+				if (debug) {
+					console.print(name);
+					console.println(": ...");
+				}
+				return;
 			}
+			end();
+			return;
 		}
 	}
-	if (current == nullptr) end();
 }
 
 Blinker* Blinker::Add(int pin, unsigned long offset, int value)
