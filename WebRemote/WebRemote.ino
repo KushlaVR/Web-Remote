@@ -39,8 +39,8 @@
 #define pinRightMotorA D6//правий борт
 #define pinRightMotorB D7//правий борт
 
-#define pinTacho D3//ШИМ для турбіни
-#define pinSmoke D8//ШИМ для димогенератора
+#define pinTurbine D8//турбіни
+#define pinSmoke D3//ШИМ димогенератора
 
 enum Ignition {
 	OFF = 0,
@@ -56,6 +56,7 @@ struct State {
 } state;
 
 void startStop_Pressed();
+void turbine_write(int pin, int value);
 void reloadConfig();
 
 ConfigStruct config;
@@ -70,7 +71,12 @@ const byte DNS_PORT = 53;
 DNSServer dnsServer;
 JoypadCollection joypads = JoypadCollection();
 
-Blinker turbine = Blinker("Turbine");
+#define SMOKE_PWM_PERIOD 50
+Blinker smokeGenerator = Blinker("Smoke");
+
+VirtualBlinker turbineBlinker = VirtualBlinker("Turbine", turbine_write);
+Servo turbine = Servo();
+
 VirtualButton startStop = VirtualButton(startStop_Pressed);
 
 //Servo lefMotor = Servo();
@@ -82,6 +88,7 @@ MotorBase* leftMotor = nullptr;
 
 RoboEffects rightMotorEffect = RoboEffects();
 MotorBase* rightMotor = nullptr;
+
 
 void setup()
 {
@@ -157,19 +164,30 @@ void setup()
 	rightMotor->reset();
 	rightMotor->isEnabled = true;
 
-	turbine.Add(pinTacho, 0, MOSFET_ON)
-		->Add(pinTacho, (1000 / config.turbine_frequency_min) / 2, MOSFET_OFF)
-		->Add(pinTacho, 1000 / config.turbine_frequency_min, MOSFET_OFF);
+	smokeGenerator.startupState = MOSFET_OFF;
+	//smokeGenerator.debug = true;
+	smokeGenerator.Add(pinSmoke, 0, MOSFET_ON)
+		->Add(pinSmoke, 0, MOSFET_OFF)
+		->Add(pinSmoke, SMOKE_PWM_PERIOD, MOSFET_OFF)
+		->end()
+		->printValues();
+
+
+	turbineBlinker.Add(pinTurbine, 0, 1)
+		->Add(pinTurbine, 0, 0)
+		->Add(pinTurbine, 0, 0)
+		->end()
+		->printValues();
 
 	state.ignition = Ignition::OFF;
-
+	pinMode(pinTurbine, OUTPUT);
 }
 
 void reloadConfig() {
 	leftMotor->setWeight(config.inertion);
 	rightMotor->setWeight(config.inertion);
-	turbine.item(1)->offset = (1000 / config.turbine_frequency_min) / 2;
-	turbine.item(2)->offset = (1000 / config.turbine_frequency_min);
+	turbineBlinker.item(1)->offset = (1000 / config.turbine_frequency_min) / 2;
+	turbineBlinker.item(2)->offset = (1000 / config.turbine_frequency_min);
 }
 
 
@@ -246,17 +264,33 @@ void startStop_Pressed() {
 		state.ignition = Ignition::OFF;
 	}
 	if (state.ignition == Ignition::OFF) {
-		if (turbine.isRunning()) turbine.end();
+		if (smokeGenerator.isRunning()) smokeGenerator.end();
+		if (turbineBlinker.isRunning()) turbineBlinker.end();
+		if (turbine.attached()) turbine.detach();
+		digitalWrite(pinTurbine, 0);
 		Serial.println("Engine stopped");
 	}
 	else if (state.ignition == Ignition::ON) {
 		Serial.println("Engine Started");
-		if (!turbine.isRunning()) turbine.begin();
+		if (!smokeGenerator.isRunning()) smokeGenerator.begin();
+		if (!turbineBlinker.isRunning()) turbineBlinker.begin();
+		if (!turbine.attached()) turbine.attach(pinTurbine);
 	}
 	else
 	{
 		Serial.println("Veichle Run");
-		if (!turbine.isRunning()) turbine.begin();
+		if (!smokeGenerator.isRunning()) smokeGenerator.begin();
+		if (!turbineBlinker.isRunning()) turbineBlinker.begin();
+		if (!turbine.attached()) turbine.attach(pinTurbine);
+	}
+}
+
+void turbine_write(int pin, int value) {
+	if (value == 0) {
+		if (turbine.attached()) turbine.write(config.turbine_min);
+	}
+	else {
+		if (turbine.attached()) turbine.write(config.turbine_max);
 	}
 }
 
@@ -312,22 +346,25 @@ void loop()
 			int rpm = map(tacho, 0, 100, 800, 2300);
 			if (state.rpm != rpm) {
 				state.rpm = rpm;
+				
 				//Semoke PWM
 				int smoke = map(tacho, 0, 100, config.smoke_min, config.smoke_max);
-				analogWrite(pinSmoke, MOSFET_OFF - map(smoke, 0, 100, 0, 1024));
-				//Turbo PWM
-				turbine.item(0)->value = MOSFET_ON;//map(tacho, 0, 100, 1024 - config.turbine_min, config.turbine_max);
+				smoke =  map(smoke, 0, 100, 0, SMOKE_PWM_PERIOD);
+				smokeGenerator.item(1)->offset = smoke;
+				Serial.print("smoke = ");
+				Serial.println(smoke);
+				
 				//Turbo pulse freq
 				int f = map(tacho, 0, 100, config.turbine_frequency_min, config.turbine_frequency_max);
-				turbine.item(1)->offset = (1000 / f) / 2;
-				turbine.item(2)->offset = (1000 / f);
+				turbineBlinker.item(1)->offset = (1000 / f) / 2;
+				turbineBlinker.item(2)->offset = (1000 / f);
 			}
 		}
 		else
 		{
 			state.rpm = 0;
-			turbine.item(0)->value = MOSFET_OFF;
-			analogWrite(pinSmoke, MOSFET_OFF);
+			//turbine.item(0)->value = MOSFET_OFF;
+			//analogWrite(pinSmoke, MOSFET_OFF);
 		}
 
 
@@ -359,7 +396,8 @@ void loop()
 		joypads.setValue("right", state.right);
 
 	}
-	turbine.loop();
+	smokeGenerator.loop();
+	turbineBlinker.loop();
 	leftMotor->loop();
 	rightMotor->loop();
 	startStop.handle();

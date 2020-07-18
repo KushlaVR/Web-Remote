@@ -3,15 +3,15 @@
   "password": "12345678",
   "min_speed": "20",
   "inertion": "800",
+  "turbine_min": "0",
+  "turbine_max": "20",
+  "turbine_frequency_min": "3",
+  "turbine_frequency_max": "10",
+  "smoke_min": "20",
+  "smoke_max": "100",
   "gun_min": "20",
   "gun_max": "40",
   "fire_min": "20",
   "fire_max": "40",
-  "fire_duration": "300",
-  "turbine_min": "20",
-  "turbine_max": "100",
-  "turbine_frequency_min": "3",
-  "turbine_frequency_max": "10",
-  "smoke_min": "20",
-  "smoke_max": "100"
+  "fire_duration": "300"
 }
