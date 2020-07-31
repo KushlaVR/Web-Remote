@@ -23,6 +23,7 @@ public:
 
 	int gun_min;
 	int gun_max;
+	unsigned long gun_duration;
 
 	int fire_min;
 	int fire_max;

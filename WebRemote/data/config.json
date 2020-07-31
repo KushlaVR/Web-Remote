@@ -16,5 +16,5 @@
   "cabin_inertion": "800",
   "fire_min": "20",
   "fire_max": "40",
-  "fire_duration": "300"
+  "fire_duration": "1000"
 }

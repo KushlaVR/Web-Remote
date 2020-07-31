@@ -25,19 +25,17 @@
 #define MOSFET_ON 0
 
 
-#define pinLight D0
+#define pinLight D0//Світло
 
-#define pinGun D1
-#define pinCabin D2
+#define pinGunMotor D1//Привід ствола
+#define pinGunRollback D2//Відкат ствола
 
-//#define pinLeftMotor D4//лівий борт
-//#define pinRightMotor D5//правий борт
+#define pinCabin D6//Привіт кабіни
 
-#define pinLeftMotorA D4//правий борт
-#define pinLeftMotorB D5//правий борт
+#define pinLeftMotor D4//лівий борт
+#define pinRightMotor D5//правий борт
 
-#define pinRightMotorA D6//правий борт
-#define pinRightMotorB D7//правий борт
+#define pinTacho D7//Вихід тахометра
 
 #define pinTurbine D8//турбіни
 #define pinSmoke D3//ШИМ димогенератора
@@ -54,11 +52,17 @@ struct State {
 	int cabin;//Швидкість приводу кабіни
 	int gun_step;//Куди рухається ствол
 	int gun_position;//Положення ствола
+
+	unsigned long fireStart;//Початок вистрілу
+	unsigned long firePeak;//Крайня точка вистрілу
+	unsigned long fireEnd;//завершення вистрілу
+
 	int rpm;
 	int ignition;
 } state;
 
 void startStop_Pressed();
+void btnFire_Pressed();
 
 void gun_Pressed();
 void gun_Hold();
@@ -85,10 +89,7 @@ VirtualBlinker turbineBlinker = VirtualBlinker("Turbine", turbine_write);
 Servo turbine = Servo();
 
 VirtualButton startStop = VirtualButton(startStop_Pressed);
-
-//Servo lefMotor = Servo();
-//Servo rightMotor = Servo();
-
+VirtualButton btnFire = VirtualButton(btnFire_Pressed);
 
 RoboEffects leftMotorEffect = RoboEffects();
 MotorBase* leftMotor = nullptr;
@@ -99,7 +100,10 @@ MotorBase* rightMotor = nullptr;
 RoboEffects cabinMotorEffect = RoboEffects();
 MotorBase* cabinMotor = nullptr;
 
+Servo tachoOutput = Servo();
+
 Servo gun = Servo();
+Servo gunRollback = Servo();
 VirtualButton gunStick = VirtualButton(gun_Pressed, gun_Hold);
 
 
@@ -161,14 +165,16 @@ void setup()
 	webServer.on("/api/events", Events);
 	webServer.on("/api/post", Post);
 
-	leftMotor = new HBridge("Left motor", pinLeftMotorA, pinLeftMotorB, &leftMotorEffect);
+	leftMotor = new SpeedController("Left motor", pinLeftMotor, &leftMotorEffect);
+	//leftMotor = new HBridge("Left motor", pinLeftMotorA, pinLeftMotorB, &leftMotorEffect);
 	leftMotor->responder = &console;
 	leftMotor->setWeight(config.inertion);
 	leftMotor->reset();
 	leftMotor->isEnabled = true;
 
 
-	rightMotor = new HBridge("Right motor", pinRightMotorA, pinRightMotorB, &rightMotorEffect);
+	rightMotor = new SpeedController("Right motor", pinRightMotor, &rightMotorEffect);
+	//rightMotor = new HBridge("Right motor", pinRightMotorA, pinRightMotorB, &rightMotorEffect);
 	rightMotor->responder = &console;
 	rightMotor->setWeight(config.inertion);
 	rightMotor->reset();
@@ -197,11 +203,14 @@ void setup()
 	cabinMotor->isEnabled = true;
 
 	gunStick.bounce = 20;
-	gunStick.holdInterval = 400;
+	gunStick.holdInterval = 50;
 
 	state.gun_position = config.gun_min + ((config.gun_max - config.gun_min) / 2);
-	gun.attach(pinGun);
+	gun.attach(pinGunMotor);
 	gun.write(state.gun_position);
+
+
+
 
 	state.ignition = Ignition::OFF;
 	pinMode(pinTurbine, OUTPUT);
@@ -310,10 +319,26 @@ void startStop_Pressed() {
 	};
 }
 
+void btnFire_Pressed() {
+	if (state.fireStart != 0) return;
+	Serial.print("Fire!");
+	state.fireStart = millis();
+	state.firePeak = state.fireStart + config.fire_duration / 3;
+	state.fireEnd = state.fireStart + config.fire_duration;
+
+	Serial.print(state.fireStart);
+	Serial.print(";");
+	Serial.print(state.fireStart);
+	Serial.print(";");
+	Serial.println(state.fireStart);
+
+}
+
 void gun_MakeStep() {
 	if (state.gun_step == 0) return;
 	state.gun_position += state.gun_step;
 	state.gun_position = constrain(state.gun_position, config.gun_min, config.gun_max);
+	joypads.setValue("gun", state.gun_position);
 }
 
 void gun_Pressed() {
@@ -381,7 +406,6 @@ void handleVeichle() {
 		int rpm = map(tacho, 0, 100, 800, 2300);
 		if (state.rpm != rpm) {
 			state.rpm = rpm;
-
 			//Semoke PWM
 			int smoke = map(tacho, 0, 100, config.smoke_min, config.smoke_max);
 			smoke = map(smoke, 0, 100, 0, SMOKE_PWM_PERIOD);
@@ -393,24 +417,29 @@ void handleVeichle() {
 			turbineBlinker.item(1)->offset = (1000 / f) / 2;
 			turbineBlinker.item(2)->offset = (1000 / f);
 		}
+
+		if (!tachoOutput.attached()) tachoOutput.attach(pinTacho);
+		tachoOutput.write(state.rpm);
+
 	}
 	else
 	{
 		state.rpm = 0;
+		if (tachoOutput.attached()) tachoOutput.detach();
 	}
 
 
 	//Двигуни
 	if (state.ignition >= Ignition::RUN) {
 		if (left != state.left) {
-			leftMotor->setSpeed(map(left, 0, 100, 0, 1024));
+			leftMotor->setSpeed(map(left, 0, 100, 0, 255));
 			state.left = left;
 			console.print("left=");
 			console.println(state.right);
 		}
 
 		if (right != state.right) {
-			rightMotor->setSpeed(map(right, 0, 100, 0, 1024));
+			rightMotor->setSpeed(map(right, 0, 100, 0, 255));
 			state.right = right;
 			console.print("right=");
 			console.println(state.right);
@@ -450,24 +479,61 @@ void handleCabin() {
 }
 
 void handleGun() {
-
 	double cabin_y = joypads.getValue("cabin_y");
 	if (cabin_y > 50) {
+		gunStick.setValue(HIGH);
 		state.gun_step = 1;
 	}
 	else if (cabin_y < -50) {
+		gunStick.setValue(HIGH);
 		state.gun_step = -1;
 	}
 	else
 	{
+		gunStick.setValue(LOW);
 		state.gun_step = 0;
 	}
 
-	joypads.setValue("gun", state.gun_position);
 	gun.write(state.gun_position);
-
 }
 
+void handleFire() {
+	if (state.fireStart == 0) return;
+
+	if (!gunRollback.attached()) {
+		gunRollback.attach(pinGunRollback);
+	}
+	unsigned long m = millis();
+	unsigned long duration = m - state.fireStart;
+	unsigned long peakDuration = state.firePeak - state.fireStart;
+	unsigned long endDuration = state.fireEnd - state.fireStart;
+
+	int position = config.fire_min;
+	if (m < state.firePeak) {
+		position = map(duration, 0, peakDuration, config.fire_min, config.fire_max);
+		
+		//Serial.print("pos="); Serial.print(position);
+		//Serial.print(";peek="); Serial.print(peakDuration);
+		//Serial.print(";fire_min="); Serial.print(config.fire_min);
+		//Serial.print(";fire_max="); Serial.println(config.fire_max);
+		
+		gunRollback.write(position);
+	}
+	else if (m < state.fireEnd) {
+		position = map(duration, peakDuration, endDuration, config.fire_max, config.fire_min);
+		
+		//Serial.print("pos="); Serial.print(position);
+		//Serial.print(";peek="); Serial.print(peakDuration);
+		//Serial.print(";fire_min="); Serial.print(config.fire_min);
+		//Serial.print(";fire_max="); Serial.println(config.fire_max);
+
+		gunRollback.write(position);
+	}
+	else {
+		state.fireStart = 0;
+		gunRollback.write(config.fire_min);
+	}
+}
 
 void loop()
 {
@@ -477,14 +543,20 @@ void loop()
 
 	if (joypads.getCount() > 0) {
 		startStop.setValue(joypads.getValue("start"));
+		btnFire.setValue(joypads.getValue("fire"));
 		handleVeichle();
 		handleCabin();
 		handleGun();
+		handleFire();
 	}
+
 	smokeGenerator.loop();
 	turbineBlinker.loop();
 	leftMotor->loop();
 	rightMotor->loop();
 	cabinMotor->loop();
+	//buttons
 	startStop.handle();
+	btnFire.handle();
+	gunStick.handle();
 }
