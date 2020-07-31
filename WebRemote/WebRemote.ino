@@ -51,11 +51,18 @@ enum Ignition {
 struct State {
 	int left;
 	int right;
+	int cabin;//Швидкість приводу кабіни
+	int gun_step;//Куди рухається ствол
+	int gun_position;//Положення ствола
 	int rpm;
 	int ignition;
 } state;
 
 void startStop_Pressed();
+
+void gun_Pressed();
+void gun_Hold();
+
 void turbine_write(int pin, int value);
 void reloadConfig();
 
@@ -89,6 +96,12 @@ MotorBase* leftMotor = nullptr;
 RoboEffects rightMotorEffect = RoboEffects();
 MotorBase* rightMotor = nullptr;
 
+RoboEffects cabinMotorEffect = RoboEffects();
+MotorBase* cabinMotor = nullptr;
+
+Servo gun = Servo();
+VirtualButton gunStick = VirtualButton(gun_Pressed, gun_Hold);
+
 
 void setup()
 {
@@ -119,12 +132,9 @@ void setup()
 		console.println(("Starting..."));
 	}
 
-
-
 	setupController.cfg = &config;
 	setupController.reloadConfig = reloadConfig;
 	setupController.loadConfig();
-
 
 	WiFi.begin();
 	WiFi.disconnect();
@@ -179,6 +189,20 @@ void setup()
 		->end()
 		->printValues();
 
+
+	cabinMotor = new SpeedController("Cabin", pinCabin, &cabinMotorEffect);
+	cabinMotor->responder = &console;
+	cabinMotor->setWeight(config.cabin_Inertion);
+	cabinMotor->reset();
+	cabinMotor->isEnabled = true;
+
+	gunStick.bounce = 20;
+	gunStick.holdInterval = 400;
+
+	state.gun_position = config.gun_min + ((config.gun_max - config.gun_min) / 2);
+	gun.attach(pinGun);
+	gun.write(state.gun_position);
+
 	state.ignition = Ignition::OFF;
 	pinMode(pinTurbine, OUTPUT);
 }
@@ -186,6 +210,7 @@ void setup()
 void reloadConfig() {
 	leftMotor->setWeight(config.inertion);
 	rightMotor->setWeight(config.inertion);
+	cabinMotor->setWeight(config.cabin_Inertion);
 	turbineBlinker.item(1)->offset = (1000 / config.turbine_frequency_min) / 2;
 	turbineBlinker.item(2)->offset = (1000 / config.turbine_frequency_min);
 }
@@ -282,17 +307,167 @@ void startStop_Pressed() {
 		if (!smokeGenerator.isRunning()) smokeGenerator.begin();
 		if (!turbineBlinker.isRunning()) turbineBlinker.begin();
 		if (!turbine.attached()) turbine.attach(pinTurbine);
-	}
+	};
+}
+
+void gun_MakeStep() {
+	if (state.gun_step == 0) return;
+	state.gun_position += state.gun_step;
+	state.gun_position = constrain(state.gun_position, config.gun_min, config.gun_max);
+}
+
+void gun_Pressed() {
+	gun_MakeStep();
+}
+
+void gun_Hold() {
+	gun_MakeStep();
 }
 
 void turbine_write(int pin, int value) {
+	if (!turbine.attached()) return;
 	if (value == 0) {
-		if (turbine.attached()) turbine.write(config.turbine_min);
+		int speed = map(config.turbine_min, -100, 100, 0, 180);
+		turbine.write(speed);
 	}
 	else {
-		if (turbine.attached()) turbine.write(config.turbine_max);
+		int speed = map(config.turbine_max, -100, 100, 0, 180);
+		turbine.write(speed);
 	}
 }
+
+void handleVeichle() {
+	//Поточні значення з пульта шофера
+	double left_y = joypads.getValue("left_y");
+	double right_y = joypads.getValue("right_y");
+
+	//Поточні значення з універсального джойстика
+	double vehicle_x = joypads.getValue("vehicle_x");
+	double vehicle_y = joypads.getValue("vehicle_y");
+
+
+
+	int left = 0;
+	int right = 0;
+	//Якщо на універсальному джойстику не нульові значення, то вони мають пріоритет
+	if (vehicle_x != 0 || vehicle_y != 0) {
+		if (vehicle_x > 0) {
+			left = vehicle_y * (100.0 - vehicle_x) / 100.0;
+			right = vehicle_y;
+		}
+		else if (vehicle_x < 0) {
+			left = vehicle_y;
+			right = vehicle_y * (100.0 + vehicle_x) / 100.0;
+		}
+		else {
+			left = vehicle_y;
+			right = vehicle_y;
+		}
+	}
+
+	if (left > 0 && right < 0) {
+		right = 0;
+	}
+	if (right > 0 && left < 0) {
+		left = 0;
+	}
+
+
+	int tacho;
+	if (state.ignition >= Ignition::ON) {
+		//Тахометр
+		tacho = abs(left);
+		if (abs(right) > tacho) tacho = abs(right);
+		int rpm = map(tacho, 0, 100, 800, 2300);
+		if (state.rpm != rpm) {
+			state.rpm = rpm;
+
+			//Semoke PWM
+			int smoke = map(tacho, 0, 100, config.smoke_min, config.smoke_max);
+			smoke = map(smoke, 0, 100, 0, SMOKE_PWM_PERIOD);
+			smokeGenerator.item(1)->offset = smoke;
+			//Serial.print("smoke = ");Serial.println(smoke);
+
+			//Turbo pulse freq
+			int f = map(tacho, 0, 100, config.turbine_frequency_min, config.turbine_frequency_max);
+			turbineBlinker.item(1)->offset = (1000 / f) / 2;
+			turbineBlinker.item(2)->offset = (1000 / f);
+		}
+	}
+	else
+	{
+		state.rpm = 0;
+	}
+
+
+	//Двигуни
+	if (state.ignition >= Ignition::RUN) {
+		if (left != state.left) {
+			leftMotor->setSpeed(map(left, 0, 100, 0, 1024));
+			state.left = left;
+			console.print("left=");
+			console.println(state.right);
+		}
+
+		if (right != state.right) {
+			rightMotor->setSpeed(map(right, 0, 100, 0, 1024));
+			state.right = right;
+			console.print("right=");
+			console.println(state.right);
+		}
+	}
+	else
+	{
+		state.left = 0;
+		state.right = 0;
+	}
+
+	joypads.setValue("rpm", state.rpm);
+	joypads.setValue("left", state.left);
+	joypads.setValue("right", state.right);
+}
+
+void handleCabin() {
+	if (state.ignition >= Ignition::ON) {
+
+		double cabin_x = joypads.getValue("cabin_x");
+
+		int cabin = 0;
+		if (cabin_x > 0) {
+			cabin = map(cabin_x, 0, 100, config.cabin_min, config.cabin_max);
+		}
+		else if (cabin_x < 0) {
+			cabin = -map(-cabin_x, 0, 100, config.cabin_min, config.cabin_max);
+		}
+
+		if (state.cabin != cabin) {
+			cabinMotor->setSpeed(cabin);
+			state.cabin = cabin;
+		}
+	}
+
+
+}
+
+void handleGun() {
+
+	double cabin_y = joypads.getValue("cabin_y");
+	if (cabin_y > 50) {
+		state.gun_step = 1;
+	}
+	else if (cabin_y < -50) {
+		state.gun_step = -1;
+	}
+	else
+	{
+		state.gun_step = 0;
+	}
+
+	joypads.setValue("gun", state.gun_position);
+	gun.write(state.gun_position);
+
+}
+
 
 void loop()
 {
@@ -301,104 +476,15 @@ void loop()
 	webServer.loop();
 
 	if (joypads.getCount() > 0) {
-
 		startStop.setValue(joypads.getValue("start"));
-
-		//Поточні значення з пульта шофера
-		double left_y = joypads.getValue("left_y");
-		double right_y = joypads.getValue("right_y");
-
-		//Поточні значення з універсального джойстика
-		double vehicle_x = joypads.getValue("vehicle_x");
-		double vehicle_y = joypads.getValue("vehicle_y");
-
-		int left = 0;
-		int right = 0;
-		//Якщо на універсальному джойстику не нульові значення, то вони мають пріоритет
-		if (vehicle_x != 0 || vehicle_y != 0) {
-			if (vehicle_x > 0) {
-				left = vehicle_y * (100.0 - vehicle_x) / 100.0;
-				right = vehicle_y;
-			}
-			else if (vehicle_x < 0) {
-				left = vehicle_y;
-				right = vehicle_y * (100.0 + vehicle_x) / 100.0;
-			}
-			else {
-				left = vehicle_y;
-				right = vehicle_y;
-			}
-		}
-
-		if (left > 0 && right < 0) {
-			right = 0;
-		}
-		if (right > 0 && left < 0) {
-			left = 0;
-		}
-
-
-		int tacho;
-		if (state.ignition >= Ignition::ON) {
-			//Тахометр
-			tacho = abs(left);
-			if (abs(right) > tacho) tacho = abs(right);
-			int rpm = map(tacho, 0, 100, 800, 2300);
-			if (state.rpm != rpm) {
-				state.rpm = rpm;
-				
-				//Semoke PWM
-				int smoke = map(tacho, 0, 100, config.smoke_min, config.smoke_max);
-				smoke =  map(smoke, 0, 100, 0, SMOKE_PWM_PERIOD);
-				smokeGenerator.item(1)->offset = smoke;
-				Serial.print("smoke = ");
-				Serial.println(smoke);
-				
-				//Turbo pulse freq
-				int f = map(tacho, 0, 100, config.turbine_frequency_min, config.turbine_frequency_max);
-				turbineBlinker.item(1)->offset = (1000 / f) / 2;
-				turbineBlinker.item(2)->offset = (1000 / f);
-			}
-		}
-		else
-		{
-			state.rpm = 0;
-			//turbine.item(0)->value = MOSFET_OFF;
-			//analogWrite(pinSmoke, MOSFET_OFF);
-		}
-
-
-		//Двигуни
-		if (state.ignition >= Ignition::RUN) {
-			if (left != state.left) {
-				leftMotor->setSpeed(map(left, 0, 100, 0, 1024));
-				state.left = left;
-				console.print("left=");
-				console.println(state.right);
-			}
-
-			if (right != state.right) {
-				rightMotor->setSpeed(map(right, 0, 100, 0, 1024));
-				state.right = right;
-				console.print("right=");
-				console.println(state.right);
-			}
-		}
-		else
-		{
-			state.left = 0;
-			state.right = 0;
-		}
-
-
-		joypads.setValue("rpm", state.rpm);
-		joypads.setValue("left", state.left);
-		joypads.setValue("right", state.right);
-
+		handleVeichle();
+		handleCabin();
+		handleGun();
 	}
 	smokeGenerator.loop();
 	turbineBlinker.loop();
 	leftMotor->loop();
 	rightMotor->loop();
+	cabinMotor->loop();
 	startStop.handle();
 }

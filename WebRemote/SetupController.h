@@ -17,6 +17,10 @@ public:
 	int min_speed;
 	int inertion;
 
+	int cabin_Inertion;
+	int cabin_min;
+	int cabin_max;
+
 	int gun_min;
 	int gun_max;
 
