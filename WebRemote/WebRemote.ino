@@ -26,7 +26,6 @@
 #define MOSFET_OFF MAX_PWM_VALUE
 #define MOSFET_ON 0
 
-
 #define pinLight D0//Світло
 
 #define pinGunMotor D1//Привід ствола
@@ -429,7 +428,6 @@ void handleVeichle() {
 			int smoke = map(tacho, 0, 100, config.smoke_min, config.smoke_max);
 			smoke = map(smoke, 0, 100, 0, SMOKE_PWM_PERIOD);
 			smokeGenerator.item(1)->offset = smoke;
-			//Serial.print("smoke = ");Serial.println(smoke);
 
 			//Turbo pulse freq
 			int f = map(tacho, 0, 100, config.turbine_frequency_min, config.turbine_frequency_max);
@@ -476,25 +474,20 @@ void handleVeichle() {
 }
 
 void handleCabin() {
-	if (state.ignition >= Ignition::ON) {
+	double cabin_x = joypads.getValue("cabin_x");
 
-		double cabin_x = joypads.getValue("cabin_x");
-
-		int cabin = 0;
-		if (cabin_x > config.cabin_blind_zone) {
-			cabin = map(cabin_x, config.cabin_blind_zone, 100, config.cabin_min, config.cabin_max);
-		}
-		else if (cabin_x < -config.cabin_blind_zone) {
-			cabin = -map(-cabin_x, config.cabin_blind_zone, 100, config.cabin_min, config.cabin_max);
-		}
-
-		if (state.cabin != cabin) {
-			cabinMotor->setSpeed(cabin);
-			state.cabin = cabin;
-		}
+	int cabin = 0;
+	if (cabin_x > config.cabin_blind_zone) {
+		cabin = map(cabin_x, config.cabin_blind_zone, 100, config.cabin_min, config.cabin_max);
+	}
+	else if (cabin_x < -config.cabin_blind_zone) {
+		cabin = -map(-cabin_x, config.cabin_blind_zone, 100, config.cabin_min, config.cabin_max);
 	}
 
-
+	if (state.cabin != cabin) {
+		cabinMotor->setSpeed(cabin);
+		state.cabin = cabin;
+	}
 }
 
 void handleGun() {
@@ -530,22 +523,10 @@ void handleFire() {
 	int position = config.fire_min;
 	if (m < state.firePeak) {
 		position = map(duration, 0, peakDuration, config.fire_min, config.fire_max);
-
-		//Serial.print("pos="); Serial.print(position);
-		//Serial.print(";peek="); Serial.print(peakDuration);
-		//Serial.print(";fire_min="); Serial.print(config.fire_min);
-		//Serial.print(";fire_max="); Serial.println(config.fire_max);
-
 		gunRollback.write(position);
 	}
 	else if (m < state.fireEnd) {
 		position = map(duration, peakDuration, endDuration, config.fire_max, config.fire_min);
-
-		//Serial.print("pos="); Serial.print(position);
-		//Serial.print(";peek="); Serial.print(peakDuration);
-		//Serial.print(";fire_min="); Serial.print(config.fire_min);
-		//Serial.print(";fire_max="); Serial.println(config.fire_max);
-
 		gunRollback.write(position);
 	}
 	else {
