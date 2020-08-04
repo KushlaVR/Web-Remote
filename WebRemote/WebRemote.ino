@@ -21,7 +21,9 @@
 #include "RoboconMotor.h"
 #include "Blinker.h"
 
-#define MOSFET_OFF 1024
+
+#define MAX_PWM_VALUE 1024
+#define MOSFET_OFF MAX_PWM_VALUE
 #define MOSFET_ON 0
 
 
@@ -59,10 +61,14 @@ struct State {
 
 	int rpm;
 	int ignition;
+
+	int light;
+
 } state;
 
 void startStop_Pressed();
 void btnFire_Pressed();
+void btnLight_Pressed();
 
 void gun_Pressed();
 void gun_Hold();
@@ -88,8 +94,9 @@ Blinker smokeGenerator = Blinker("Smoke");
 VirtualBlinker turbineBlinker = VirtualBlinker("Turbine", turbine_write);
 Servo turbine = Servo();
 
-VirtualButton startStop = VirtualButton(startStop_Pressed);
+VirtualButton btnStartStop = VirtualButton(startStop_Pressed);
 VirtualButton btnFire = VirtualButton(btnFire_Pressed);
+VirtualButton btnLight = VirtualButton(btnLight_Pressed);
 
 RoboEffects leftMotorEffect = RoboEffects();
 MotorBase* leftMotor = nullptr;
@@ -209,11 +216,11 @@ void setup()
 	gun.attach(pinGunMotor);
 	gun.write(state.gun_position);
 
-
-
-
 	state.ignition = Ignition::OFF;
 	pinMode(pinTurbine, OUTPUT);
+
+	digitalWrite(pinLight, 0);
+	pinMode(pinLight, OUTPUT);
 }
 
 void reloadConfig() {
@@ -332,6 +339,18 @@ void btnFire_Pressed() {
 	Serial.print(";");
 	Serial.println(state.fireStart);
 
+}
+
+void btnLight_Pressed() {
+	Serial.print("Light!");
+	if (state.light == 0) {
+		state.light = 1;
+		analogWrite(pinLight, map(config.light, 0, 100, 0, MAX_PWM_VALUE));
+	}
+	else {
+		state.light = 0;
+		analogWrite(pinLight, 0);
+	}
 }
 
 void gun_MakeStep() {
@@ -462,11 +481,11 @@ void handleCabin() {
 		double cabin_x = joypads.getValue("cabin_x");
 
 		int cabin = 0;
-		if (cabin_x > 0) {
-			cabin = map(cabin_x, 0, 100, config.cabin_min, config.cabin_max);
+		if (cabin_x > config.cabin_blind_zone) {
+			cabin = map(cabin_x, config.cabin_blind_zone, 100, config.cabin_min, config.cabin_max);
 		}
-		else if (cabin_x < 0) {
-			cabin = -map(-cabin_x, 0, 100, config.cabin_min, config.cabin_max);
+		else if (cabin_x < -config.cabin_blind_zone) {
+			cabin = -map(-cabin_x, config.cabin_blind_zone, 100, config.cabin_min, config.cabin_max);
 		}
 
 		if (state.cabin != cabin) {
@@ -480,13 +499,13 @@ void handleCabin() {
 
 void handleGun() {
 	double cabin_y = joypads.getValue("cabin_y");
-	if (cabin_y > 50) {
-		gunStick.setValue(HIGH);
-		state.gun_step = 1;
-	}
-	else if (cabin_y < -50) {
+	if (cabin_y > config.gun_blind_zone) {
 		gunStick.setValue(HIGH);
 		state.gun_step = -1;
+	}
+	else if (cabin_y < -config.gun_blind_zone) {
+		gunStick.setValue(HIGH);
+		state.gun_step = 1;
 	}
 	else
 	{
@@ -511,17 +530,17 @@ void handleFire() {
 	int position = config.fire_min;
 	if (m < state.firePeak) {
 		position = map(duration, 0, peakDuration, config.fire_min, config.fire_max);
-		
+
 		//Serial.print("pos="); Serial.print(position);
 		//Serial.print(";peek="); Serial.print(peakDuration);
 		//Serial.print(";fire_min="); Serial.print(config.fire_min);
 		//Serial.print(";fire_max="); Serial.println(config.fire_max);
-		
+
 		gunRollback.write(position);
 	}
 	else if (m < state.fireEnd) {
 		position = map(duration, peakDuration, endDuration, config.fire_max, config.fire_min);
-		
+
 		//Serial.print("pos="); Serial.print(position);
 		//Serial.print(";peek="); Serial.print(peakDuration);
 		//Serial.print(";fire_min="); Serial.print(config.fire_min);
@@ -542,8 +561,9 @@ void loop()
 	webServer.loop();
 
 	if (joypads.getCount() > 0) {
-		startStop.setValue(joypads.getValue("start"));
+		btnStartStop.setValue(joypads.getValue("start"));
 		btnFire.setValue(joypads.getValue("fire"));
+		btnLight.setValue(joypads.getValue("light"));
 		handleVeichle();
 		handleCabin();
 		handleGun();
@@ -556,7 +576,8 @@ void loop()
 	rightMotor->loop();
 	cabinMotor->loop();
 	//buttons
-	startStop.handle();
+	btnStartStop.handle();
 	btnFire.handle();
+	btnLight.handle();
 	gunStick.handle();
 }

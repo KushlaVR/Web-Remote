@@ -46,6 +46,8 @@ void SetupController::loadConfig()
 		cfg.AddValue("fire_min", "20");
 		cfg.AddValue("fire_max", "40");
 		cfg.AddValue("fire_duration", "1000");
+		
+		cfg.AddValue("light", "50");
 
 		cfg.endObject();
 
@@ -87,6 +89,8 @@ void SetupController::loadConfig()
 
 	this->cfg->smoke_min = cfg.getInt("smoke_min");
 	this->cfg->smoke_max = cfg.getInt("smoke_max");
+	
+	this->cfg->light= cfg.getInt("light");
 
 }
 
@@ -129,6 +133,8 @@ void SetupController::printConfig(JsonString* out)
 
 	out->AddValue("smoke_min", String(cfg->smoke_min));
 	out->AddValue("smoke_max", String(cfg->smoke_max));
+	
+	out->AddValue("light", String(cfg->light));
 
 	out->endObject();
 }
@@ -168,6 +174,8 @@ void SetupController::Setup_Post()
 
 	if (webServer.hasArg("smoke_min")) { setupController.cfg->smoke_min = webServer.arg("smoke_min").toInt(); }
 	if (webServer.hasArg("smoke_max")) { setupController.cfg->smoke_max = webServer.arg("smoke_max").toInt(); }
+	
+	if (webServer.hasArg("light")) { setupController.cfg->light = webServer.arg("light").toInt(); }
 
 	setupController.saveConfig();
 
