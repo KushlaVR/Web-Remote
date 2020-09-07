@@ -1,6 +1,7 @@
 #include "WebUIController.h"
 
-
+//Uncomment next line to andble captive portal redirection
+//#define REDIRECT_TO_CAPTIVE_PORTAL
 
 WebUIController::WebUIController()
 {
@@ -16,8 +17,13 @@ void WebUIController::setup()
 {
 	/* Setup web pages: root, wifi config pages, SO captive portal detectors and not found. */
 	on("/", handleRoot);
+
+#ifdef REDIRECT_TO_CAPTIVE_PORTAL
 	on("/generate_204", handleRoot);  //Android captive portal. Maybe not needed. Might be handled by notFound handler.
 	on("/fwlink", handleRoot);  //Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
+#endif // REDIRECT_TO_CAPTIVE_PORTAL
+
+
 	onNotFound(handleNotFound);
 
 	const char * headerkeys[] = { "User-Agent","Cookie" };
@@ -107,6 +113,7 @@ String WebUIController::ipToString(IPAddress ip)
 
 boolean WebUIController::captivePortal()
 {
+#ifdef REDIRECT_TO_CAPTIVE_PORTAL
 	if (!WebUIController::isIp(webServer.hostHeader()) && webServer.hostHeader() != (webServer.apName + ".local")) {
 		console.println("Request redirected to captive portal");
 		webServer.sendHeader("Location", String("http://") + WebUIController::ipToString(webServer.client().localIP()), true);
@@ -114,6 +121,7 @@ boolean WebUIController::captivePortal()
 		webServer.client().stop(); // Stop is needed because we sent no content length
 		return true;
 	}
+#endif // REDIRECT_TO_CAPTIVE_PORTAL
 	return false;
 }
 
