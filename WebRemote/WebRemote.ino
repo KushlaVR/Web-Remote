@@ -160,9 +160,13 @@ void setup()
 	turbine.Add(pinTacho, 0, MOSFET_ON)
 		->Add(pinTacho, (1000 / config.turbine_frequency_min) / 2, MOSFET_OFF)
 		->Add(pinTacho, 1000 / config.turbine_frequency_min, MOSFET_OFF);
+	pinMode(pinTacho, OUTPUT);
+	digitalWrite(pinTacho, MOSFET_OFF);
+
+	pinMode(pinSmoke, OUTPUT);
+	digitalWrite(pinSmoke, MOSFET_OFF);
 
 	state.ignition = Ignition::OFF;
-
 }
 
 void reloadConfig() {
