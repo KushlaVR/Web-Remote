@@ -497,6 +497,13 @@ var Button = (function (_super) {
     __extends(Button, _super);
     function Button(element) {
         var _this = _super.call(this, element) || this;
+        _this.audio = null;
+        var sound = _this.jElement.data("sound");
+        if (sound) {
+            _this.audio = new Audio(sound);
+            _this.audio.load();
+        }
+        _this.sound_duration = _this.jElement.data("sound-duration");
         if ("ontouchstart" in document.documentElement) {
             _this.element.addEventListener('touchstart', function (event) { return _this.onTouchStart(event); }, false);
             _this.element.addEventListener('touchend', function (event) { return _this.onTouchEnd(event); }, false);
@@ -510,6 +517,7 @@ var Button = (function (_super) {
     Button.prototype.onTouchStart = function (event) {
         this.pressed = true;
         this.saveValue();
+        this.playSound();
         event.preventDefault();
     };
     Button.prototype.onTouchEnd = function (event) {
@@ -520,12 +528,27 @@ var Button = (function (_super) {
     Button.prototype.onMouseDown = function (event) {
         this.pressed = true;
         this.saveValue();
+        this.playSound();
         event.preventDefault();
     };
     Button.prototype.onMouseUp = function (event) {
         this.pressed = false;
         this.saveValue();
         event.preventDefault();
+    };
+    Button.prototype.playSound = function () {
+        var _this = this;
+        if (this.audio == null)
+            return;
+        if (!this.audio.paused)
+            return;
+        this.audio.currentTime = 0;
+        var playPromise = this.audio.play();
+        if (playPromise !== undefined) {
+            playPromise.then(function (_) {
+                setTimeout(function () { _this.audio.pause(); }, _this.sound_duration);
+            });
+        }
     };
     Button.prototype.saveValue = function () {
         if (!this.workSpace)

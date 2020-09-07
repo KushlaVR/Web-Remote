@@ -594,9 +594,19 @@ class Slider extends Input {
 class Button extends Input {
 
     pressed: boolean;
+    sound_duration: number;
+    audio: HTMLAudioElement = null;
 
     constructor(element: any) {
         super(element);
+
+        let sound: string = this.jElement.data("sound");
+        if (sound) {
+            this.audio = new Audio(sound);
+            this.audio.load();
+        }
+        this.sound_duration = this.jElement.data("sound-duration");
+
         if ("ontouchstart" in document.documentElement) {
             this.element.addEventListener('touchstart', (event: MouseEvent) => this.onTouchStart(event), false);
             this.element.addEventListener('touchend', (event: MouseEvent) => this.onTouchEnd(event), false);
@@ -611,9 +621,10 @@ class Button extends Input {
     private onTouchStart(event: MouseEvent): void {
         this.pressed = true;
         this.saveValue();
+        this.playSound();
         event.preventDefault();
     }
-    
+
     private onTouchEnd(event: MouseEvent): void {
         this.pressed = false;
         this.saveValue();
@@ -623,13 +634,27 @@ class Button extends Input {
     private onMouseDown(event: MouseEvent): void {
         this.pressed = true;
         this.saveValue();
+        this.playSound();
         event.preventDefault();
     }
-    
+
     private onMouseUp(event: MouseEvent): void {
         this.pressed = false;
         this.saveValue();
         event.preventDefault();
+    }
+
+    private playSound(): void {
+        if (this.audio == null) return;
+        if (!this.audio.paused) return;
+
+        this.audio.currentTime = 0;
+        let playPromise = this.audio.play();
+        if (playPromise !== undefined) {
+            playPromise.then(_ => {
+                setTimeout(() => { this.audio.pause(); }, this.sound_duration);
+            })
+        }
     }
 
     saveValue(): void {

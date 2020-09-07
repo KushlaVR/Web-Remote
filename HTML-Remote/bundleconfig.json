@@ -454,5 +454,13 @@
     "minify": {
       "enabled": false
     }
+  },
+
+  {
+    "outputFileName": "data/mp3/01692.mp3",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "mp3/01692.mp3"
+    ]
   }
 ]

@@ -149,6 +149,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="data\mp3\01692.mp3" />
+    <Content Include="mp3\01692.mp3" />
+    <Content Include="mp3\03037.mp3" />
+    <Content Include="mp3\03049.mp3" />
     <Content Include="data\sniper.html" />
     <Content Include="sniper.html" />
     <Content Include="control - Copy.min.html">
