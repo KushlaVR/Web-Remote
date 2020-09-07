@@ -26,16 +26,8 @@ void SetupController::loadConfig()
 		cfg.AddValue("min_speed", "20");
 		cfg.AddValue("inertion", "800");
 
-		cfg.AddValue("gun_min", "20");
-		cfg.AddValue("gun_max", "40");
-
-		cfg.AddValue("fire_min", "20");
-		cfg.AddValue("fire_max", "40");
-		cfg.AddValue("fire_duration", "300");
-
-
-		cfg.AddValue("turbine_min", "20");
-		cfg.AddValue("turbine_max", "100");
+		cfg.AddValue("turbine_min", "0");
+		cfg.AddValue("turbine_max", "20");
 
 		cfg.AddValue("turbine_frequency_min", "3");
 		cfg.AddValue("turbine_frequency_max", "10");
@@ -43,6 +35,19 @@ void SetupController::loadConfig()
 		cfg.AddValue("smoke_min", "20");
 		cfg.AddValue("smoke_max", "100");
 
+		cfg.AddValue("gun_min", "20");
+		cfg.AddValue("gun_max", "40");
+
+		//cabin
+		cfg.AddValue("cabin_min", "20");
+		cfg.AddValue("cabin_max", "40");
+		cfg.AddValue("cabin_inertion", "800");
+
+		cfg.AddValue("fire_min", "20");
+		cfg.AddValue("fire_max", "40");
+		cfg.AddValue("fire_duration", "1000");
+		
+		cfg.AddValue("light", "50");
 
 		cfg.endObject();
 
@@ -68,6 +73,10 @@ void SetupController::loadConfig()
 	this->cfg->gun_min = cfg.getInt("gun_min");
 	this->cfg->gun_max = cfg.getInt("gun_max");
 
+	this->cfg->cabin_min = cfg.getInt("cabin_min");
+	this->cfg->cabin_max = cfg.getInt("cabin_max");
+	this->cfg->cabin_Inertion = cfg.getInt("cabin_inertion");
+
 	this->cfg->fire_min = cfg.getInt("fire_min");
 	this->cfg->fire_max = cfg.getInt("fire_max");
 	this->cfg->fire_duration = cfg.getInt("fire_duration");
@@ -80,6 +89,8 @@ void SetupController::loadConfig()
 
 	this->cfg->smoke_min = cfg.getInt("smoke_min");
 	this->cfg->smoke_max = cfg.getInt("smoke_max");
+	
+	this->cfg->light= cfg.getInt("light");
 
 }
 
@@ -106,6 +117,10 @@ void SetupController::printConfig(JsonString* out)
 	out->AddValue("gun_min", String(cfg->gun_min));
 	out->AddValue("gun_max", String(cfg->gun_max));
 
+	out->AddValue("cabin_min", String(cfg->cabin_min));
+	out->AddValue("cabin_max", String(cfg->cabin_max));
+	out->AddValue("cabin_inertion", String(cfg->cabin_Inertion));
+
 	out->AddValue("fire_min", String(cfg->fire_min));
 	out->AddValue("fire_max", String(cfg->fire_max));
 	out->AddValue("fire_duration", String(cfg->fire_duration));
@@ -119,6 +134,8 @@ void SetupController::printConfig(JsonString* out)
 	out->AddValue("smoke_min", String(cfg->smoke_min));
 	out->AddValue("smoke_max", String(cfg->smoke_max));
 	
+	out->AddValue("light", String(cfg->light));
+
 	out->endObject();
 }
 
@@ -141,10 +158,14 @@ void SetupController::Setup_Post()
 	if (webServer.hasArg("gun_min")) { setupController.cfg->gun_min = webServer.arg("gun_min").toInt(); }
 	if (webServer.hasArg("gun_max")) { setupController.cfg->gun_max = webServer.arg("gun_max").toInt(); }
 
+	if (webServer.hasArg("cabin_min")) { setupController.cfg->cabin_min = webServer.arg("cabin_min").toInt(); }
+	if (webServer.hasArg("cabin_max")) { setupController.cfg->cabin_max = webServer.arg("cabin_max").toInt(); }
+	if (webServer.hasArg("cabin_inertion")) { setupController.cfg->cabin_Inertion = webServer.arg("cabin_inertion").toInt(); }
+
 	if (webServer.hasArg("fire_min")) { setupController.cfg->fire_min = webServer.arg("fire_min").toInt(); }
 	if (webServer.hasArg("fire_max")) { setupController.cfg->fire_max = webServer.arg("fire_max").toInt(); }
 	if (webServer.hasArg("fire_duration")) { setupController.cfg->fire_duration = webServer.arg("fire_duration").toInt(); }
-	
+
 	if (webServer.hasArg("turbine_min")) { setupController.cfg->turbine_min = webServer.arg("turbine_min").toInt(); }
 	if (webServer.hasArg("turbine_max")) { setupController.cfg->turbine_max = webServer.arg("turbine_max").toInt(); }
 
@@ -153,6 +174,8 @@ void SetupController::Setup_Post()
 
 	if (webServer.hasArg("smoke_min")) { setupController.cfg->smoke_min = webServer.arg("smoke_min").toInt(); }
 	if (webServer.hasArg("smoke_max")) { setupController.cfg->smoke_max = webServer.arg("smoke_max").toInt(); }
+	
+	if (webServer.hasArg("light")) { setupController.cfg->light = webServer.arg("light").toInt(); }
 
 	setupController.saveConfig();
 

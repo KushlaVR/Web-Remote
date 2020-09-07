@@ -31,13 +31,15 @@ class Blinker
 public:
 	bool debug = false;
 	bool repeat = true;
+	int startupState = 0;
 	Blinker(String name);
 	~Blinker();
 	void loop();
-	Blinker * Add(int pin, unsigned long offset, uint8_t value);
-	Blinker * begin() { current = first; startTime = millis(); return this; };
+	Blinker * Add(int pin, unsigned long offset, int value);
+	Blinker* begin() { current = first; startTime = millis(); return this; };
 	Blinker * end();
 	virtual void write(int pin, int value);
+	void printValues();
 	BlinkerItem * item(int index);
 	bool isRunning() { return startTime != 0; };
 };
@@ -49,4 +51,21 @@ public:
 	Beeper(String name) : Blinker(name) {}
 	~Beeper() {}
 	virtual void write(int pin, int value);
+};
+
+
+class VirtualBlinker : public Blinker {
+
+
+public:
+
+	VirtualBlinker(String name, void(*writeMethode)(int pin, int value)) : Blinker(name) {
+		this->writeMethode = writeMethode;
+	}
+	~VirtualBlinker() {}
+
+	void(*writeMethode)(int pin, int value);
+
+	virtual void write(int pin, int value);
+
 };
