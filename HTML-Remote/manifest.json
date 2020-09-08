@@ -1,9 +1,9 @@
 ﻿{
-  "short_name": "KushlaVR@gmail.com",
-  "name": "WIFI RC car remote controll",
+  "short_name": "WIFI RC",
+  "name": "WIFI RC car remote controll by KushlaVR@gmail.com",
   "icons": [
     {
-      "src": "img/remote-control.svg",
+      "src": "img/person.svg",
       "sizes": "192x192",
       "type": "image/svg"
     }

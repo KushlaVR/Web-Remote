@@ -64,16 +64,17 @@ body {
         padding: 1vw;
     }
 
-        .main .btn-round:hover {
-            background: red;
+        .main .btn-round.active {
+            background-color: red;
+            transition: background-color linear 0.2s;
         }
 
 
-.full-screen {
-    position: absolute;
-    top: 0;
-    right: 0px;
-}
+        .full-screen {
+            position: absolute;
+            top: 0;
+            right: 0px;
+        }
 
 .plate {
     height: 6em;

@@ -621,9 +621,11 @@ class Button extends Input {
     private onTouchStart(event: MouseEvent): void {
         this.pressed = true;
         this.saveValue();
+        this.Activate();
         this.playSound();
         event.preventDefault();
     }
+
 
     private onTouchEnd(event: MouseEvent): void {
         this.pressed = false;
@@ -634,6 +636,7 @@ class Button extends Input {
     private onMouseDown(event: MouseEvent): void {
         this.pressed = true;
         this.saveValue();
+        this.Activate();
         this.playSound();
         event.preventDefault();
     }
@@ -642,6 +645,11 @@ class Button extends Input {
         this.pressed = false;
         this.saveValue();
         event.preventDefault();
+    }
+
+    private Activate(): void {
+        this.jElement.addClass("active");
+        setTimeout(() => { this.jElement.removeClass("active") }, 200);
     }
 
     private playSound(): void {

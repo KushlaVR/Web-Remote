@@ -517,6 +517,7 @@ var Button = (function (_super) {
     Button.prototype.onTouchStart = function (event) {
         this.pressed = true;
         this.saveValue();
+        this.Activate();
         this.playSound();
         event.preventDefault();
     };
@@ -528,6 +529,7 @@ var Button = (function (_super) {
     Button.prototype.onMouseDown = function (event) {
         this.pressed = true;
         this.saveValue();
+        this.Activate();
         this.playSound();
         event.preventDefault();
     };
@@ -535,6 +537,11 @@ var Button = (function (_super) {
         this.pressed = false;
         this.saveValue();
         event.preventDefault();
+    };
+    Button.prototype.Activate = function () {
+        var _this = this;
+        this.jElement.addClass("active");
+        setTimeout(function () { _this.jElement.removeClass("active"); }, 200);
     };
     Button.prototype.playSound = function () {
         var _this = this;

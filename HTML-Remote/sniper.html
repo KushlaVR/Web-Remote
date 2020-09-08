@@ -29,6 +29,7 @@
             <button onclick="WorkSpace.toggleFullScreen(); return false;" class="btn btn-outline-secondary full-screen">
                 Full screen
             </button>
+            <a href="index.html" class="btn btn-link">Settings</a>
 
             <label style="position: absolute; left: 41vw; top: 5px; font-size: 4vw;">
                 Sniper
@@ -39,10 +40,15 @@
                 <span class="output" data-input="rpm">0</span>
             </label>
 
+            <label style="position: absolute; left: 24vw; top: 4vw;">
+                <span>Gun: </span>
+                <span class="output" data-input="gun">0</span>
+            </label>
+
             <a href="#" name="fire" class="input btn btn-round" style="position: absolute;left: 67vw;top: 27vw;width: 15vw;height: 15vw;font-size:6vw;"
                data-sound="/mp3/fire.mp3"
                data-sound-duration="800">Fire</a>
-            
+
             <a href="#" name="light" class="input btn btn-round" style="position: absolute; left: 70vw; top: 12vw;">Light</a>
 
             <div name="cabin" class="slider input"

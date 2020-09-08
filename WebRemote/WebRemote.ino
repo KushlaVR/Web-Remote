@@ -388,8 +388,6 @@ void handleVeichle() {
 	double vehicle_x = joypads.getValue("vehicle_x");
 	double vehicle_y = joypads.getValue("vehicle_y");
 
-
-
 	int left = 0;
 	int right = 0;
 	//Якщо на універсальному джойстику не нульові значення, то вони мають пріоритет
@@ -406,6 +404,11 @@ void handleVeichle() {
 			left = vehicle_y;
 			right = vehicle_y;
 		}
+	}
+	else {
+		//Обробляємо робоче місце водія
+		left = left_y;
+		right = right_y;
 	}
 
 	if (left > 0 && right < 0) {
