@@ -457,10 +457,10 @@
   },
 
   {
-    "outputFileName": "data/mp3/01692.mp3",
+    "outputFileName": "data/mp3/fire.mp3",
     // An array of relative input file paths. Globbing patterns supported
     "inputFiles": [
-      "mp3/01692.mp3"
+      "mp3/fire.mp3"
     ]
   }
 ]
