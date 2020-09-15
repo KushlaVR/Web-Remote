@@ -6,7 +6,7 @@ class WorkSpace {
     private form: HTMLFormElement;
 
     client: string;
-    socket: WebSocket;
+    //socket: WebSocket;
     eventSource: EventSource;
 
     private inputs: Array<Input> = new Array<Input>();
@@ -81,7 +81,6 @@ class WorkSpace {
     private readyToSend(): boolean {
         if (this.eventSource)
             return this._readyToSend;
-        if (this.socket) return (this.socket.bufferedAmount == 0);
         return false;
     }
 
@@ -92,7 +91,7 @@ class WorkSpace {
                 url: "/api/post",
                 data: value,
                 cache: false,
-                type: 'GET',
+                type: 'POST',
                 dataType: "json",
                 contentType: 'application/json; charset=utf-8'
             }).done(() => {
@@ -102,12 +101,12 @@ class WorkSpace {
                 console.log("fail!");
                 this._readyToSend = true;
             });
-        } else
-            if (this.socket) {
-                this._readyToSend = false;
-                this.socket.send(value);
-                this._readyToSend = true;
-            }
+        } //else
+            //if (this.socket) {
+            //    this._readyToSend = false;
+            //    this.socket.send(value);
+            //    this._readyToSend = true;
+            //}
     }
 
     /**

@@ -169,7 +169,7 @@ void setup()
 	webServer.setup();
 	webServer.on("/api/EventSourceName", EventSourceName);
 	webServer.on("/api/events", Events);
-	webServer.on("/api/post", Post);
+	webServer.on("/api/post", HTTPMethod::HTTP_POST, Post);
 
 	leftMotor = new SpeedController("Left motor", pinLeftMotor, &leftMotorEffect);
 	//leftMotor = new HBridge("Left motor", pinLeftMotorA, pinLeftMotorB, &leftMotorEffect);
@@ -280,21 +280,27 @@ void Events() {
 }
 
 void Post() {
-	String s = webServer.argName(0);
-	JsonString json = "";
-	json += s;
-	int id = json.getInt("client");
+	if (webServer.hasArg("plain")) {
+		String s = webServer.arg("plain");
+		JsonString json = "";
+		json += s;
+		int id = json.getInt("client");
 
-	//console.printf("client:%i\n", id);
+		//console.printf("client:%i\n", id);
 
-	Joypad* j = joypads.getById(id);
-	if (j == nullptr) {
-		webServer.handleNotFound();
-		return;
+		Joypad* j = joypads.getById(id);
+		if (j == nullptr) {
+			webServer.handleNotFound();
+			return;
+		}
+		webServer.Ok();
+		if (j->processParcel(&json)) {
+			joypads.updateValuesFrom(j);
+		}
 	}
-	webServer.Ok();
-	if (j->processParcel(&json)) {
-		joypads.updateValuesFrom(j);
+	else
+	{
+		webServer.Ok();
 	}
 }
 

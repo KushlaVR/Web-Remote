@@ -94,7 +94,8 @@ bool Joypad::sendValues()
 		Joypadfield* f = (Joypadfield*)(fields->getFirst());
 		while (f != nullptr) {
 			ret.appendComa();
-			ret += "\"" + String(f->value) + "\"";
+			int v = f->value;
+			ret += "\"" + String(v) + "\"";
 			f->sent = f->value;
 			f = (Joypadfield*)(f->next);
 		}

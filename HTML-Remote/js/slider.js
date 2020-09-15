@@ -72,8 +72,6 @@ var WorkSpace = (function () {
     WorkSpace.prototype.readyToSend = function () {
         if (this.eventSource)
             return this._readyToSend;
-        if (this.socket)
-            return (this.socket.bufferedAmount == 0);
         return false;
     };
     WorkSpace.prototype.send = function (value) {
@@ -84,7 +82,7 @@ var WorkSpace = (function () {
                 url: "/api/post",
                 data: value,
                 cache: false,
-                type: 'GET',
+                type: 'POST',
                 dataType: "json",
                 contentType: 'application/json; charset=utf-8'
             }).done(function () {
@@ -94,11 +92,6 @@ var WorkSpace = (function () {
                 console.log("fail!");
                 _this._readyToSend = true;
             });
-        }
-        else if (this.socket) {
-            this._readyToSend = false;
-            this.socket.send(value);
-            this._readyToSend = true;
         }
     };
     WorkSpace.prototype.sendData = function () {
