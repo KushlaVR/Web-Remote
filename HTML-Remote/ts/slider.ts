@@ -15,7 +15,7 @@ class WorkSpace {
     sent: Dictionary<string> = new Dictionary<string>();
     tranCount: number = 0;
     timer: number = 0;
-    reportInterval: number = 100;//Інтервал синхронізації даних
+    reportInterval: number = 200;//Інтервал синхронізації даних
     fields: Array<string>;
     readonlyFields: Array<string> = new Array<string>();
     tran: number = 0;
