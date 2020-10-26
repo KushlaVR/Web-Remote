@@ -1,25 +1,35 @@
 ﻿/*
- Name:		WebRemote.ino
- Created:	4/23/2020 11:30:33 PM
+ Name:		WemosRemote.ino
+ Created:	10/23/2019 7:53:20 PM
  Author:	Віталік
 */
 
-#include <ESP8266WiFi.h>
-#include <WiFiClient.h>
-#include <ESP8266WebServer.h>
-#include <ESP8266SSDP.h>
+
+
+////////////////////////////////////////////// 
+//        RemoteXY include library          // 
+////////////////////////////////////////////// 
+
+// определение режима соединения и подключение библиотеки RemoteXY  
+#define REMOTEXY_MODE__ESP8266WIFI_LIB_POINT
+#include <ESP8266WiFi.h> 
+#include <ESP8266WebServer.h> 
 #include <DNSServer.h>
 #include <ESP8266mDNS.h>
+
+#include <FS.h>
 #include <Servo.h>
-#include "Json.h"
-#include "Button.h"
+
 #include "Console.h"
-#include "Collection.h"
+#include "RoboconMotor.h"
+#include "Stearing.h"
+#include "Json.h"
+#include "SerialController.h"
+#include "Blinker.h"
+#include "Button.h"
+#include <RemoteXY.h> 
 #include "WebUIController.h"
 #include "SetupController.h"
-#include "Joypad.h"
-#include "RoboconMotor.h"
-#include "Blinker.h"
 
 
 #define MAX_PWM_VALUE 1024
@@ -41,11 +51,44 @@
 #define pinTurbine D8//турбіни
 #define pinSmoke D3//ШИМ димогенератора
 
+
+// конфигурация интерфейса  
+#pragma pack(push, 1)
+uint8_t RemoteXY_CONF[] =
+	{ 255,6,0,2,0,46,0,10,173,0,
+	69,0,32,5,17,17,1,1,0,27,
+	5,17,17,50,31,88,0,5,32,0,
+	13,42,42,149,173,31,5,32,58,13,
+	42,42,149,173,31,3,3,44,30,12,
+	32,164,173 };
+
+// структура определяет все переменные и события вашего интерфейса управления 
+struct {
+
+	// input variables
+	uint8_t fire; // =1 если кнопка нажата, иначе =0 
+	int8_t cabin_x; // =-100..100 координата x положения джойстика 
+	int8_t cabin_y; // =-100..100 координата y положения джойстика 
+	int8_t vehicle_x; // =-100..100 координата x положения джойстика 
+	int8_t vehicle_y; // =-100..100 координата y положения джойстика 
+	uint8_t engine; // =0 если переключатель в положении A, =1 если в положении B, =2 если в положении C, ... 
+
+	  // output variables
+	int16_t sound; // =0 нет звука, иначе ID звука, для примера 1001, смотри список звуков в приложении 
+
+	  // other variable
+	uint8_t connect_flag;  // =1 if wire connected, else =0 
+
+} RemoteXY;
+#pragma pack(pop)
+
+
 enum Ignition {
 	OFF = 0,
 	ON = 1,
 	RUN = 2
 };
+
 
 struct State {
 	int left;
@@ -60,10 +103,19 @@ struct State {
 
 	int rpm;
 	int ignition;
+	int handled_ignition;
 
 	int light;
 
 } state;
+
+///////////////////////////////////////////// 
+//           END RemoteXY include          // 
+///////////////////////////////////////////// 
+
+#define REMOTEXY_SERVER_PORT 6377 
+
+bool connected = false;
 
 void handle_StartStop();
 void btnFire_Pressed();
@@ -85,7 +137,7 @@ IPAddress netMsk = IPAddress(255, 255, 255, 0);
 
 const byte DNS_PORT = 53;
 DNSServer dnsServer;
-JoypadCollection joypads = JoypadCollection();
+//JoypadCollection joypads = JoypadCollection();
 
 #define SMOKE_PWM_PERIOD 50
 Blinker smokeGenerator = Blinker("Smoke");
@@ -93,9 +145,9 @@ Blinker smokeGenerator = Blinker("Smoke");
 VirtualBlinker turbineBlinker = VirtualBlinker("Turbine", turbine_write);
 Servo turbine = Servo();
 
-VirtualButton btnStartStop = VirtualButton(handle_StartStop);
+//VirtualButton btnStartStop = VirtualButton(startStop_Pressed);
 VirtualButton btnFire = VirtualButton(btnFire_Pressed);
-VirtualButton btnLight = VirtualButton(handle_Light);
+//VirtualButton btnLight = VirtualButton(handle_Light);
 
 RoboEffects leftMotorEffect = RoboEffects();
 MotorBase* leftMotor = nullptr;
@@ -113,114 +165,8 @@ Servo gunRollback = Servo();
 VirtualButton gunStick = VirtualButton(gun_Pressed, gun_Hold);
 
 
-void setup()
-{
-	Serial.begin(115200);
-	console.output = &Serial;
-	console.println();
-	console.println();
-	console.println();
-
-	String s;
-	if (!SPIFFS.begin()) {
-		console.println(F("No file system!"));
-		console.println(F("Fomating..."));
-		if (SPIFFS.format())
-			console.println(F("OK"));
-		else {
-			console.println(F("Fail.... rebooting..."));
-			while (true);
-		}
-	}
-
-	if (SPIFFS.exists("/intro.txt")) {
-		File f = SPIFFS.open("/intro.txt", "r");
-		s = f.readString();
-		console.println(s.c_str());
-	}
-	else {
-		console.println(("Starting..."));
-	}
-
-	setupController.cfg = &config;
-	setupController.reloadConfig = reloadConfig;
-	setupController.loadConfig();
-
-	WiFi.begin();
-	WiFi.disconnect();
-	WiFi.mode(WIFI_AP);
-
-	s = config.ssid + "_" + WiFi.macAddress();
-	s.replace(":", "");
-	strcpy(&SSID[0], s.c_str());
-
-	s = config.password;
-	strcpy(&SSID_password[0], s.c_str());
-
-	WiFi.softAP(SSID, SSID_password);
-
-	/* Setup the DNS server redirecting all the domains to the apIP */
-	dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-	dnsServer.start(DNS_PORT, "*", apIP);
-
-	console.println("");
-	console.println(apIP.toString());
-
-	webServer.setup();
-	webServer.on("/api/EventSourceName", EventSourceName);
-	webServer.on("/api/events", Events);
-	webServer.on("/api/post", HTTPMethod::HTTP_POST, Post);
-
-	leftMotor = new SpeedController("Left motor", pinLeftMotor, &leftMotorEffect);
-	//leftMotor = new HBridge("Left motor", pinLeftMotorA, pinLeftMotorB, &leftMotorEffect);
-	leftMotor->responder = &console;
-	leftMotor->setWeight(config.inertion);
-	leftMotor->reset();
-	leftMotor->isEnabled = true;
 
 
-	rightMotor = new SpeedController("Right motor", pinRightMotor, &rightMotorEffect);
-	//rightMotor = new HBridge("Right motor", pinRightMotorA, pinRightMotorB, &rightMotorEffect);
-	rightMotor->responder = &console;
-	rightMotor->setWeight(config.inertion);
-	rightMotor->reset();
-	rightMotor->isEnabled = true;
-
-	smokeGenerator.startupState = MOSFET_OFF;
-	//smokeGenerator.debug = true;
-	smokeGenerator.Add(pinSmoke, 0, MOSFET_ON)
-		->Add(pinSmoke, 0, MOSFET_OFF)
-		->Add(pinSmoke, SMOKE_PWM_PERIOD, MOSFET_OFF)
-		->end()
-		->printValues();
-
-
-	turbineBlinker.Add(pinTurbine, 0, 1)
-		->Add(pinTurbine, 0, 0)
-		->Add(pinTurbine, 0, 0)
-		->end()
-		->printValues();
-
-
-	cabinMotor = new SpeedController("Cabin", pinCabin, &cabinMotorEffect);
-	cabinMotor->responder = &console;
-	cabinMotor->setWeight(config.cabin_Inertion);
-	cabinMotor->reset();
-	cabinMotor->isEnabled = true;
-
-	gunStick.bounce = 20;
-	gunStick.holdInterval = 50;
-
-	state.gun_position = config.gun_min + ((config.gun_max - config.gun_min) / 2);
-	gun.attach(pinGunMotor);
-	gun.write(state.gun_position);
-
-	state.ignition = Ignition::OFF;
-	pinMode(pinTurbine, OUTPUT);
-
-	digitalWrite(pinLight, 0);
-	pinMode(pinLight, OUTPUT);
-}
 
 void reloadConfig() {
 	leftMotor->setWeight(config.inertion);
@@ -231,104 +177,37 @@ void reloadConfig() {
 }
 
 
-void EventSourceName() {
-	webServer.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-	webServer.sendHeader("Pragma", "no-cache");
-	webServer.sendHeader("Expires", "-1");
-	webServer.setContentLength(CONTENT_LENGTH_UNKNOWN);
 
-	Joypad* j = new Joypad();
-	j->client = webServer.client();
-	j->clientIP = webServer.client().remoteIP();
-	joypads.add(j);
-
-	String ret = "http://" + apIP.toString() + ":80/api/events?{\"client\":\"" + String(j->id) + "\"}";
-
-	webServer.send(200, "text/plain", ret);
-
-}
-
-void Events() {
-	console.println(webServer.uri());
-	WiFiClient client = webServer.client();
-
-	String s = webServer.argName(0);
-	JsonString json = "";
-	json += s;
-	int id = json.getInt("client");
-
-	//console.printf("client:%i", id);
-
-	Joypad* j = joypads.getById(id);
-	if (j == nullptr) {
-		console.printf("Unauthorized client %i\n", id);
-		webServer.handleNotFound();
-		return;
-	}
-	if (client.remoteIP() != j->clientIP) {
-		console.printf("wrong IP", id);
-		joypads.remove(j);
-		webServer.handleNotFound();
-		return;
-	}
-	j->client = client;
-	client.setNoDelay(true);
-	client.setSync(true);
-	webServer.setContentLength(CONTENT_LENGTH_UNKNOWN); // the payload can go on forever
-	webServer.sendContent_P(PSTR("HTTP/1.1 200 OK\nContent-Type: text/event-stream;\nConnection: keep-alive\nCache-Control: no-cache\nAccess-Control-Allow-Origin: *\n\n"));
-	console.flush();
-}
-
-void Post() {
-	if (webServer.hasArg("plain")) {
-		String s = webServer.arg("plain");
-		JsonString json = "";
-		json += s;
-		int id = json.getInt("client");
-
-		//console.printf("client:%i\n", id);
-
-		Joypad* j = joypads.getById(id);
-		if (j == nullptr) {
-			webServer.handleNotFound();
-			return;
-		}
-		webServer.Ok();
-		if (j->processParcel(&json)) {
-			joypads.updateValuesFrom(j);
-		}
-	}
-	else
-	{
-		webServer.Ok();
-	}
-}
 
 void handle_StartStop() {
-	state.ignition += 1;
-	if (state.ignition > Ignition::RUN) {
-		state.ignition = Ignition::OFF;
+	//state.ignition += 1;
+	if (state.handled_ignition != state.ignition) {
+		if (state.ignition > Ignition::RUN) {
+			state.ignition = Ignition::OFF;
+		}
+		if (state.ignition == Ignition::OFF) {
+			if (smokeGenerator.isRunning()) smokeGenerator.end();
+			if (turbineBlinker.isRunning()) turbineBlinker.end();
+			if (turbine.attached()) turbine.detach();
+			digitalWrite(pinTurbine, 0);
+			Serial.println("Engine stopped");
+		}
+		else if (state.ignition == Ignition::ON) {
+			Serial.println("Engine Started");
+			if (!smokeGenerator.isRunning()) smokeGenerator.begin();
+			if (!turbineBlinker.isRunning()) turbineBlinker.begin();
+			if (!turbine.attached()) turbine.attach(pinTurbine);
+		}
+		else
+		{
+			Serial.println("Veichle Run");
+			if (!smokeGenerator.isRunning()) smokeGenerator.begin();
+			if (!turbineBlinker.isRunning()) turbineBlinker.begin();
+			if (!turbine.attached()) turbine.attach(pinTurbine);
+		};
+		state.handled_ignition = state.ignition;
 	}
-	if (state.ignition == Ignition::OFF) {
-		if (smokeGenerator.isRunning()) smokeGenerator.end();
-		if (turbineBlinker.isRunning()) turbineBlinker.end();
-		if (turbine.attached()) turbine.detach();
-		digitalWrite(pinTurbine, 0);
-		Serial.println("Engine stopped");
-	}
-	else if (state.ignition == Ignition::ON) {
-		Serial.println("Engine Started");
-		if (!smokeGenerator.isRunning()) smokeGenerator.begin();
-		if (!turbineBlinker.isRunning()) turbineBlinker.begin();
-		if (!turbine.attached()) turbine.attach(pinTurbine);
-	}
-	else
-	{
-		Serial.println("Veichle Run");
-		if (!smokeGenerator.isRunning()) smokeGenerator.begin();
-		if (!turbineBlinker.isRunning()) turbineBlinker.begin();
-		if (!turbine.attached()) turbine.attach(pinTurbine);
-	};
+	
 }
 
 void btnFire_Pressed() {
@@ -347,12 +226,12 @@ void btnFire_Pressed() {
 }
 
 void handle_Light() {
-	Serial.print("Light!");
-	if (state.light == 0) {
+	//Serial.print("Light!");
+	if (state.light == 0 && state.ignition > 0) {
 		state.light = 1;
 		analogWrite(pinLight, map(config.light, 0, 100, 0, MAX_PWM_VALUE));
 	}
-	else {
+	else if (state.ignition == 0 && state.light != 0) {
 		state.light = 0;
 		analogWrite(pinLight, 0);
 	}
@@ -362,7 +241,7 @@ void gun_MakeStep() {
 	if (state.gun_step == 0) return;
 	state.gun_position += state.gun_step;
 	state.gun_position = constrain(state.gun_position, config.gun_min, config.gun_max);
-	joypads.setValue("gun", state.gun_position);
+	//joypads.setValue("gun", state.gun_position);
 }
 
 void gun_Pressed() {
@@ -387,12 +266,12 @@ void turbine_write(int pin, int value) {
 
 void handleVeichle() {
 	//Поточні значення з пульта шофера
-	double left_y = joypads.getValue("left_y");
-	double right_y = joypads.getValue("right_y");
+	//double left_y = joypads.getValue("left_y");
+	//double right_y = joypads.getValue("right_y");
 
 	//Поточні значення з універсального джойстика
-	double vehicle_x = joypads.getValue("vehicle_x");
-	double vehicle_y = joypads.getValue("vehicle_y");
+	double vehicle_x = RemoteXY.vehicle_x;//joypads.getValue("vehicle_x");
+	double vehicle_y = RemoteXY.vehicle_y;//joypads.getValue("vehicle_y");
 
 	int left = 0;
 	int right = 0;
@@ -410,12 +289,12 @@ void handleVeichle() {
 			left = vehicle_y;
 			right = vehicle_y;
 		}
-	}
+	}/*
 	else {
 		//Обробляємо робоче місце водія
 		left = left_y;
 		right = right_y;
-	}
+	}*/
 
 	if (left > 0 && right < 0) {
 		right = 0;
@@ -477,13 +356,13 @@ void handleVeichle() {
 		state.right = 0;
 	}
 
-	joypads.setValue("rpm", state.rpm);
-	joypads.setValue("left", state.left);
-	joypads.setValue("right", state.right);
+	//joypads.setValue("rpm", state.rpm);
+	//joypads.setValue("left", state.left);
+	//joypads.setValue("right", state.right);
 }
 
 void handleCabin() {
-	double cabin_x = joypads.getValue("cabin_x");
+	double cabin_x = RemoteXY.cabin_x;//joypads.getValue("cabin_x");
 
 	int cabin = 0;
 	if (cabin_x > config.cabin_blind_zone) {
@@ -500,7 +379,7 @@ void handleCabin() {
 }
 
 void handleGun() {
-	double cabin_y = joypads.getValue("cabin_y");
+	double cabin_y = RemoteXY.cabin_y;//joypads.getValue("cabin_y");
 	if (cabin_y > config.gun_blind_zone) {
 		gunStick.setValue(HIGH);
 		state.gun_step = -1;
@@ -533,6 +412,7 @@ void handleFire() {
 	if (m < state.firePeak) {
 		position = map(duration, 0, peakDuration, config.fire_min, config.fire_max);
 		gunRollback.write(position);
+		RemoteXY.sound = config.fire_sound;
 	}
 	else if (m < state.fireEnd) {
 		position = map(duration, peakDuration, endDuration, config.fire_max, config.fire_min);
@@ -540,24 +420,146 @@ void handleFire() {
 	}
 	else {
 		state.fireStart = 0;
+		RemoteXY.sound = 0;
 		gunRollback.write(config.fire_min);
 	}
 }
 
+
+
+
+
+
+
+void refreshConfig() {
+	reloadConfig();
+}
+
+
+void setup()
+{
+	//state.serialEnabled = true;
+	Serial.end();
+
+	//pinMode(pinBuzzer, OUTPUT);
+	//digitalWrite(pinBuzzer, LOW);
+
+	Serial.begin(115200);
+	Serial.println();
+	Serial.println();
+	console.output = &Serial;
+
+	analogWriteRange(255);
+	String s;
+	if (!SPIFFS.begin()) {
+		console.println(F("No file system!"));
+		console.println(F("Fomating..."));
+		if (SPIFFS.format())
+			console.println(F("OK"));
+		else {
+			console.println(F("Fail.... rebooting..."));
+			while (true);
+		}
+	}
+
+	if (SPIFFS.exists("/intro.txt")) {
+		File f = SPIFFS.open("/intro.txt", "r");
+		s = f.readString();
+		console.println(s.c_str());
+	}
+	else {
+		console.println(("Starting..."));
+	}
+
+	setupController.cfg = &config;
+	setupController.loadConfig();
+
+	s = config.ssid + "_" + WiFi.macAddress();
+	s.replace(":", "");
+	strcpy(&SSID[0], s.c_str());
+
+	s = config.password;
+	strcpy(&SSID_password[0], s.c_str());
+
+
+	remotexy = new CRemoteXY(RemoteXY_CONF_PROGMEM, &RemoteXY, REMOTEXY_ACCESS_PASSWORD, SSID, SSID_password, REMOTEXY_SERVER_PORT);//RemoteXY_Init();
+
+	console.println("Start");
+	webServer.setup();
+	webServer.apName = String(SSID);
+
+	setupController.reloadConfig = &refreshConfig;
+
+
+	leftMotor = new SpeedController("Left motor", pinLeftMotor, &leftMotorEffect);
+	//leftMotor = new HBridge("Left motor", pinLeftMotorA, pinLeftMotorB, &leftMotorEffect);
+	leftMotor->responder = &console;
+	leftMotor->setWeight(config.inertion);
+	leftMotor->reset();
+	leftMotor->isEnabled = true;
+
+
+	rightMotor = new SpeedController("Right motor", pinRightMotor, &rightMotorEffect);
+	//rightMotor = new HBridge("Right motor", pinRightMotorA, pinRightMotorB, &rightMotorEffect);
+	rightMotor->responder = &console;
+	rightMotor->setWeight(config.inertion);
+	rightMotor->reset();
+	rightMotor->isEnabled = true;
+
+	smokeGenerator.startupState = MOSFET_OFF;
+	//smokeGenerator.debug = true;
+	smokeGenerator.Add(pinSmoke, 0, MOSFET_ON)
+		->Add(pinSmoke, 0, MOSFET_OFF)
+		->Add(pinSmoke, SMOKE_PWM_PERIOD, MOSFET_OFF)
+		->end()
+		->printValues();
+
+
+	turbineBlinker.Add(pinTurbine, 0, 1)
+		->Add(pinTurbine, 0, 0)
+		->Add(pinTurbine, 0, 0)
+		->end()
+		->printValues();
+
+
+	cabinMotor = new SpeedController("Cabin", pinCabin, &cabinMotorEffect);
+	cabinMotor->responder = &console;
+	cabinMotor->setWeight(config.cabin_Inertion);
+	cabinMotor->reset();
+	cabinMotor->isEnabled = true;
+
+	gunStick.bounce = 20;
+	gunStick.holdInterval = 50;
+
+	state.gun_position = config.gun_min + ((config.gun_max - config.gun_min) / 2);
+	gun.attach(pinGunMotor);
+	gun.write(state.gun_position);
+
+	state.ignition = Ignition::OFF;
+	pinMode(pinTurbine, OUTPUT);
+
+	digitalWrite(pinLight, 0);
+	pinMode(pinLight, OUTPUT);
+
+
+}
+
+
 void loop()
 {
-	dnsServer.processNextRequest();
-	joypads.loop();
+	RemoteXY_Handler();
 	webServer.loop();
 
-	if (joypads.getCount() > 0) {
-		btnStartStop.setValue(joypads.getValue("start"));
-		btnFire.setValue(joypads.getValue("fire"));
-		btnLight.setValue(joypads.getValue("light"));
+	if (RemoteXY.connect_flag == 1) {
+		state.ignition = RemoteXY.engine;
+		btnFire.setValue(RemoteXY.fire);
 		handleVeichle();
 		handleCabin();
 		handleGun();
 		handleFire();
+	}
+	else {
+		state.ignition = 0;
 	}
 
 	smokeGenerator.loop();
@@ -566,8 +568,9 @@ void loop()
 	rightMotor->loop();
 	cabinMotor->loop();
 	//buttons
-	btnStartStop.handle();
+	handle_StartStop();
 	btnFire.handle();
-	btnLight.handle();
+	handle_Light();
 	gunStick.handle();
+
 }
