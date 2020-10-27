@@ -55,12 +55,12 @@
 // конфигурация интерфейса  
 #pragma pack(push, 1)
 uint8_t RemoteXY_CONF[] =
-	{ 255,6,0,2,0,46,0,10,173,0,
-	69,0,32,5,17,17,1,1,0,27,
-	5,17,17,50,31,88,0,5,32,0,
-	13,42,42,149,173,31,5,32,58,13,
-	42,42,149,173,31,3,3,44,30,12,
-	32,164,173 };
+{ 255,6,0,2,0,46,0,10,173,0,
+69,0,32,5,17,17,1,1,0,27,
+5,17,17,50,31,88,0,5,32,0,
+13,42,42,149,173,31,5,32,58,13,
+42,42,149,173,31,3,3,44,30,12,
+32,164,173 };
 
 // структура определяет все переменные и события вашего интерфейса управления 
 struct {
@@ -106,6 +106,7 @@ struct State {
 	int handled_ignition;
 
 	int light;
+	int handled_light;
 
 } state;
 
@@ -207,7 +208,7 @@ void handle_StartStop() {
 		};
 		state.handled_ignition = state.ignition;
 	}
-	
+
 }
 
 void btnFire_Pressed() {
@@ -227,14 +228,20 @@ void btnFire_Pressed() {
 
 void handle_Light() {
 	//Serial.print("Light!");
+
 	if (state.light == 0 && state.ignition > 0) {
-		state.light = 1;
-		analogWrite(pinLight, map(config.light, 0, 100, 0, MAX_PWM_VALUE));
+		if (state.handled_light == 0) {
+			state.light = 1;
+			analogWrite(pinLight, map(config.light, 0, 100, 0, MAX_PWM_VALUE));
+		}
 	}
-	else if (state.ignition == 0 && state.light != 0) {
-		state.light = 0;
-		analogWrite(pinLight, 0);
+	else if (state.light != 0 && state.ignition == 0) {
+		if (state.handled_light == 1) {
+			state.light = 0;
+			analogWrite(pinLight, 0);
+		}
 	}
+	state.handled_light = state.light;
 }
 
 void gun_MakeStep() {
@@ -424,11 +431,6 @@ void handleFire() {
 		gunRollback.write(config.fire_min);
 	}
 }
-
-
-
-
-
 
 
 void refreshConfig() {
