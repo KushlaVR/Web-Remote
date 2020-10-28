@@ -493,7 +493,7 @@ void setup()
 	setupController.reloadConfig = &refreshConfig;
 
 
-	leftMotor = new SpeedController("Left motor", pinLeftMotor, &leftMotorEffect);
+	leftMotor = new SpeedController("Left motor", pinLeftMotor, nullptr/*&leftMotorEffect*/);
 	//leftMotor = new HBridge("Left motor", pinLeftMotorA, pinLeftMotorB, &leftMotorEffect);
 	leftMotor->responder = &console;
 	leftMotor->setWeight(config.inertion);
@@ -501,7 +501,7 @@ void setup()
 	leftMotor->isEnabled = true;
 
 
-	rightMotor = new SpeedController("Right motor", pinRightMotor, &rightMotorEffect);
+	rightMotor = new SpeedController("Right motor", pinRightMotor, nullptr/*&rightMotorEffect*/);
 	//rightMotor = new HBridge("Right motor", pinRightMotorA, pinRightMotorB, &rightMotorEffect);
 	rightMotor->responder = &console;
 	rightMotor->setWeight(config.inertion);
@@ -524,7 +524,7 @@ void setup()
 		->printValues();
 
 
-	cabinMotor = new SpeedController("Cabin", pinCabin, &cabinMotorEffect);
+	cabinMotor = new SpeedController("Cabin", pinCabin, nullptr/*&cabinMotorEffect*/);
 	cabinMotor->responder = &console;
 	cabinMotor->setWeight(config.cabin_Inertion);
 	cabinMotor->reset();
@@ -546,12 +546,12 @@ void setup()
 
 }
 
-
+unsigned long lastLoop = 0;
 void loop()
 {
-	RemoteXY_Handler();
-	webServer.loop();
 
+	RemoteXY_Handler();
+	
 	if (RemoteXY.connect_flag == 1) {
 		state.ignition = RemoteXY.engine;
 		btnFire.setValue(RemoteXY.fire);
@@ -561,6 +561,7 @@ void loop()
 		handleFire();
 	}
 	else {
+		webServer.loop();
 		state.ignition = 0;
 	}
 
@@ -574,5 +575,9 @@ void loop()
 	btnFire.handle();
 	handle_Light();
 	gunStick.handle();
+	
 
+	unsigned long benchMark = millis() - lastLoop; 
+	if (benchMark > 4) Serial.printf("* benchMark: %i\n", benchMark);
+	lastLoop = millis();
 }

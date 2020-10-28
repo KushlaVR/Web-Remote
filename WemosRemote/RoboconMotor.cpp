@@ -72,42 +72,59 @@ void MotorBase::setSpeed(int speed)
 {
 	if (targetSpeed == speed) return;
 	targetSpeed = speed;//Запамятовуємо цільову швидкість
-	delta = targetSpeed - factSpeed;//на скільки змінилася швидкість відносно фактичної
-	int d = delta;
-	if (d < 0) d *= -1;
-	effect->duration = map(d, 0, 255, 0, etalonDuration);//Визначаємо тривалість зміни швидкості
-	//Маємо тривалість розгону від 0 до максималки, коректуємо час пропорційно до дельти.
-	//Використовуємо функцію map();
-	Serial.print("effect->duration");
-	Serial.println(effect->duration);
-	effect->begin();//Скидємо точку відліку фізики. 
+	if (effect != nullptr) {
+		delta = targetSpeed - factSpeed;//на скільки змінилася швидкість відносно фактичної
+		int d = delta;
+		if (d < 0) d *= -1;
+		effect->duration = map(d, 0, 255, 0, etalonDuration);//Визначаємо тривалість зміни швидкості
+		//Маємо тривалість розгону від 0 до максималки, коректуємо час пропорційно до дельти.
+		//Використовуємо функцію map();
+		Serial.print("effect->duration");
+		Serial.println(effect->duration);
+		effect->begin();//Скидємо точку відліку фізики. 
+	}
+
 }
 
 void MotorBase::reset()
 {
 	targetSpeed = 0;
 	factSpeed = 0;
-	delta = 0;
-	effect->duration = 0;
+	if (effect != nullptr) {
+		delta = 0;
+		effect->duration = 0;
+	}
 }
 
 void MotorBase::loop()
 {
-	//Фактичну швидкість визначаємо згідно із ядром фізики (softStartSoftEnd - плавний старт<->плавний стоп)
-	//Це означає, що на початку ми збільшуємо шим малими порціями, потім щораз більшими і більшими,
-	//на половині шляху - порції досягають максимума, а тоді плавно йдуть на спад за протилежним алгоритмом, 
-	//спочатку великими порціями, потм щораз меншими і меншими
-	//Получається аналог синусоїди.
-	//Але це не чистий сінус, це його імітація, шляхом накладення двох парабул (y=x*x).
-	//Обчислення синуса - то значно складнішша задача для процесора ніж множення двох змінних, 
-	//тому синус замінено на відносно прості операції множення та ділення
-	int newSpeed = targetSpeed - delta + (((long)delta) * effect->softStartSoftEnd() / effect->fullProgress);
-	if (newSpeed != factSpeed) {
-		JsonString ret;
-		ret.beginObject();
-		ret.AddValue(name, String(newSpeed));
-		ret.endObject();
-		responder->println(ret);
+	int newSpeed = 0;
+	if (effect != nullptr) {
+		//Фактичну швидкість визначаємо згідно із ядром фізики (softStartSoftEnd - плавний старт<->плавний стоп)
+		//Це означає, що на початку ми збільшуємо шим малими порціями, потім щораз більшими і більшими,
+		//на половині шляху - порції досягають максимума, а тоді плавно йдуть на спад за протилежним алгоритмом, 
+		//спочатку великими порціями, потм щораз меншими і меншими
+		//Получається аналог синусоїди.
+		//Але це не чистий сінус, це його імітація, шляхом накладення двох парабул (y=x*x).
+		//Обчислення синуса - то значно складнішша задача для процесора ніж множення двох змінних, 
+		//тому синус замінено на відносно прості операції множення та ділення
+		newSpeed = targetSpeed - delta + (((long)delta) * effect->softStartSoftEnd() / effect->fullProgress);
+		if (newSpeed != factSpeed) {
+			JsonString ret;
+			ret.beginObject();
+			ret.AddValue(name, String(newSpeed));
+			ret.endObject();
+			responder->println(ret);
+		}
+	}
+	else {
+		newSpeed = targetSpeed;
+		if (newSpeed != factSpeed) {
+			responder->print(name);
+			responder->print(":");
+			responder->print(newSpeed);
+			responder->println();
+		}
 	}
 	write(newSpeed);
 }
