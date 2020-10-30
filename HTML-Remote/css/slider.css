@@ -1,13 +1,26 @@
 ﻿.slider {
     display: block;
     position: absolute;
-    border: 0.5vw solid #2DF6FF;
+    border: 0.5vw solid transparent;
 }
+
+    .slider::after {
+        content: "";
+        display: block;
+        position: absolute;
+        top: -3vw;
+        bottom: -3vw;
+        left: -3vw;
+        right: -3vw;
+        border: 0.5vw solid #2df6ff87;
+        border-radius: 3vw;
+    }
+
 
     .slider .pot {
         background-color: gray;
         border: 1px solid gray;
-        opacity: 0.3;
+        opacity: 0.95;
     }
 
     .slider .pot,

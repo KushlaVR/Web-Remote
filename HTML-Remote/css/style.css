@@ -22,8 +22,8 @@ body {
         display: block;
         position: relative;
         margin: 10px auto;
-        width: 95vw;
-        height: 47vw;
+        width: 100vw;
+        height: 50vw;
         background-color: #001725;
         border: 1px solid #2DF6FF;
         box-shadow: rgba(0,0,0,0.1) 0px 1px 10px;
