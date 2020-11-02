@@ -36,7 +36,8 @@
 #define pinLeftMotor D4//лівий борт
 #define pinRightMotor D5//правий борт
 
-#define pinTacho D7//Вихід тахометра
+//#define pinTacho D7//Вихід тахометра
+#define pinFireLed D7//Вихід тахометра
 
 #define pinTurbine D8//турбіни
 #define pinSmoke D3//ШИМ димогенератора
@@ -57,6 +58,8 @@ struct State {
 	unsigned long fireStart;//Початок вистрілу
 	unsigned long firePeak;//Крайня точка вистрілу
 	unsigned long fireEnd;//завершення вистрілу
+	unsigned long fireLedStart;//Засвічуємо діод
+	unsigned long fireLedEnd;//гасимо діод
 
 	int rpm;
 	int ignition;
@@ -106,7 +109,7 @@ MotorBase* rightMotor = nullptr;
 RoboEffects cabinMotorEffect = RoboEffects();
 MotorBase* cabinMotor = nullptr;
 
-Servo tachoOutput = Servo();
+//Servo tachoOutput = Servo();
 
 Servo gun = Servo();
 Servo gunRollback = Servo();
@@ -185,6 +188,12 @@ void setup()
 	rightMotor->setWeight(config.inertion);
 	rightMotor->reset();
 	rightMotor->isEnabled = true;
+
+	btnStartStop.bounce = 0;
+	btnFire.bounce = 0;
+	btnLight.bounce = 0;
+
+	pinMode(pinFireLed, OUTPUT);
 
 	smokeGenerator.startupState = MOSFET_OFF;
 	//smokeGenerator.debug = true;
@@ -333,11 +342,14 @@ void handle_StartStop() {
 
 void btnFire_Pressed() {
 	if (state.fireStart != 0) return;
-	Serial.print("Fire!");
+	
 	state.fireStart = millis();
 	state.firePeak = state.fireStart + config.fire_duration / 3;
 	state.fireEnd = state.fireStart + config.fire_duration;
+	state.fireLedStart = state.fireStart + config.fire_led_start;
+	state.fireLedEnd = state.fireStart + config.fire_led_end;
 
+	Serial.print("Fire!");
 	Serial.print(state.fireStart);
 	Serial.print(";");
 	Serial.print(state.fireStart);
@@ -444,14 +456,14 @@ void handleVeichle() {
 			turbineBlinker.item(2)->offset = (1000 / f);
 		}
 
-		if (!tachoOutput.attached()) tachoOutput.attach(pinTacho);
-		tachoOutput.write(state.rpm);
+		//if (!tachoOutput.attached()) tachoOutput.attach(pinTacho);
+		//tachoOutput.write(state.rpm);
 
 	}
 	else
 	{
 		state.rpm = 0;
-		if (tachoOutput.attached()) tachoOutput.detach();
+		//if (tachoOutput.attached()) tachoOutput.detach();
 	}
 
 
@@ -529,6 +541,13 @@ void handleFire() {
 	unsigned long peakDuration = state.firePeak - state.fireStart;
 	unsigned long endDuration = state.fireEnd - state.fireStart;
 
+	if (m < state.fireLedStart) {
+		analogWrite(pinFireLed, 0);
+	}
+	else if (m < state.fireLedEnd) {
+		analogWrite(pinFireLed, map(config.fire_led_pwm, 0, 100, 0, MAX_PWM_VALUE));
+	}
+
 	int position = config.fire_min;
 	if (m < state.firePeak) {
 		position = map(duration, 0, peakDuration, config.fire_min, config.fire_max);
@@ -541,6 +560,7 @@ void handleFire() {
 	else {
 		state.fireStart = 0;
 		gunRollback.write(config.fire_min);
+		analogWrite(pinFireLed, 0);
 	}
 }
 

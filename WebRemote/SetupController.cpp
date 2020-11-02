@@ -46,7 +46,10 @@ void SetupController::loadConfig()
 		cfg.AddValue("fire_min", "20");
 		cfg.AddValue("fire_max", "40");
 		cfg.AddValue("fire_duration", "1000");
-		
+		cfg.AddValue("fire_led_start", "100");
+		cfg.AddValue("fire_led_end", "800");
+		cfg.AddValue("fire_led_pwm", "50");
+
 		cfg.AddValue("light", "50");
 
 		cfg.endObject();
@@ -80,6 +83,9 @@ void SetupController::loadConfig()
 	this->cfg->fire_min = cfg.getInt("fire_min");
 	this->cfg->fire_max = cfg.getInt("fire_max");
 	this->cfg->fire_duration = cfg.getInt("fire_duration");
+	this->cfg->fire_led_start = cfg.getInt("fire_led_start");
+	this->cfg->fire_led_end = cfg.getInt("fire_led_end");
+	this->cfg->fire_led_pwm = cfg.getInt("fire_led_pwm");
 
 	this->cfg->turbine_min = cfg.getInt("turbine_min");
 	this->cfg->turbine_max = cfg.getInt("turbine_max");
@@ -124,6 +130,9 @@ void SetupController::printConfig(JsonString* out)
 	out->AddValue("fire_min", String(cfg->fire_min));
 	out->AddValue("fire_max", String(cfg->fire_max));
 	out->AddValue("fire_duration", String(cfg->fire_duration));
+	out->AddValue("fire_led_start", String(cfg->fire_led_start));
+	out->AddValue("fire_led_end", String(cfg->fire_led_end));
+	out->AddValue("fire_led_pwm", String(cfg->fire_led_pwm));
 
 	out->AddValue("turbine_min", String(cfg->turbine_min));
 	out->AddValue("turbine_max", String(cfg->turbine_max));
@@ -165,6 +174,9 @@ void SetupController::Setup_Post()
 	if (webServer.hasArg("fire_min")) { setupController.cfg->fire_min = webServer.arg("fire_min").toInt(); }
 	if (webServer.hasArg("fire_max")) { setupController.cfg->fire_max = webServer.arg("fire_max").toInt(); }
 	if (webServer.hasArg("fire_duration")) { setupController.cfg->fire_duration = webServer.arg("fire_duration").toInt(); }
+	if (webServer.hasArg("fire_led_start")) { setupController.cfg->fire_led_start = webServer.arg("fire_led_start").toInt(); }
+	if (webServer.hasArg("fire_led_end")) { setupController.cfg->fire_led_end = webServer.arg("fire_led_end").toInt(); }
+	if (webServer.hasArg("fire_led_pwm")) { setupController.cfg->fire_led_pwm = webServer.arg("fire_led_pwm").toInt(); }
 
 	if (webServer.hasArg("turbine_min")) { setupController.cfg->turbine_min = webServer.arg("turbine_min").toInt(); }
 	if (webServer.hasArg("turbine_max")) { setupController.cfg->turbine_max = webServer.arg("turbine_max").toInt(); }

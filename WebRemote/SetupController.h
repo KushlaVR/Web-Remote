@@ -30,6 +30,9 @@ public:
 	int fire_min;
 	int fire_max;
 	int fire_duration;
+	int fire_led_start;
+	int fire_led_end;
+	int fire_led_pwm;//0..100%
 
 	int turbine_min;//0..180
 	int turbine_max;//0..180
