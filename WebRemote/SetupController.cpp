@@ -46,8 +46,8 @@ void SetupController::loadConfig()
 		cfg.AddValue("fire_min", "20");
 		cfg.AddValue("fire_max", "40");
 		cfg.AddValue("fire_duration", "1000");
-		cfg.AddValue("fire_led_start", "100");
-		cfg.AddValue("fire_led_end", "800");
+		cfg.AddValue("fire_led_start", "400");
+		cfg.AddValue("fire_led_end", "500");
 		cfg.AddValue("fire_led_pwm", "50");
 
 		cfg.AddValue("light", "50");

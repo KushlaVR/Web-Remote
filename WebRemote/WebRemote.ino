@@ -60,6 +60,7 @@ struct State {
 	unsigned long fireEnd;//завершення вистрілу
 	unsigned long fireLedStart;//Засвічуємо діод
 	unsigned long fireLedEnd;//гасимо діод
+	unsigned long fireLedPWM;//гасимо діод
 
 	int rpm;
 	int ignition;
@@ -348,13 +349,20 @@ void btnFire_Pressed() {
 	state.fireEnd = state.fireStart + config.fire_duration;
 	state.fireLedStart = state.fireStart + config.fire_led_start;
 	state.fireLedEnd = state.fireStart + config.fire_led_end;
+	state.fireLedPWM = map(config.fire_led_pwm, 0, 100, 0, MAX_PWM_VALUE);
 
-	Serial.print("Fire!");
+	Serial.print("Fire! start=");
 	Serial.print(state.fireStart);
-	Serial.print(";");
-	Serial.print(state.fireStart);
-	Serial.print(";");
-	Serial.println(state.fireStart);
+	Serial.print("; peak=");
+	Serial.print(state.firePeak);
+	Serial.print("; end=");
+	Serial.print(state.fireEnd);
+	Serial.print("; led-start=");
+	Serial.print(state.fireLedStart);
+	Serial.print("; led-end=");
+	Serial.print(state.fireLedEnd);
+	Serial.print("; PWM=");
+	Serial.println(state.fireLedPWM);
 
 }
 
@@ -540,12 +548,14 @@ void handleFire() {
 	unsigned long duration = m - state.fireStart;
 	unsigned long peakDuration = state.firePeak - state.fireStart;
 	unsigned long endDuration = state.fireEnd - state.fireStart;
-
 	if (m < state.fireLedStart) {
 		analogWrite(pinFireLed, 0);
 	}
 	else if (m < state.fireLedEnd) {
-		analogWrite(pinFireLed, map(config.fire_led_pwm, 0, 100, 0, MAX_PWM_VALUE));
+		analogWrite(pinFireLed, state.fireLedPWM);
+	}
+	else {
+		analogWrite(pinFireLed, 0);
 	}
 
 	int position = config.fire_min;

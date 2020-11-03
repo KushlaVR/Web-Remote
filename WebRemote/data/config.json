@@ -17,8 +17,8 @@
   "fire_min": "20",
   "fire_max": "40",
   "fire_duration": "1000",
-  "fire_led_start": "100",
-  "fire_led_end": "800",
-  "fire_led": "50",
+  "fire_led_start": "400",
+  "fire_led_end": "500",
+  "fire_led_pwm": "50",
   "light": "50"
 }
