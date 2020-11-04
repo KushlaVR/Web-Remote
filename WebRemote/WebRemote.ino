@@ -55,6 +55,7 @@ struct State {
 	int gun_step;//Куди рухається ствол
 	int gun_position;//Положення ствола
 
+	unsigned long fireAnimationStart;//Початок вистрілу
 	unsigned long fireStart;//Початок вистрілу
 	unsigned long firePeak;//Крайня точка вистрілу
 	unsigned long fireEnd;//завершення вистрілу
@@ -342,13 +343,14 @@ void handle_StartStop() {
 }
 
 void btnFire_Pressed() {
-	if (state.fireStart != 0) return;
+	if (state.fireAnimationStart != 0) return;
 	
-	state.fireStart = millis();
-	state.firePeak = state.fireStart + config.fire_duration / 3;
-	state.fireEnd = state.fireStart + config.fire_duration;
-	state.fireLedStart = state.fireStart + config.fire_led_start;
-	state.fireLedEnd = state.fireStart + config.fire_led_end;
+	state.fireAnimationStart = millis();
+	state.fireStart = state.fireAnimationStart + config.fire_rollback_start;
+	state.firePeak = state.fireAnimationStart + config.fire_rollback_peak;
+	state.fireEnd = state.fireAnimationStart + config.fire_rollback_end;
+	state.fireLedStart = state.fireAnimationStart + config.fire_led_start;
+	state.fireLedEnd = state.fireAnimationStart + config.fire_led_end;
 	state.fireLedPWM = map(config.fire_led_pwm, 0, 100, 0, MAX_PWM_VALUE);
 
 	Serial.print("Fire! start=");
@@ -539,7 +541,7 @@ void handleGun() {
 }
 
 void handleFire() {
-	if (state.fireStart == 0) return;
+	if (state.fireAnimationStart == 0) return;
 
 	if (!gunRollback.attached()) {
 		gunRollback.attach(pinGunRollback);
@@ -548,16 +550,7 @@ void handleFire() {
 	unsigned long duration = m - state.fireStart;
 	unsigned long peakDuration = state.firePeak - state.fireStart;
 	unsigned long endDuration = state.fireEnd - state.fireStart;
-	if (m < state.fireLedStart) {
-		analogWrite(pinFireLed, 0);
-	}
-	else if (m < state.fireLedEnd) {
-		analogWrite(pinFireLed, state.fireLedPWM);
-	}
-	else {
-		analogWrite(pinFireLed, 0);
-	}
-
+	
 	int position = config.fire_min;
 	if (m < state.firePeak) {
 		position = map(duration, 0, peakDuration, config.fire_min, config.fire_max);
@@ -568,9 +561,21 @@ void handleFire() {
 		gunRollback.write(position);
 	}
 	else {
-		state.fireStart = 0;
 		gunRollback.write(config.fire_min);
+	}
+
+	if (m < state.fireLedStart) {
 		analogWrite(pinFireLed, 0);
+	}
+	else if (m < state.fireLedEnd) {
+		analogWrite(pinFireLed, state.fireLedPWM);
+	}
+	else {
+		analogWrite(pinFireLed, 0);
+	}
+
+	if (m > state.fireEnd && m > state.fireLedEnd) {
+		state.fireAnimationStart = 0;
 	}
 }
 

@@ -29,7 +29,9 @@ public:
 
 	int fire_min;
 	int fire_max;
-	int fire_duration;
+	int fire_rollback_start;
+	int fire_rollback_peak;
+	int fire_rollback_end;
 	int fire_led_start;
 	int fire_led_end;
 	int fire_led_pwm;//0..100%
