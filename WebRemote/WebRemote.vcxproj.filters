@@ -116,4 +116,8 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Media Include="data\html\mp3\fire2.mp3" />
+    <Media Include="data\html\mp3\fire.mp3" />
+  </ItemGroup>
 </Project>
