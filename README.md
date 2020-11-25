@@ -1,5 +1,10 @@
 # Web-Remote
 
+# Прошивка
+Як прошити плату (покрокова інструкція)
+https://github.com/KushlaVR/WemosRemote/wiki/%D0%9F%D1%80%D0%BE%D1%88%D0%B8%D0%B2%D0%BA%D0%B0
+
+
 # Початкові налаштування
 1. Підєднатись до WIFI точки доступу Wemos**AABBCCDDEEFF** (AABBCCDDEEFF - серійний номер вашої плати)
 2. Перейти в Google Chrome на сторінку 192.168.4.1
