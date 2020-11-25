@@ -547,22 +547,32 @@ void handleFire() {
 		gunRollback.attach(pinGunRollback);
 	}
 	unsigned long m = millis();
-	unsigned long duration = m - state.fireStart;
-	unsigned long peakDuration = state.firePeak - state.fireStart;
-	unsigned long endDuration = state.fireEnd - state.fireStart;
+
+	if (m > state.fireStart) {
+
+		unsigned long duration = m - state.fireStart;
+		unsigned long peakDuration = state.firePeak - state.fireStart;
+		unsigned long endDuration = state.fireEnd - state.fireStart;
+		
+		int position = config.fire_min;
+
+		if (m < state.firePeak) {
+			position = map(duration, 0, peakDuration, config.fire_min, config.fire_max);
+			Serial.print("+");
+			gunRollback.write(position);
+		}
+		else if (m < state.fireEnd) {
+			position = map(duration, peakDuration, endDuration, config.fire_max, config.fire_min);
+			Serial.print("-");
+			gunRollback.write(position);
+		}
+		else {
+			gunRollback.write(config.fire_min);
+		}
+
+		Serial.print(position); Serial.print("; "); Serial.print(duration); Serial.println();
+	}
 	
-	int position = config.fire_min;
-	if (m < state.firePeak) {
-		position = map(duration, 0, peakDuration, config.fire_min, config.fire_max);
-		gunRollback.write(position);
-	}
-	else if (m < state.fireEnd) {
-		position = map(duration, peakDuration, endDuration, config.fire_max, config.fire_min);
-		gunRollback.write(position);
-	}
-	else {
-		gunRollback.write(config.fire_min);
-	}
 
 	if (m < state.fireLedStart) {
 		analogWrite(pinFireLed, 0);
@@ -576,6 +586,8 @@ void handleFire() {
 
 	if (m > state.fireEnd && m > state.fireLedEnd) {
 		state.fireAnimationStart = 0;
+		//gunRollback.write(config.fire_min);
+		//gunRollback.detach();
 	}
 }
 
