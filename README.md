@@ -7,36 +7,36 @@
 
 # Схема
 
-![Схема](/img/schematic.jpg)
+![Схема](/tools/img/schematic.jpg)
 
 # Зовнішній вигляд інтерфейсу користувача
 
 ## Сторінка налаштувань
-![Сторінка налаштувань](/img/1-settings.png)
+![Сторінка налаштувань](/tools/img/1-settings.png)
 
 ## Інтерфейс (All-In-One)
-![Інтерфейс (All-In-One)](/img/2-all-in-one.png)
+![Інтерфейс (All-In-One)](/tools/img/2-all-in-one.png)
 
 ## Місце водія
-![Місце водія](/img/3-driver.png)
+![Місце водія](/tools/img/3-driver.png)
 
 ## Місце снайпера
-![Місце снайпера](/img/4-sniper.png)
+![Місце снайпера](/tools/img/4-sniper.png)
 
 ## Налаштування WIFI
-![Налаштування WIFI](/img/5-wifi-config.png)
+![Налаштування WIFI](/tools/img/5-wifi-config.png)
 
 ## Налаштування двигуна
-![Налаштування двигуна](/img/6-engine.png)
+![Налаштування двигуна](/tools/img/6-engine.png)
 
 ## Налаштування диогенератора
-![Налаштування диогенератора](/img/7-smoke.png)
+![Налаштування диогенератора](/tools/img/7-smoke.png)
 
 ## Налаштування кабіни
-![Налаштування кабіни](/img/8-tank-turrent.png)
+![Налаштування кабіни](/tools/img/8-tank-turrent.png)
 
 ## Налаштування ствола
-![Налаштування ствола](/img/9-barel.png)
+![Налаштування ствола](/tools/img/9-barel.png)
 
 
 
