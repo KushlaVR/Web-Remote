@@ -8,44 +8,46 @@ enum PotentiometerLinearity {
 };
 
 
+
 struct ConfigStruct {
 public:
-
 	String ssid;
 	String password;
 
-	int min_speed;
-	int inertion;
+	int ch1_min;
+	int ch1_center;
+	int ch1_max;
 
-	int cabin_Inertion;
-	int cabin_min;
-	int cabin_max;
-	int cabin_blind_zone = 30;
+	int ch2_min;
+	int ch2_center;
+	int ch2_max;
 
-	int gun_min;
-	int gun_max;
-	int gun_blind_zone = 30;
-	//unsigned long gun_duration;
+	int ch3_min;
+	int ch3_max;
 
-	int fire_min;
-	int fire_max;
-	int fire_rollback_start;
-	int fire_rollback_peak;
-	int fire_rollback_end;
-	int fire_led_start;
-	int fire_led_end;
-	int fire_led_pwm;//0..100%
+	int ch4_min;
+	int ch4_max;
 
-	int turbine_min;//0..180
-	int turbine_max;//0..180
-	int turbine_frequency_min;
-	int turbine_frequency_max;
+	int port_addr;
 
-	int smoke_min;//0..100
-	int smoke_max;//0..100
+	int turn_light_limit;
+	int reverce_limit;
 
-	int light;//0..100%
+	int gear0;
+	int gear1;
+	int gear2;
 
+	/*int wiper0;
+	int wiper180;
+
+	int wiper1Duration;
+	int wiper1Pause;
+
+	int wiper2Duration;
+	int wiper2Pause;*/
+
+	int stop_light_duration;//в мілісекундах
+	int back_light_timeout;//в мілісекундах
 };
 
 typedef void(*myFunctionPointer) ();

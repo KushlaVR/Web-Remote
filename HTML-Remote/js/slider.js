@@ -2,7 +2,7 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
@@ -11,7 +11,12 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var WorkSpace = (function () {
+/**
+ *
+ * Slider
+ *
+ * */
+var WorkSpace = /** @class */ (function () {
     function WorkSpace(form) {
         var _this = this;
         this.inputs = new Array();
@@ -19,8 +24,7 @@ var WorkSpace = (function () {
         this.values = new Dictionary();
         this.sent = new Dictionary();
         this.tranCount = 0;
-        this.timer = 0;
-        this.reportInterval = 100;
+        this.reportInterval = 100; //Інтервал синхронізації даних
         this.readonlyFields = new Array();
         this.tran = 0;
         this._readyToSend = true;
@@ -31,6 +35,7 @@ var WorkSpace = (function () {
         var workSpace = new WorkSpace((form[0]));
         workSpace.registerInputs();
         workSpace.registerOutputs();
+        //workSpace.ConnectWS();
         workSpace.ConnectAPI();
     };
     WorkSpace.prototype.ConnectAPI = function () {
@@ -60,6 +65,9 @@ var WorkSpace = (function () {
             $("#message").text("error");
         });
     };
+    /**
+     *  Повідомляємо серверу в якій послідовності розміжено значення елементів керування
+     */
     WorkSpace.prototype.setFormat = function () {
         var _this = this;
         this.fields = new Array();
@@ -92,10 +100,19 @@ var WorkSpace = (function () {
                 console.log("fail!");
                 _this._readyToSend = true;
             });
-        }
+        } //else
+        //if (this.socket) {
+        //    this._readyToSend = false;
+        //    this.socket.send(value);
+        //    this._readyToSend = true;
+        //}
     };
+    /**
+     * Запускаємо механізм відправки повідомлень
+     * */
     WorkSpace.prototype.sendData = function () {
         var _this = this;
+        //Якщо таймер не заведено, відправляємо пакет і запускаємо таймер
         if (this.timer === 0) {
             if (this.readyToSend() == true) {
                 var v = new Array();
@@ -119,6 +136,10 @@ var WorkSpace = (function () {
             }, this.reportInterval);
         }
     };
+    /**
+     * Розбирає отримані по сокету дані
+     * @param msg те що прийшло по сокету
+     */
     WorkSpace.prototype.receiveData = function (msg) {
         if (msg.data) {
             var parcel = JSON.parse(msg.data);
@@ -135,11 +156,14 @@ var WorkSpace = (function () {
                 }
             }
             else {
+                //відповідь на нашу посилку
+                //Поновляємо всі readonly поля
                 for (var i = 0; i < this.fields.length; i++) {
                     var key = this.fields[i];
                     var val = parcel.values[i];
                     for (var rIndex = 0; rIndex < this.readonlyFields.length; rIndex++) {
                         if (key == this.readonlyFields[rIndex]) {
+                            //this.sent[key] = val;
                             this.values[key] = val;
                             break;
                         }
@@ -149,6 +173,9 @@ var WorkSpace = (function () {
             this.refreshOutput();
         }
     };
+    /**
+     * Включити/виключити повноекранний режим
+     * */
     WorkSpace.toggleFullScreen = function () {
         var doc = window.document;
         var docEl = doc.documentElement;
@@ -161,6 +188,9 @@ var WorkSpace = (function () {
             cancelFullScreen.call(doc);
         }
     };
+    /**
+     * Проводить повторну ініціалізацію елементів у відповідності до нових розмірів екрану
+     */
     WorkSpace.prototype.UpdateLayout = function () {
         for (var i = 0; i < this.inputs.length; i++) {
             this.inputs[i].initLayout();
@@ -169,6 +199,9 @@ var WorkSpace = (function () {
             this.outputs[o].initLayout();
         }
     };
+    /**
+     * ініціалізує та реєструє всі елементи керування
+     */
     WorkSpace.prototype.registerInputs = function () {
         var _this = this;
         var inputs = $(".input", this.form);
@@ -192,6 +225,9 @@ var WorkSpace = (function () {
         this.inputs.push(input);
         input.saveValue();
     };
+    /**
+     * Ініціалізує та реєструє всі поля виводу інформації
+     * */
     WorkSpace.prototype.registerOutputs = function () {
         var _this = this;
         var outputs = $(".output", this.form);
@@ -199,6 +235,7 @@ var WorkSpace = (function () {
             var output = null;
             output = new Output(val);
             if (!(_this.values[output.name] != undefined)) {
+                //Поле не зареєстроване, значить воно Readonly
                 _this.readonlyFields.push(output.name);
                 _this.values[output.name] = 0;
             }
@@ -210,9 +247,16 @@ var WorkSpace = (function () {
         this.outputs.push(output);
         output.loadValue();
     };
+    /**
+     * Розпочинає трансакцію вводу/виводу
+     * */
     WorkSpace.prototype.beginTransaction = function () {
         this.tranCount += 1;
     };
+    /**
+     * Закінчує трансакцію вводу/виводу
+     * Під час закінчення трансакції - надсилається поточний стан
+     * */
     WorkSpace.prototype.endTransaction = function () {
         this.tranCount -= 1;
         if (this.tranCount === 0) {
@@ -221,11 +265,19 @@ var WorkSpace = (function () {
             }
         }
     };
+    /**
+     * Проставляє в елемент керування прийняте значення
+     * @param key назва значення
+     * @param value значення
+     */
     WorkSpace.prototype.refreshInput = function (key, value) {
         for (var i = 0; i < this.inputs.length; i++) {
             this.inputs[i].loadValue(key, value);
         }
     };
+    /**
+    * Проставляє в поля прийняті значення
+    */
     WorkSpace.prototype.refreshOutput = function () {
         for (var i = 0; i < this.outputs.length; i++) {
             this.outputs[i].loadValue();
@@ -233,7 +285,7 @@ var WorkSpace = (function () {
     };
     return WorkSpace;
 }());
-var Dictionary = (function () {
+var Dictionary = /** @class */ (function () {
     function Dictionary(init) {
         if (init) {
             for (var x = 0; x < init.length; x++) {
@@ -243,14 +295,14 @@ var Dictionary = (function () {
     }
     return Dictionary;
 }());
-var Point = (function () {
+var Point = /** @class */ (function () {
     function Point() {
         this.x = 0;
         this.y = 0;
     }
     return Point;
 }());
-var Input = (function () {
+var Input = /** @class */ (function () {
     function Input(element) {
         this.element = element;
         this.jElement = $(element);
@@ -267,7 +319,7 @@ var Input = (function () {
         this.workSpace.endTransaction();
     };
     Input.prototype.loadValue = function (key, value) {
-        if (key == name) {
+        if (key == this.name) {
             this.jElement.attr("value", value);
         }
     };
@@ -275,7 +327,7 @@ var Input = (function () {
     };
     return Input;
 }());
-var Slider = (function (_super) {
+var Slider = /** @class */ (function (_super) {
     __extends(Slider, _super);
     function Slider(element) {
         var _this = _super.call(this, element) || this;
@@ -319,6 +371,7 @@ var Slider = (function (_super) {
         this.element.style.zIndex = "100";
     };
     Slider.prototype.onTouchMove = function (event) {
+        // Prevent the browser from doing its default thing (scroll, zoom)
         event.preventDefault();
         if (this.pressed === true) {
             this.handlePos = Slider.pointFromTouch(this.element, event.targetTouches[0]);
@@ -328,6 +381,7 @@ var Slider = (function (_super) {
     };
     Slider.prototype.onTouchEnd = function (event) {
         this.pressed = false;
+        // If required reset position store variable
         if (this.autoCenterX)
             this.handlePos.x = this.center.x;
         if (this.autoCenterY)
@@ -341,7 +395,7 @@ var Slider = (function (_super) {
         this.element.style.zIndex = "100";
     };
     Slider.prototype.onMouseMove = function (event) {
-        if (this.pressed === true) {
+        if (this.pressed === true /*&& event.target === this.element*/) {
             this.handlePos = Slider.pointFromMouseEvent(this.element, event);
             this.refreshLayout(false);
             this.saveValue();
@@ -349,6 +403,7 @@ var Slider = (function (_super) {
     };
     Slider.prototype.onMouseUp = function (event) {
         this.pressed = false;
+        // If required reset position store variable
         if (this.autoCenterX)
             this.handlePos.x = this.center.x;
         if (this.autoCenterY)
@@ -437,6 +492,7 @@ var Slider = (function (_super) {
     };
     Slider.pointFromMouseEvent = function (container, e) {
         var m_posx = 0, m_posy = 0, e_posx = 0, e_posy = 0;
+        //get mouse position on document crossbrowser
         if (!e) {
             e = window.event;
         }
@@ -450,12 +506,14 @@ var Slider = (function (_super) {
             m_posy = e.clientY + document.body.scrollTop
                 + document.documentElement.scrollTop;
         }
+        //get parent element position in document
         if (container.offsetParent) {
             do {
                 e_posx += container.offsetLeft;
                 e_posy += container.offsetTop;
             } while (container = container.offsetParent);
         }
+        // mouse position minus elm position is mouseposition relative to element:
         var pt = new Point();
         pt.x = (m_posx - e_posx);
         pt.y = (m_posy - e_posy);
@@ -463,6 +521,8 @@ var Slider = (function (_super) {
     };
     Slider.pointFromTouch = function (container, e) {
         var m_posx = 0, m_posy = 0, e_posx = 0, e_posy = 0;
+        //get mouse position on document crossbrowser
+        //if (!e) { e = window.event; }
         if (e.pageX || e.pageY) {
             m_posx = e.pageX;
             m_posy = e.pageY;
@@ -473,12 +533,14 @@ var Slider = (function (_super) {
             m_posy = e.clientY + document.body.scrollTop
                 + document.documentElement.scrollTop;
         }
+        //get parent element position in document
         if (container.offsetParent) {
             do {
                 e_posx += container.offsetLeft;
                 e_posy += container.offsetTop;
             } while (container = container.offsetParent);
         }
+        // mouse position minus elm position is mouseposition relative to element:
         var pt = new Point();
         pt.x = (m_posx - e_posx);
         pt.y = (m_posy - e_posy);
@@ -486,7 +548,7 @@ var Slider = (function (_super) {
     };
     return Slider;
 }(Input));
-var Button = (function (_super) {
+var Button = /** @class */ (function (_super) {
     __extends(Button, _super);
     function Button(element) {
         var _this = _super.call(this, element) || this;
@@ -565,7 +627,7 @@ var Button = (function (_super) {
     };
     return Button;
 }(Input));
-var Output = (function () {
+var Output = /** @class */ (function () {
     function Output(element) {
         this.element = element;
         this.jElement = $(element);

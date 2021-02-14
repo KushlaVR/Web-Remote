@@ -1,5 +1,7 @@
 ﻿/**
  * 
+ * Slider
+ * 
  * */
 class WorkSpace {
 
@@ -14,7 +16,7 @@ class WorkSpace {
     values: Dictionary<string> = new Dictionary<string>();
     sent: Dictionary<string> = new Dictionary<string>();
     tranCount: number = 0;
-    timer: number = 0;
+    timer: any;
     reportInterval: number = 100;//Інтервал синхронізації даних
     fields: Array<string>;
     readonlyFields: Array<string> = new Array<string>();
@@ -340,7 +342,7 @@ class Input {
     }
 
     loadValue(key: string, value: string): void {
-        if (key == name) {
+        if (key == this.name) {
             this.jElement.attr("value", value);
         }
     }

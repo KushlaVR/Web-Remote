@@ -20,41 +20,45 @@ void SetupController::loadConfig()
 	if (!SPIFFS.exists("/config.json")) {
 		console.println(("Default setting loaded..."));
 		cfg.beginObject();
-		cfg.AddValue("ssid", "WEMOS");
+		cfg.AddValue("ssid", "GAZ13");
 		cfg.AddValue("password", "12345678");
 
-		cfg.AddValue("min_speed", "20");
-		cfg.AddValue("inertion", "800");
+		cfg.AddValue("ch1_min", "1114");
+		cfg.AddValue("ch1_max", "2314");
 
-		cfg.AddValue("turbine_min", "0");
-		cfg.AddValue("turbine_max", "20");
+		cfg.AddValue("ch2_min", "900");
+		cfg.AddValue("ch2_max", "2075");
 
-		cfg.AddValue("turbine_frequency_min", "3");
-		cfg.AddValue("turbine_frequency_max", "10");
+		cfg.AddValue("ch3_min", "1007");
+		cfg.AddValue("ch3_max", "2014");
 
-		cfg.AddValue("smoke_min", "20");
-		cfg.AddValue("smoke_max", "100");
+		cfg.AddValue("ch4_min", "1007");
+		cfg.AddValue("ch4_max", "2014");
 
-		cfg.AddValue("gun_min", "20");
-		cfg.AddValue("gun_max", "40");
+		cfg.AddValue("turn_light_limit", "50");
+		cfg.AddValue("reverce_limit", "5");
 
-		//cabin
-		cfg.AddValue("cabin_min", "20");
-		cfg.AddValue("cabin_max", "40");
-		cfg.AddValue("cabin_inertion", "800");
+		cfg.AddValue("stop_light_duration", "2000");
+		cfg.AddValue("back_light_timeout", "500");
 
-		cfg.AddValue("fire_min", "20");
-		cfg.AddValue("fire_max", "40");
-		cfg.AddValue("fire_rollback_start", "0");
-		cfg.AddValue("fire_rollback_peak", "200");
-		cfg.AddValue("fire_rollback_end", "1000");
-		cfg.AddValue("fire_led_start", "100");
-		cfg.AddValue("fire_led_end", "300");
-		cfg.AddValue("fire_led_pwm", "50");
+		cfg.AddValue("port_addr", "63");
 
-		cfg.AddValue("light", "50");
+		cfg.AddValue("gear0", "90");
+		cfg.AddValue("gear1", "60");
+		cfg.AddValue("gear2", "120");
+
+
+		/*cfg.AddValue("wiper0", "45");
+		cfg.AddValue("wiper180", "135");
+
+		cfg.AddValue("wiper1Duration", "2000");
+		cfg.AddValue("wiper1Pause", "2000");
+
+		cfg.AddValue("wiper2Duration", "1400");
+		cfg.AddValue("wiper2Pause", "200");*/
 
 		cfg.endObject();
+
 
 		cfgFile = SPIFFS.open("/config.json", "w");
 		cfgFile.print(cfg.c_str());
@@ -72,35 +76,31 @@ void SetupController::loadConfig()
 	this->cfg->ssid = String(cfg.getValue("ssid"));
 	this->cfg->password = String(cfg.getValue("password"));
 
-	this->cfg->min_speed = cfg.getInt("min_speed");
-	this->cfg->inertion = cfg.getInt("inertion");
+	this->cfg->ch1_min = cfg.getInt("ch1_min");
+	this->cfg->ch1_max = cfg.getInt("ch1_max");
+	this->cfg->ch1_center = this->cfg->ch1_min + ((this->cfg->ch1_max - this->cfg->ch1_min) / 2);
 
-	this->cfg->gun_min = cfg.getInt("gun_min");
-	this->cfg->gun_max = cfg.getInt("gun_max");
+	this->cfg->ch2_min = cfg.getInt("ch2_min");
+	this->cfg->ch2_max = cfg.getInt("ch2_max");
+	this->cfg->ch2_center = this->cfg->ch2_min + ((this->cfg->ch2_max - this->cfg->ch2_min) / 2);
 
-	this->cfg->cabin_min = cfg.getInt("cabin_min");
-	this->cfg->cabin_max = cfg.getInt("cabin_max");
-	this->cfg->cabin_Inertion = cfg.getInt("cabin_inertion");
+	this->cfg->ch3_min = cfg.getInt("ch3_min");
+	this->cfg->ch3_max = cfg.getInt("ch3_max");
 
-	this->cfg->fire_min = cfg.getInt("fire_min");
-	this->cfg->fire_max = cfg.getInt("fire_max");
-	this->cfg->fire_rollback_start = cfg.getInt("fire_rollback_start");
-	this->cfg->fire_rollback_peak = cfg.getInt("fire_rollback_peak");
-	this->cfg->fire_rollback_end = cfg.getInt("fire_rollback_end");
-	this->cfg->fire_led_start = cfg.getInt("fire_led_start");
-	this->cfg->fire_led_end = cfg.getInt("fire_led_end");
-	this->cfg->fire_led_pwm = cfg.getInt("fire_led_pwm");
+	this->cfg->ch4_min = cfg.getInt("ch4_min");
+	this->cfg->ch4_max = cfg.getInt("ch4_max");
 
-	this->cfg->turbine_min = cfg.getInt("turbine_min");
-	this->cfg->turbine_max = cfg.getInt("turbine_max");
+	this->cfg->turn_light_limit = cfg.getInt("turn_light_limit");
+	this->cfg->reverce_limit = cfg.getInt("reverce_limit");
+	this->cfg->port_addr = cfg.getInt("port_addr");
 
-	this->cfg->turbine_frequency_min = cfg.getInt("turbine_frequency_min");
-	this->cfg->turbine_frequency_max = cfg.getInt("turbine_frequency_max");
+	this->cfg->stop_light_duration = cfg.getInt("stop_light_duration");
+	this->cfg->back_light_timeout = cfg.getInt("back_light_timeout");
 
-	this->cfg->smoke_min = cfg.getInt("smoke_min");
-	this->cfg->smoke_max = cfg.getInt("smoke_max");
-	
-	this->cfg->light= cfg.getInt("light");
+	this->cfg->gear0 = cfg.getInt("gear0");
+	this->cfg->gear1 = cfg.getInt("gear1");
+	this->cfg->gear2 = cfg.getInt("gear2");
+
 
 }
 
@@ -118,38 +118,44 @@ void SetupController::saveConfig()
 void SetupController::printConfig(JsonString* out)
 {
 	out->beginObject();
+
 	out->AddValue("ssid", cfg->ssid);
 	out->AddValue("password", cfg->password);
 
-	out->AddValue("min_speed", String(cfg->min_speed));
-	out->AddValue("inertion", String(cfg->inertion));
+	out->AddValue("ch1_min", String(cfg->ch1_min));
+	out->AddValue("ch1_center", String(cfg->ch1_center));
+	out->AddValue("ch1_max", String(cfg->ch1_max));
 
-	out->AddValue("gun_min", String(cfg->gun_min));
-	out->AddValue("gun_max", String(cfg->gun_max));
+	out->AddValue("ch2_min", String(cfg->ch2_min));
+	out->AddValue("ch2_center", String(cfg->ch2_center));
+	out->AddValue("ch2_max", String(cfg->ch2_max));
 
-	out->AddValue("cabin_min", String(cfg->cabin_min));
-	out->AddValue("cabin_max", String(cfg->cabin_max));
-	out->AddValue("cabin_inertion", String(cfg->cabin_Inertion));
+	out->AddValue("ch3_min", String(cfg->ch3_min));
+	out->AddValue("ch3_max", String(cfg->ch3_max));
 
-	out->AddValue("fire_min", String(cfg->fire_min));
-	out->AddValue("fire_max", String(cfg->fire_max));
-	out->AddValue("fire_rollback_start", String(cfg->fire_rollback_start));
-	out->AddValue("fire_rollback_peak", String(cfg->fire_rollback_peak));
-	out->AddValue("fire_rollback_end", String(cfg->fire_rollback_end));
-	out->AddValue("fire_led_start", String(cfg->fire_led_start));
-	out->AddValue("fire_led_end", String(cfg->fire_led_end));
-	out->AddValue("fire_led_pwm", String(cfg->fire_led_pwm));
+	out->AddValue("ch4_min", String(cfg->ch4_min));
+	out->AddValue("ch4_max", String(cfg->ch4_max));
 
-	out->AddValue("turbine_min", String(cfg->turbine_min));
-	out->AddValue("turbine_max", String(cfg->turbine_max));
+	out->AddValue("turn_light_limit", String(cfg->turn_light_limit));
+	out->AddValue("reverce_limit", String(cfg->reverce_limit));
+	out->AddValue("port_addr", String(cfg->port_addr));
 
-	out->AddValue("turbine_frequency_min", String(cfg->turbine_frequency_min));
-	out->AddValue("turbine_frequency_max", String(cfg->turbine_frequency_max));
+	out->AddValue("stop_light_duration", String(cfg->stop_light_duration));
+	out->AddValue("back_light_timeout", String(cfg->back_light_timeout));
 
-	out->AddValue("smoke_min", String(cfg->smoke_min));
-	out->AddValue("smoke_max", String(cfg->smoke_max));
-	
-	out->AddValue("light", String(cfg->light));
+
+	out->AddValue("gear0", String(cfg->gear0));
+	out->AddValue("gear1", String(cfg->gear1));
+	out->AddValue("gear2", String(cfg->gear2));
+
+	/*out->AddValue("wiper0", String(cfg->wiper0));
+	out->AddValue("wiper180", String(cfg->wiper180));
+
+	out->AddValue("wiper1Duration", String(cfg->wiper1Duration));
+	out->AddValue("wiper1Pause", String(cfg->wiper1Pause));
+
+	out->AddValue("wiper2Duration", String(cfg->wiper2Duration));
+	out->AddValue("wiper2Pause", String(cfg->wiper2Pause));*/
 
 	out->endObject();
 }
@@ -167,35 +173,39 @@ void SetupController::Setup_Post()
 	if (webServer.hasArg("ssid")) { setupController.cfg->ssid = webServer.arg("ssid"); }
 	if (webServer.hasArg("password")) { setupController.cfg->password = webServer.arg("password"); }
 
-	if (webServer.hasArg("min_speed")) { setupController.cfg->min_speed = webServer.arg("min_speed").toInt(); }
-	if (webServer.hasArg("inertion")) { setupController.cfg->inertion = webServer.arg("inertion").toInt(); }
+	if (webServer.hasArg("ch1_min")) { setupController.cfg->ch1_min = webServer.arg("ch1_min").toInt(); }
+	if (webServer.hasArg("ch1_max")) { setupController.cfg->ch1_max = webServer.arg("ch1_max").toInt(); }
+	setupController.cfg->ch1_center = setupController.cfg->ch1_min + ((setupController.cfg->ch1_max - setupController.cfg->ch1_min) / 2);
 
-	if (webServer.hasArg("gun_min")) { setupController.cfg->gun_min = webServer.arg("gun_min").toInt(); }
-	if (webServer.hasArg("gun_max")) { setupController.cfg->gun_max = webServer.arg("gun_max").toInt(); }
+	if (webServer.hasArg("ch2_min")) { setupController.cfg->ch2_min = webServer.arg("ch2_min").toInt(); }
+	if (webServer.hasArg("ch2_max")) { setupController.cfg->ch2_max = webServer.arg("ch2_max").toInt(); }
+	setupController.cfg->ch2_center = setupController.cfg->ch2_min + ((setupController.cfg->ch2_max - setupController.cfg->ch2_min) / 2);
 
-	if (webServer.hasArg("cabin_min")) { setupController.cfg->cabin_min = webServer.arg("cabin_min").toInt(); }
-	if (webServer.hasArg("cabin_max")) { setupController.cfg->cabin_max = webServer.arg("cabin_max").toInt(); }
-	if (webServer.hasArg("cabin_inertion")) { setupController.cfg->cabin_Inertion = webServer.arg("cabin_inertion").toInt(); }
+	if (webServer.hasArg("ch3_min")) { setupController.cfg->ch3_min = webServer.arg("ch3_min").toInt(); }
+	if (webServer.hasArg("ch3_max")) { setupController.cfg->ch3_max = webServer.arg("ch3_max").toInt(); }
 
-	if (webServer.hasArg("fire_min")) { setupController.cfg->fire_min = webServer.arg("fire_min").toInt(); }
-	if (webServer.hasArg("fire_max")) { setupController.cfg->fire_max = webServer.arg("fire_max").toInt(); }
-	if (webServer.hasArg("fire_rollback_start")) { setupController.cfg->fire_rollback_start = webServer.arg("fire_rollback_start").toInt(); }
-	if (webServer.hasArg("fire_rollback_peak")) { setupController.cfg->fire_rollback_peak = webServer.arg("fire_rollback_peak").toInt(); }
-	if (webServer.hasArg("fire_rollback_end")) { setupController.cfg->fire_rollback_end = webServer.arg("fire_rollback_end").toInt(); }
-	if (webServer.hasArg("fire_led_start")) { setupController.cfg->fire_led_start = webServer.arg("fire_led_start").toInt(); }
-	if (webServer.hasArg("fire_led_end")) { setupController.cfg->fire_led_end = webServer.arg("fire_led_end").toInt(); }
-	if (webServer.hasArg("fire_led_pwm")) { setupController.cfg->fire_led_pwm = webServer.arg("fire_led_pwm").toInt(); }
+	if (webServer.hasArg("ch4_min")) { setupController.cfg->ch4_min = webServer.arg("ch4_min").toInt(); }
+	if (webServer.hasArg("ch4_max")) { setupController.cfg->ch4_max = webServer.arg("ch4_max").toInt(); }
 
-	if (webServer.hasArg("turbine_min")) { setupController.cfg->turbine_min = webServer.arg("turbine_min").toInt(); }
-	if (webServer.hasArg("turbine_max")) { setupController.cfg->turbine_max = webServer.arg("turbine_max").toInt(); }
+	if (webServer.hasArg("turn_light_limit")) { setupController.cfg->turn_light_limit = webServer.arg("turn_light_limit").toInt(); }
+	if (webServer.hasArg("reverce_limit")) { setupController.cfg->reverce_limit = webServer.arg("reverce_limit").toInt(); }
+	if (webServer.hasArg("port_addr")) { setupController.cfg->port_addr = webServer.arg("port_addr").toInt(); }
 
-	if (webServer.hasArg("turbine_frequency_min")) { setupController.cfg->turbine_frequency_min = webServer.arg("turbine_frequency_min").toInt(); }
-	if (webServer.hasArg("turbine_frequency_max")) { setupController.cfg->turbine_frequency_max = webServer.arg("turbine_frequency_max").toInt(); }
+	if (webServer.hasArg("stop_light_duration")) { setupController.cfg->stop_light_duration = webServer.arg("stop_light_duration").toInt(); }
+	if (webServer.hasArg("back_light_timeout")) { setupController.cfg->back_light_timeout = webServer.arg("back_light_timeout").toInt(); }
 
-	if (webServer.hasArg("smoke_min")) { setupController.cfg->smoke_min = webServer.arg("smoke_min").toInt(); }
-	if (webServer.hasArg("smoke_max")) { setupController.cfg->smoke_max = webServer.arg("smoke_max").toInt(); }
-	
-	if (webServer.hasArg("light")) { setupController.cfg->light = webServer.arg("light").toInt(); }
+	if (webServer.hasArg("gear0")) { setupController.cfg->gear0 = webServer.arg("gear0").toInt(); }
+	if (webServer.hasArg("gear1")) { setupController.cfg->gear1 = webServer.arg("gear1").toInt(); }
+	if (webServer.hasArg("gear2")) { setupController.cfg->gear2 = webServer.arg("gear2").toInt(); }
+
+	/*if (webServer.hasArg("wiper0")) { setupController.cfg->wiper0 = webServer.arg("wiper0").toInt(); }
+	if (webServer.hasArg("wiper180")) { setupController.cfg->wiper180 = webServer.arg("wiper180").toInt(); }
+
+	if (webServer.hasArg("wiper1Duration")) { setupController.cfg->wiper1Duration = webServer.arg("wiper1Duration").toInt(); }
+	if (webServer.hasArg("wiper1Pause")) { setupController.cfg->wiper1Pause = webServer.arg("wiper1Pause").toInt(); }
+
+	if (webServer.hasArg("wiper2Duration")) { setupController.cfg->wiper2Duration = webServer.arg("wiper2Duration").toInt(); }
+	if (webServer.hasArg("wiper2Pause")) { setupController.cfg->wiper2Pause = webServer.arg("wiper2Pause").toInt(); }*/
 
 	setupController.saveConfig();
 

@@ -1,26 +1,29 @@
 {
-  "ssid": "WEMOS",
+  "ssid": "GAZ13",
   "password": "12345678",
-  "min_speed": "20",
-  "inertion": "800",
-  "turbine_min": "0",
-  "turbine_max": "20",
-  "turbine_frequency_min": "3",
-  "turbine_frequency_max": "10",
-  "smoke_min": "20",
-  "smoke_max": "100",
-  "gun_min": "20",
-  "gun_max": "40",
-  "cabin_min": "20",
-  "cabin_max": "50",
-  "cabin_inertion": "800",
-  "fire_min": "20",
-  "fire_max": "40",
-  "fire_rollback_start": "0",
-  "fire_rollback_peak": "200",
-  "fire_rollback_end": "1000",
-  "fire_led_start": "100",
-  "fire_led_end": "300",
-  "fire_led_pwm": "50",
-  "light": "50"
+
+  "ch1_min": "1114",
+  "ch1_max": "2314",
+
+  "ch2_min": "900",
+  "ch2_max": "2075",
+
+  "ch3_min": "1007",
+  "ch3_max": "2014",
+
+  "ch4_min": "1007",
+  "ch4_max": "2014",
+
+  "port_addr": "63",
+
+  "stop_light_duration": "2000",
+  "back_light_timeout": "500",
+  "reverce_limit": "5",
+  "turn_light_limit": "50",
+
+  "gear0": "90",
+  "gear1": "60",
+  "gear2": "120"
+
+
 }
