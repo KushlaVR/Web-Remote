@@ -6,6 +6,7 @@
 #include "WProgram.h"
 #endif
 #include "Console.h"
+#include "PCF8574.h"
 
 class BlinkerItem
 {
@@ -31,15 +32,15 @@ class Blinker
 public:
 	bool debug = false;
 	bool repeat = true;
-	int startupState = 0;
+	int offLevel = LOW;
 	Blinker(String name);
 	~Blinker();
 	void loop();
-	Blinker * Add(int pin, unsigned long offset, int value);
-	Blinker* begin() { current = first; startTime = millis(); return this; };
+	Blinker * Add(int pin, unsigned long offset, uint8_t value);
+	Blinker * begin() { current = first; startTime = millis(); return this; };
 	Blinker * end();
+	virtual void setupPin(int pin);
 	virtual void write(int pin, int value);
-	void printValues();
 	BlinkerItem * item(int index);
 	bool isRunning() { return startTime != 0; };
 };
@@ -48,8 +49,8 @@ public:
 class Beeper :public Blinker {
 
 public:
-	Beeper(String name) : Blinker(name) {}
-	~Beeper() {}
+	Beeper(String name) : Blinker(name) {};
+	~Beeper() {};
 	virtual void write(int pin, int value);
 };
 
@@ -68,4 +69,15 @@ public:
 
 	virtual void write(int pin, int value);
 
+};
+
+class extBlinker : public Blinker {
+
+public :
+	PCF8574 * extPort = nullptr;
+
+	extBlinker(String name, PCF8574 * extPort) : Blinker(name) { this->extPort = extPort; };
+	~extBlinker() {};
+	virtual void write(int pin, int value);
+	virtual void setupPin(int pin);
 };

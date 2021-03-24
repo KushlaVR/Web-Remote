@@ -23,10 +23,19 @@ public:
 	int ch2_max;
 
 	int ch3_min;
+	int ch3_center;
 	int ch3_max;
 
 	int ch4_min;
 	int ch4_max;
+
+	int ch5_min;
+	int ch5_center;
+	int ch5_max;
+
+	int ch6_min;
+	int ch6_center;
+	int ch6_max;
 
 	int port_addr;
 
@@ -36,15 +45,6 @@ public:
 	int gear0;
 	int gear1;
 	int gear2;
-
-	/*int wiper0;
-	int wiper180;
-
-	int wiper1Duration;
-	int wiper1Pause;
-
-	int wiper2Duration;
-	int wiper2Pause;*/
 
 	int stop_light_duration;//в мілісекундах
 	int back_light_timeout;//в мілісекундах

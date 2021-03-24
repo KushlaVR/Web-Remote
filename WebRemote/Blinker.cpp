@@ -18,38 +18,28 @@ void Blinker::loop()
 {
 	if (startTime == 0) return;
 	unsigned long offset = millis() - startTime;//—к≥льки часу пройшло в≥д початку
-	if (current == nullptr) return;//якщо немаЇ елемента на черз≥ - н≥чого не робимо
-	while (true) {
-		BlinkerItem* item = current;
-		if (offset < item->offset) return;//якщо час ще не настав - виходимо
-		write(item->pin, item->value);//„ас настав
-		if (debug) {
-			console.print(name);
-			console.printf(": %i->%i\n", item->pin, item->value);
-		}
-		current = item->next;//ѕереходимо до наступного елемента
-
-		if (current == nullptr)//к≥нець списку
-		{
-			if (repeat) {//починаЇмо з початку
-				current = first;
-				startTime = millis();
-				if (debug) {
-					console.print(name);
-					console.println(": ...");
-				}
-				return;
-			}
-			end();
-			return;
+	BlinkerItem * item = current;
+	if (item == nullptr) return;//якщо немаЇ елемента на черз≥ - н≥чого не робимо
+	if (offset < item->offset) return;//якщо час ще не настав - виходимо
+	write(item->pin, item->value);//„ас настав
+	if (debug) {
+		console.print(name);
+		console.printf(": %i->%i\n", item->pin, item->value);
+	}
+	current = item->next;//ѕереходимо до наступного елемента
+	if (repeat) {
+		if (current == nullptr) {//к≥нець списку, починаЇмо з початку
+			current = first;
+			startTime = millis();
 		}
 	}
+	if (current == nullptr) end();
 }
 
-Blinker* Blinker::Add(int pin, unsigned long offset, int value)
+Blinker * Blinker::Add(int pin, unsigned long offset, uint8_t value)
 {
-	pinMode(pin, OUTPUT);
-	BlinkerItem* item = new BlinkerItem();
+	setupPin(pin);
+	BlinkerItem * item = new BlinkerItem();
 	item->pin = pin;
 	item->offset = offset;
 	item->value = value;
@@ -64,17 +54,22 @@ Blinker* Blinker::Add(int pin, unsigned long offset, int value)
 	return this;
 }
 
-Blinker* Blinker::end()
+Blinker * Blinker::end()
 {
 	current = nullptr;
 	startTime = 0;
-	BlinkerItem* item = first;
+	BlinkerItem * item = first;
 	while (item != nullptr)
 	{
-		write(item->pin, startupState);
+		write(item->pin, offLevel);
 		item = item->next;
 	}
 	return this;
+}
+
+void Blinker::setupPin(int pin)
+{
+	pinMode(pin, OUTPUT);
 }
 
 void Blinker::write(int pin, int value)
@@ -87,30 +82,10 @@ void Blinker::write(int pin, int value)
 		analogWrite(pin, value);
 }
 
-void Blinker::printValues()
-{
-	console.print(name);
-	console.println(":");
-
-	int i = 0;
-	BlinkerItem* item = first;
-	while (item != nullptr)
-	{
-		console.print("    ");
-		console.print(i);
-		console.print(" ");
-		console.printf(": %i->%i;\n", item->pin, item->value);
-		item = item->next;
-		i++;
-	}
-	console.println("");
-
-}
-
-BlinkerItem* Blinker::item(int index)
+BlinkerItem * Blinker::item(int index)
 {
 	int i = 0;
-	BlinkerItem* item = first;
+	BlinkerItem * item = first;
 	while (item != nullptr)
 	{
 		if (i == index) return item;
@@ -139,4 +114,14 @@ void Beeper::write(int pin, int value)
 void VirtualBlinker::write(int pin, int value) {
 	if (this->writeMethode == nullptr) return;
 	this->writeMethode(pin, value);
+}
+
+void extBlinker::write(int pin, int value)
+{
+	extPort->write(pin, value);
+}
+
+void extBlinker::setupPin(int pin)
+{
+	//!IMPORTANT. DO NOTHING HERE
 }

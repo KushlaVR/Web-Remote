@@ -11,6 +11,7 @@
 #include <DNSServer.h>
 #include <ESP8266mDNS.h>
 #include <Servo.h>
+#include <Wire.h>
 #include "Json.h"
 #include "Button.h"
 #include "Console.h"
@@ -20,27 +21,55 @@
 #include "Joypad.h"
 #include "RoboconMotor.h"
 #include "Blinker.h"
+#include "PCF8574.h"
+#include "BenchMark.h"
 
+
+/*
+
+X - повороти
+
+Y - газ
+
+На кнопку 4 канала можно вывести свет. Как раньше делали, первое нажатие габариты, второе ближний, третье дальний. Долгое нажатие- аварийка.
+
+На крутилку 3 канала хочу сделать включение проблесковых маячков (малый поворот) и маячки плюс сирена(большой поворот)
+
+А на 6 канал включение света в кабине(первое положение) и в будке(второе положение)
+
+*/
 
 #define MAX_PWM_VALUE 1024
 #define MOSFET_OFF MAX_PWM_VALUE
 #define MOSFET_ON 0
 
-#define pinLight D0//Світло
 
-#define pinGunMotor D1//Привід ствола
-#define pinGunRollback D2//Відкат ствола
+#define PIN_SERVO_X 14
+#define PIN_SERVO_Y 12
+#define PIN_SERVO_CH3 13
+#define PIN_SERVO_CH4 16
+#define PIN_SERVO_CH5 2
+#define PIN_SERVO_CH6 15
 
-#define pinCabin D6//Привіт кабіни
+#define PIN_I2C_SCL D1 //pcf8574
+#define PIN_I2C_SDA D2 //pcf8574
 
-#define pinLeftMotor D4//лівий борт
-#define pinRightMotor D5//правий борт
+#define PIN_EXT0_STOP 3
+#define PIN_EXT0_BACK 2
+#define PIN_EXT0_LEFT 0
+#define PIN_EXT0_RIGHT 1
+#define PIN_EXT0_FOG 4
+#define PIN_EXT0_HIGH_LIGHT 5
+#define PIN_EXT0_HEAD_LIGHT 6
+#define PIN_EXT0_PARKING_LIGHT 7
 
-//#define pinTacho D7//Вихід тахометра
-#define pinFireLed D7//Вихід тахометра
+#define PIN_EXT1_BLINKER_LEFT 0
+#define PIN_EXT1_BLINKER_RIGHT 1
+#define PIN_EXT1_PARKING_LIGHT 1
 
-#define pinTurbine D8//турбіни
-#define pinSmoke D3//ШИМ димогенератора
+#define lightOFF HIGH
+#define lightON LOW
+
 
 enum Ignition {
 	OFF = 0,
@@ -49,35 +78,28 @@ enum Ignition {
 };
 
 struct State {
-	int left;
-	int right;
-	int cabin;//Швидкість приводу кабіни
-	int gun_step;//Куди рухається ствол
-	int gun_position;//Положення ствола
-
-	unsigned long fireAnimationStart;//Початок вистрілу
-	unsigned long fireStart;//Початок вистрілу
-	unsigned long firePeak;//Крайня точка вистрілу
-	unsigned long fireEnd;//завершення вистрілу
-	unsigned long fireLedStart;//Засвічуємо діод
-	unsigned long fireLedEnd;//гасимо діод
-	unsigned long fireLedPWM;//гасимо діод
-
-	int rpm;
-	int ignition;
-
-	int light;
+	int speed;
 
 } state;
 
-void handle_StartStop();
-void btnFire_Pressed();
-void handle_Light();
 
-void gun_Pressed();
-void gun_Hold();
+BenchMark input_X = BenchMark();
+BenchMark input_Y = BenchMark();
+BenchMark input_CH2 = BenchMark();
+BenchMark input_CH3 = BenchMark();
+BenchMark input_CH4 = BenchMark();
+BenchMark input_CH5 = BenchMark();
+BenchMark input_CH6 = BenchMark();
 
-void turbine_write(int pin, int value);
+
+PCF8574* portExt0;// = PCF8574(0x3F);
+PCF8574* portExt1;// = PCF8574(0x3F);
+
+extBlinker* stopLight;// = extBlinker("Stop light", portExt);
+extBlinker* leftLight;// = extBlinker("Left light", portExt);
+extBlinker* rightLight;// = extBlinker("Right light", portExt);
+extBlinker* BackLight;// = extBlinker("Back light", portExt);
+
 void reloadConfig();
 
 ConfigStruct config;
@@ -92,31 +114,125 @@ const byte DNS_PORT = 53;
 DNSServer dnsServer;
 JoypadCollection joypads = JoypadCollection();
 
-#define SMOKE_PWM_PERIOD 50
-Blinker smokeGenerator = Blinker("Smoke");
 
-VirtualBlinker turbineBlinker = VirtualBlinker("Turbine", turbine_write);
-Servo turbine = Servo();
+bool interruptAttached = false;
 
-VirtualButton btnStartStop = VirtualButton(handle_StartStop);
-VirtualButton btnFire = VirtualButton(btnFire_Pressed);
-VirtualButton btnLight = VirtualButton(handle_Light);
+void ICACHE_RAM_ATTR  pinServo_X_CHANGE() {
+	if (digitalRead(PIN_SERVO_X))
+		input_X.Start();
+	else
+		input_X.Stop();
+}
 
-RoboEffects leftMotorEffect = RoboEffects();
-MotorBase* leftMotor = nullptr;
+void ICACHE_RAM_ATTR  pinServo_Y_CHANGE() {
+	if (digitalRead(PIN_SERVO_Y))
+		input_Y.Start();
+	else
+		input_Y.Stop();
+}
 
-RoboEffects rightMotorEffect = RoboEffects();
-MotorBase* rightMotor = nullptr;
+void ICACHE_RAM_ATTR  pinServo_CH3_CHANGE() {
+	if (digitalRead(PIN_SERVO_CH3))
+		input_CH3.Start();
+	else
+		input_CH3.Stop();
+}
 
-RoboEffects cabinMotorEffect = RoboEffects();
-MotorBase* cabinMotor = nullptr;
+void ICACHE_RAM_ATTR  pinServo_CH4_CHANGE() {
+	if (digitalRead(PIN_SERVO_CH4))
+		input_CH4.Start();
+	else
+		input_CH4.Stop();
+}
 
-//Servo tachoOutput = Servo();
 
-Servo gun = Servo();
-Servo gunRollback = Servo();
-VirtualButton gunStick = VirtualButton(gun_Pressed, gun_Hold);
+void ICACHE_RAM_ATTR  pinServo_CH5_CHANGE() {
+	if (digitalRead(PIN_SERVO_CH4))
+		input_CH5.Start();
+	else
+		input_CH5.Stop();
+}
 
+void ICACHE_RAM_ATTR  pinServo_CH6_CHANGE() {
+	if (digitalRead(PIN_SERVO_CH6))
+		input_CH6.Start();
+	else
+		input_CH6.Stop();
+}
+
+void reloadConfig() {
+	
+	stopLight->item(2)->offset = config.stop_light_duration;
+	BackLight->item(1)->offset = config.back_light_timeout;
+
+	input_X.IN_max = config.ch1_max;
+	input_X.IN_center = config.ch1_center;
+	input_X.IN_min = config.ch1_min;
+
+	input_Y.IN_max = config.ch2_max;
+	input_Y.IN_center = config.ch2_center;
+	input_Y.IN_min = config.ch2_min;
+
+	input_CH3.IN_max = config.ch3_max;
+	input_CH3.IN_center = config.ch3_center;
+	input_CH3.IN_min = config.ch3_min;
+
+	input_CH4.IN_max = config.ch4_max;
+	input_CH4.IN_center = config.ch4_min + ((config.ch4_max - config.ch4_min) / 2);
+	input_CH4.IN_min = config.ch4_min;
+
+	input_CH5.IN_max = config.ch5_max;
+	input_CH5.IN_center = config.ch5_center;
+	input_CH5.IN_min = config.ch5_min;
+
+	input_CH6.IN_max = config.ch6_max;
+	input_CH6.IN_center = config.ch6_center;
+	input_CH6.IN_min = config.ch6_min;
+
+}
+
+
+void setupBlinkers() {
+
+
+	stopLight = new extBlinker("Stop light", portExt0);
+	leftLight = new extBlinker("Left light", portExt0);
+	rightLight = new extBlinker("Right light", portExt0);
+	BackLight = new extBlinker("Back light", portExt0);
+
+	stopLight
+		->Add(PIN_EXT0_STOP, 0, lightOFF)
+		->Add(PIN_EXT0_STOP, 0, lightON)
+		->Add(PIN_EXT0_STOP, config.stop_light_duration, lightOFF)
+		->repeat = false;
+	stopLight->debug = true;
+	stopLight->offLevel = lightOFF;
+
+	//Налаштування поворотників
+	leftLight
+		->Add(PIN_EXT0_LEFT, 0, lightON)
+		->Add(PIN_EXT0_LEFT, 500, lightOFF)
+		->Add(PIN_EXT0_LEFT, 1000, lightOFF);
+	leftLight->offLevel = lightOFF;
+	//leftLight.debug = true;
+	//serialController.leftLight = &leftLight;
+
+	rightLight
+		->Add(PIN_EXT0_RIGHT, 0, lightON)
+		->Add(PIN_EXT0_RIGHT, 500, lightOFF)
+		->Add(PIN_EXT0_RIGHT, 1000, lightOFF);
+	rightLight->offLevel = lightOFF;
+	//rightLight.debug = true;
+	//serialController.rightLight = &rightLight;
+
+
+	BackLight
+		->Add(PIN_EXT0_BACK, 0, lightON)
+		->Add(PIN_EXT0_BACK, 500, lightON)
+		->repeat = false;
+	BackLight->offLevel = lightOFF;
+	//BackLight.debug = true;
+}
 
 void setup()
 {
@@ -176,69 +292,10 @@ void setup()
 	webServer.on("/api/events", Events);
 	webServer.on("/api/post", HTTPMethod::HTTP_POST, Post);
 
-	leftMotor = new SpeedController("Left motor", pinLeftMotor, &leftMotorEffect);
-	//leftMotor = new HBridge("Left motor", pinLeftMotorA, pinLeftMotorB, &leftMotorEffect);
-	leftMotor->responder = &console;
-	leftMotor->setWeight(config.inertion);
-	leftMotor->reset();
-	leftMotor->isEnabled = true;
+	reloadConfig();
 
 
-	rightMotor = new SpeedController("Right motor", pinRightMotor, &rightMotorEffect);
-	//rightMotor = new HBridge("Right motor", pinRightMotorA, pinRightMotorB, &rightMotorEffect);
-	rightMotor->responder = &console;
-	rightMotor->setWeight(config.inertion);
-	rightMotor->reset();
-	rightMotor->isEnabled = true;
-
-	btnStartStop.bounce = 0;
-	btnFire.bounce = 0;
-	btnLight.bounce = 0;
-
-	pinMode(pinFireLed, OUTPUT);
-
-	smokeGenerator.startupState = MOSFET_OFF;
-	//smokeGenerator.debug = true;
-	smokeGenerator.Add(pinSmoke, 0, MOSFET_ON)
-		->Add(pinSmoke, 0, MOSFET_OFF)
-		->Add(pinSmoke, SMOKE_PWM_PERIOD, MOSFET_OFF)
-		->end()
-		->printValues();
-
-
-	turbineBlinker.Add(pinTurbine, 0, 1)
-		->Add(pinTurbine, 0, 0)
-		->Add(pinTurbine, 0, 0)
-		->end()
-		->printValues();
-
-
-	cabinMotor = new SpeedController("Cabin", pinCabin, &cabinMotorEffect);
-	cabinMotor->responder = &console;
-	cabinMotor->setWeight(config.cabin_Inertion);
-	cabinMotor->reset();
-	cabinMotor->isEnabled = true;
-
-	gunStick.bounce = 20;
-	gunStick.holdInterval = 50;
-
-	state.gun_position = config.gun_min + ((config.gun_max - config.gun_min) / 2);
-	gun.attach(pinGunMotor);
-	gun.write(state.gun_position);
-
-	state.ignition = Ignition::OFF;
-	pinMode(pinTurbine, OUTPUT);
-
-	digitalWrite(pinLight, 0);
-	pinMode(pinLight, OUTPUT);
-}
-
-void reloadConfig() {
-	leftMotor->setWeight(config.inertion);
-	rightMotor->setWeight(config.inertion);
-	cabinMotor->setWeight(config.cabin_Inertion);
-	turbineBlinker.item(1)->offset = (1000 / config.turbine_frequency_min) / 2;
-	turbineBlinker.item(2)->offset = (1000 / config.turbine_frequency_min);
+	setupBlinkers();
 }
 
 
@@ -315,99 +372,9 @@ void Post() {
 	}
 }
 
-void handle_StartStop() {
-	state.ignition += 1;
-	if (state.ignition > Ignition::RUN) {
-		state.ignition = Ignition::OFF;
-	}
-	if (state.ignition == Ignition::OFF) {
-		if (smokeGenerator.isRunning()) smokeGenerator.end();
-		if (turbineBlinker.isRunning()) turbineBlinker.end();
-		if (turbine.attached()) turbine.detach();
-		digitalWrite(pinTurbine, 0);
-		Serial.println("Engine stopped");
-	}
-	else if (state.ignition == Ignition::ON) {
-		Serial.println("Engine Started");
-		if (!smokeGenerator.isRunning()) smokeGenerator.begin();
-		if (!turbineBlinker.isRunning()) turbineBlinker.begin();
-		if (!turbine.attached()) turbine.attach(pinTurbine);
-	}
-	else
-	{
-		Serial.println("Veichle Run");
-		if (!smokeGenerator.isRunning()) smokeGenerator.begin();
-		if (!turbineBlinker.isRunning()) turbineBlinker.begin();
-		if (!turbine.attached()) turbine.attach(pinTurbine);
-	};
-}
-
-void btnFire_Pressed() {
-	if (state.fireAnimationStart != 0) return;
-	
-	state.fireAnimationStart = millis();
-	state.fireStart = state.fireAnimationStart + config.fire_rollback_start;
-	state.firePeak = state.fireAnimationStart + config.fire_rollback_peak;
-	state.fireEnd = state.fireAnimationStart + config.fire_rollback_end;
-	state.fireLedStart = state.fireAnimationStart + config.fire_led_start;
-	state.fireLedEnd = state.fireAnimationStart + config.fire_led_end;
-	state.fireLedPWM = map(config.fire_led_pwm, 0, 100, 0, MAX_PWM_VALUE);
-
-	Serial.print("Fire! start=");
-	Serial.print(state.fireStart);
-	Serial.print("; peak=");
-	Serial.print(state.firePeak);
-	Serial.print("; end=");
-	Serial.print(state.fireEnd);
-	Serial.print("; led-start=");
-	Serial.print(state.fireLedStart);
-	Serial.print("; led-end=");
-	Serial.print(state.fireLedEnd);
-	Serial.print("; PWM=");
-	Serial.println(state.fireLedPWM);
-
-}
-
-void handle_Light() {
-	Serial.print("Light!");
-	if (state.light == 0) {
-		state.light = 1;
-		analogWrite(pinLight, map(config.light, 0, 100, 0, MAX_PWM_VALUE));
-	}
-	else {
-		state.light = 0;
-		analogWrite(pinLight, 0);
-	}
-}
-
-void gun_MakeStep() {
-	if (state.gun_step == 0) return;
-	state.gun_position += state.gun_step;
-	state.gun_position = constrain(state.gun_position, config.gun_min, config.gun_max);
-	joypads.setValue("gun", state.gun_position);
-}
-
-void gun_Pressed() {
-	gun_MakeStep();
-}
-
-void gun_Hold() {
-	gun_MakeStep();
-}
-
-void turbine_write(int pin, int value) {
-	if (!turbine.attached()) return;
-	if (value == 0) {
-		int speed = map(config.turbine_min, -100, 100, 0, 180);
-		turbine.write(speed);
-	}
-	else {
-		int speed = map(config.turbine_max, -100, 100, 0, 180);
-		turbine.write(speed);
-	}
-}
 
 void handleVeichle() {
+	/*
 	//Поточні значення з пульта шофера
 	double left_y = joypads.getValue("left_y");
 	double right_y = joypads.getValue("right_y");
@@ -502,119 +469,207 @@ void handleVeichle() {
 	joypads.setValue("rpm", state.rpm);
 	joypads.setValue("left", state.left);
 	joypads.setValue("right", state.right);
+	*/
 }
 
-void handleCabin() {
-	double cabin_x = joypads.getValue("cabin_x");
 
-	int cabin = 0;
-	if (cabin_x > config.cabin_blind_zone) {
-		cabin = map(cabin_x, config.cabin_blind_zone, 100, config.cabin_min, config.cabin_max);
-	}
-	else if (cabin_x < -config.cabin_blind_zone) {
-		cabin = -map(-cabin_x, config.cabin_blind_zone, 100, config.cabin_min, config.cabin_max);
-	}
-
-	if (state.cabin != cabin) {
-		cabinMotor->setSpeed(cabin);
-		state.cabin = cabin;
-	}
-}
-
-void handleGun() {
-	double cabin_y = joypads.getValue("cabin_y");
-	if (cabin_y > config.gun_blind_zone) {
-		gunStick.setValue(HIGH);
-		state.gun_step = -1;
-	}
-	else if (cabin_y < -config.gun_blind_zone) {
-		gunStick.setValue(HIGH);
-		state.gun_step = 1;
-	}
-	else
-	{
-		gunStick.setValue(LOW);
-		state.gun_step = 0;
-	}
-
-	gun.write(state.gun_position);
-}
-
-void handleFire() {
-	if (state.fireAnimationStart == 0) return;
-
-	if (!gunRollback.attached()) {
-		gunRollback.attach(pinGunRollback);
-	}
-	unsigned long m = millis();
-
-	if (m > state.fireStart) {
-
-		unsigned long duration = m - state.fireStart;
-		unsigned long peakDuration = state.firePeak - state.fireStart;
-		unsigned long endDuration = state.fireEnd - state.fireStart;
-		
-		int position = config.fire_min;
-
-		if (m < state.firePeak) {
-			position = map(duration, 0, peakDuration, config.fire_min, config.fire_max);
-			Serial.print("+");
-			gunRollback.write(position);
+void handleStearing() {
+	if (!input_X.isValid()) {
+		if (leftLight->isRunning())
+		{
+			Serial.println("left end");
+			leftLight->end();
 		}
-		else if (m < state.fireEnd) {
-			position = map(duration, peakDuration, endDuration, config.fire_max, config.fire_min);
-			Serial.print("-");
-			gunRollback.write(position);
+		if (rightLight->isRunning())
+		{
+			Serial.println("right end");
+			rightLight->end();
 		}
-		else {
-			gunRollback.write(config.fire_min);
+		return;
+	}
+
+	//Проміжки включення правого/лівого поворота
+	int center = 90;
+	int leftGap = center - input_X.OUT_min;
+	int rightGap = center - input_X.OUT_max;
+
+	//Фактичне відхилення 
+	int leftLimit = (leftGap * config.turn_light_limit) / 100;
+	int rightLimit = (rightGap * config.turn_light_limit) / 100;
+
+	int delta = center - input_X.pos;
+
+	//Serial.printf("delta=%i;ll=%i;rl=%i;c=%i\n", delta, leftLimit, rightLimit, center);
+
+	if (delta > leftLimit) {
+		if (rightLight->isRunning()) {
+			Serial.println("right end");
+			rightLight->end();
 		}
-
-		Serial.print(position); Serial.print("; "); Serial.print(duration); Serial.println();
+		if (!leftLight->isRunning())
+		{
+			Serial.println("left begin");
+			leftLight->begin();
+		}
 	}
-	
-
-	if (m < state.fireLedStart) {
-		analogWrite(pinFireLed, 0);
-	}
-	else if (m < state.fireLedEnd) {
-		analogWrite(pinFireLed, state.fireLedPWM);
+	else if (delta < rightLimit) {
+		if (leftLight->isRunning())
+		{
+			Serial.println("left end");
+			leftLight->end();
+		}
+		if (!rightLight->isRunning())
+		{
+			Serial.println("right begin");
+			rightLight->begin();
+		}
 	}
 	else {
-		analogWrite(pinFireLed, 0);
-	}
-
-	if (m > state.fireEnd && m > state.fireLedEnd) {
-		state.fireAnimationStart = 0;
-		//gunRollback.write(config.fire_min);
-		//gunRollback.detach();
+		if (leftLight->isRunning())
+		{
+			Serial.println("left end");
+			leftLight->end();
+		}
+		if (rightLight->isRunning())
+		{
+			Serial.println("right end");
+			rightLight->end();
+		}
 	}
 }
+
+
+void handleSpeed() {
+	if (!input_Y.isValid()) {
+		state.speed = 0;
+		if (BackLight->isRunning()) {
+			Serial.println("BackLight end");
+			BackLight->end();
+		}
+		if (stopLight->isRunning()) {
+			stopLight->end();
+		}
+		return;
+	}
+	int center = 90;
+	int forwardGap = center - input_Y.OUT_min;
+	int reverceGap = center - input_Y.OUT_max;
+
+
+	int forward_limit = (forwardGap * config.reverce_limit) / 100;
+	int reverce_limit = (reverceGap * config.reverce_limit) / 100;
+
+
+	int speed = input_Y.pos - center;
+	if (input_Y.isChanged) {
+		Serial.printf("delta=%i;f=%i;r=%i;c=%i\n", speed, forward_limit, reverce_limit, center);
+	}
+
+	if (speed > forward_limit) {
+		if (BackLight->isRunning()) {
+			Serial.println("BackLight end");
+			BackLight->end();
+		}
+	}
+	else if (speed < reverce_limit) {
+		if (!BackLight->isRunning()) {
+			Serial.println("BackLight begin");
+			BackLight->begin();
+		}
+	}
+
+
+	if (state.speed != speed) {
+		//швидкість змінилась
+		if (abs(state.speed) > 5)//передуваємо в русі
+		{
+			if (abs(speed) < 5) {//Зупинка
+				stopLight->begin();
+			}
+			else
+			{
+				if (abs(speed) > abs(state.speed)) {//Швидкість зросла
+					stopLight->end();
+				}
+				else {
+					if (abs(state.speed - speed) > 5) {//Швидкість впала більше ніж на 10
+						stopLight->begin();
+					}
+				}
+			}
+		}
+		state.speed = speed;
+	}
+
+}
+
 
 void loop()
 {
+
+	if (!interruptAttached) {
+		Serial.println("interrupt attached");
+		attachInterrupt(digitalPinToInterrupt(PIN_SERVO_X), pinServo_X_CHANGE, CHANGE);
+		attachInterrupt(digitalPinToInterrupt(PIN_SERVO_Y), pinServo_Y_CHANGE, CHANGE);
+		attachInterrupt(digitalPinToInterrupt(PIN_SERVO_CH3), pinServo_CH3_CHANGE, CHANGE);
+		attachInterrupt(digitalPinToInterrupt(PIN_SERVO_CH4), pinServo_CH4_CHANGE, CHANGE);
+		attachInterrupt(digitalPinToInterrupt(PIN_SERVO_CH5), pinServo_CH5_CHANGE, CHANGE);
+		attachInterrupt(digitalPinToInterrupt(PIN_SERVO_CH6), pinServo_CH6_CHANGE, CHANGE);
+		interruptAttached = true;
+	}
+
 	dnsServer.processNextRequest();
 	joypads.loop();
 	webServer.loop();
 
-	if (joypads.getCount() > 0) {
-		btnStartStop.setValue(joypads.getValue("start"));
-		btnFire.setValue(joypads.getValue("fire"));
-		btnLight.setValue(joypads.getValue("light"));
-		handleVeichle();
-		handleCabin();
-		handleGun();
-		handleFire();
+
+	input_X.loop();
+	input_Y.loop();
+	input_CH3.loop();
+	input_CH4.loop();
+	input_CH5.loop();
+	input_CH6.loop();
+
+	if (input_X.isChanged) {
+		Serial.printf("Servo X = %i (%i)\n", input_X.pos, input_X.ImpulsLength);
+	}
+	if (input_Y.isChanged) {
+		Serial.printf("Servo Y = %i (%i)\n", input_Y.pos, input_Y.ImpulsLength);
+	}
+	if (input_CH3.isChanged) {
+		Serial.printf("Servo CH3 = %i (%i)\n", input_CH3.pos, input_CH3.ImpulsLength);
+	}
+	if (input_CH4.isChanged) {
+		Serial.printf("Servo CH4 = %i (%i)\n", input_CH4.pos, input_CH4.ImpulsLength);
+	}
+	if (input_CH4.isChanged) {
+		Serial.printf("Servo CH5 = %i (%i)\n", input_CH5.pos, input_CH5.ImpulsLength);
+	}
+	if (input_CH4.isChanged) {
+		Serial.printf("Servo CH6 = %i (%i)\n", input_CH6.pos, input_CH6.ImpulsLength);
 	}
 
-	smokeGenerator.loop();
-	turbineBlinker.loop();
-	leftMotor->loop();
-	rightMotor->loop();
-	cabinMotor->loop();
+	if (joypads.getCount() > 0) {
+		//btnStartStop.setValue(joypads.getValue("start"));
+		//btnFire.setValue(joypads.getValue("fire"));
+		//btnLight.setValue(joypads.getValue("light"));
+		handleVeichle();
+		//handleCabin();
+		//handleGun();
+		//handleFire();
+	}
+
+	handleStearing();
+	handleSpeed();
+
+	//smokeGenerator.loop();
+	//turbineBlinker.loop();
+	//leftMotor->loop();
+	//rightMotor->loop();
+	//cabinMotor->loop();
 	//buttons
-	btnStartStop.handle();
-	btnFire.handle();
-	btnLight.handle();
-	gunStick.handle();
+	//btnStartStop.handle();
+	//btnFire.handle();
+	//btnLight.handle();
+	//gunStick.handle();
 }
