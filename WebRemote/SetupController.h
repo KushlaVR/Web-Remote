@@ -37,7 +37,8 @@ public:
 	int ch6_center;
 	int ch6_max;
 
-	int port_addr;
+	int port_addr0;
+	int port_addr1;
 
 	int turn_light_limit;
 	int reverce_limit;

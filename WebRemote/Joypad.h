@@ -30,6 +30,9 @@ public:
 	WiFiClient client;
 	unsigned long report;
 
+	int availableForWrite = 0;
+	int errorCount = 0;
+
 	Collection* fields = nullptr;
 
 	bool keepAlive();

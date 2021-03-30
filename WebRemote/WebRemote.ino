@@ -27,11 +27,11 @@
 
 /*
 
-X - повороти
++X - повороти
 
-Y - газ
++Y - газ
 
-На кнопку 4 канала можно вывести свет. Как раньше делали, первое нажатие габариты, второе ближний, третье дальний. Долгое нажатие- аварийка.
++На кнопку 4 канала можно вывести свет. Как раньше делали, первое нажатие габариты, второе ближний, третье дальний. Долгое нажатие- аварийка.
 
 На крутилку 3 канала хочу сделать включение проблесковых маячков (малый поворот) и маячки плюс сирена(большой поворот)
 
@@ -43,12 +43,11 @@ Y - газ
 #define MOSFET_OFF MAX_PWM_VALUE
 #define MOSFET_ON 0
 
-
-#define PIN_SERVO_X 14
-#define PIN_SERVO_Y 12
-#define PIN_SERVO_CH3 13
-#define PIN_SERVO_CH4 16
-#define PIN_SERVO_CH5 2
+#define PIN_SERVO_X 14//ok
+#define PIN_SERVO_Y 12//ok
+#define PIN_SERVO_CH3 13//ok
+#define PIN_SERVO_CH4 16//OK D0 - no interrupt
+#define PIN_SERVO_CH5 2//D4 - 
 #define PIN_SERVO_CH6 15
 
 #define PIN_I2C_SCL D1 //pcf8574
@@ -80,25 +79,39 @@ enum Ignition {
 struct State {
 	int speed;
 
+	bool alarm;
+
+	bool parkingLight;
+	bool headLight;
+	bool highLight;
+	bool cabinLight;
+
+	int siren;
+
 } state;
 
 
 BenchMark input_X = BenchMark();
 BenchMark input_Y = BenchMark();
-BenchMark input_CH2 = BenchMark();
 BenchMark input_CH3 = BenchMark();
 BenchMark input_CH4 = BenchMark();
 BenchMark input_CH5 = BenchMark();
 BenchMark input_CH6 = BenchMark();
 
+BenchMark* input_Light = &input_CH4;
+
 
 PCF8574* portExt0;// = PCF8574(0x3F);
 PCF8574* portExt1;// = PCF8574(0x3F);
 
-extBlinker* stopLight;// = extBlinker("Stop light", portExt);
-extBlinker* leftLight;// = extBlinker("Left light", portExt);
-extBlinker* rightLight;// = extBlinker("Right light", portExt);
-extBlinker* BackLight;// = extBlinker("Back light", portExt);
+extBlinker* stopLight;
+extBlinker* leftLight;
+extBlinker* rightLight;
+extBlinker* BackLight;
+extBlinker* alarmBlinker;
+
+extBlinker* sirenBlinker;
+
 
 void reloadConfig();
 
@@ -113,6 +126,13 @@ IPAddress netMsk = IPAddress(255, 255, 255, 0);
 const byte DNS_PORT = 53;
 DNSServer dnsServer;
 JoypadCollection joypads = JoypadCollection();
+
+
+void btnLight_Press();
+void btnLight_Hold();
+void btnLight_Release();
+VirtualButton btnLight = VirtualButton(btnLight_Press, btnLight_Hold, btnLight_Release);
+
 
 
 bool interruptAttached = false;
@@ -137,13 +157,13 @@ void ICACHE_RAM_ATTR  pinServo_CH3_CHANGE() {
 	else
 		input_CH3.Stop();
 }
-
+/*
 void ICACHE_RAM_ATTR  pinServo_CH4_CHANGE() {
 	if (digitalRead(PIN_SERVO_CH4))
 		input_CH4.Start();
 	else
 		input_CH4.Stop();
-}
+}*/
 
 
 void ICACHE_RAM_ATTR  pinServo_CH5_CHANGE() {
@@ -160,8 +180,59 @@ void ICACHE_RAM_ATTR  pinServo_CH6_CHANGE() {
 		input_CH6.Stop();
 }
 
+
+
+bool alarmChanged = false;
+void btnLight_Press() {
+	Serial.println("btnLight_Press");
+}
+
+void btnLight_Hold() {
+	Serial.println("btnLight_Hold");
+	if (state.alarm)
+		state.alarm = false;
+	else
+		state.alarm = true;
+	alarmChanged = true;
+}
+
+void btnLight_Release() {
+	Serial.println("btnLight_Release");
+	if (alarmChanged) {
+		alarmChanged = false;
+		return;
+	}
+	if (state.parkingLight == false) {
+		state.parkingLight = true;
+		state.headLight = false;
+		state.highLight = false;
+		Serial.println("parking");
+	}
+	else if (state.headLight == false) {
+		state.parkingLight = true;
+		state.headLight = true;
+		state.highLight = false;
+		Serial.println("head");
+	}
+	else if (state.highLight == false) {
+		state.parkingLight = true;
+		state.headLight = true;
+		state.highLight = true;
+		Serial.println("high");
+	}
+	else {
+		state.parkingLight = false;
+		state.headLight = false;
+		state.highLight = false;
+		Serial.println("off");
+	}
+
+}
+
+
+
 void reloadConfig() {
-	
+
 	stopLight->item(2)->offset = config.stop_light_duration;
 	BackLight->item(1)->offset = config.back_light_timeout;
 
@@ -199,6 +270,8 @@ void setupBlinkers() {
 	leftLight = new extBlinker("Left light", portExt0);
 	rightLight = new extBlinker("Right light", portExt0);
 	BackLight = new extBlinker("Back light", portExt0);
+	alarmBlinker = new extBlinker("Alarm light", portExt0);
+	sirenBlinker = new extBlinker("Siren light", portExt1);
 
 	stopLight
 		->Add(PIN_EXT0_STOP, 0, lightOFF)
@@ -231,7 +304,28 @@ void setupBlinkers() {
 		->Add(PIN_EXT0_BACK, 500, lightON)
 		->repeat = false;
 	BackLight->offLevel = lightOFF;
-	//BackLight.debug = true;
+
+	alarmBlinker
+		->Add(PIN_EXT0_LEFT, 0, lightON)
+		->Add(PIN_EXT0_RIGHT, 0, lightON)
+		->Add(PIN_EXT0_LEFT, 500, lightOFF)
+		->Add(PIN_EXT0_RIGHT, 500, lightOFF)
+		->Add(PIN_EXT0_LEFT, 1000, lightOFF)
+		->Add(PIN_EXT0_RIGHT, 1000, lightOFF)
+		->repeat = true;
+	alarmBlinker->offLevel = lightOFF;
+
+
+	sirenBlinker
+		->Add(PIN_EXT1_BLINKER_LEFT, 0, lightON)
+		->Add(PIN_EXT1_BLINKER_RIGHT, 0, lightOFF)
+		->Add(PIN_EXT1_BLINKER_LEFT, 500, lightOFF)
+		->Add(PIN_EXT1_BLINKER_RIGHT, 500, lightON)
+		->Add(PIN_EXT1_BLINKER_LEFT, 1000, lightOFF)
+		->Add(PIN_EXT1_BLINKER_RIGHT, 1000, lightOFF)
+		->repeat = true;
+	sirenBlinker->offLevel = lightOFF;
+
 }
 
 void setup()
@@ -288,16 +382,48 @@ void setup()
 	console.println(apIP.toString());
 
 	webServer.setup();
+	webServer.on("/api/values", HTTPMethod::HTTP_GET, Values_Get);
 	webServer.on("/api/EventSourceName", EventSourceName);
 	webServer.on("/api/events", Events);
 	webServer.on("/api/post", HTTPMethod::HTTP_POST, Post);
 
-	reloadConfig();
 
+
+	portExt0 = new PCF8574(config.port_addr0);
+	portExt0->begin(PIN_I2C_SDA, PIN_I2C_SCL);
+	portExt0->write8(0x00);
+
+	portExt1 = new PCF8574(config.port_addr1);
+	portExt1->begin(PIN_I2C_SDA, PIN_I2C_SCL);
+	portExt1->write8(0x00);
+
+	delay(1000);
+	portExt0->write8(0xFF);
+	portExt1->write8(0xFF);
 
 	setupBlinkers();
+
+	reloadConfig();
+
 }
 
+void printValues(JsonString* out)
+{
+	out->beginObject();
+	out->AddValue("ch1_val", String(input_X.ImpulsLength));
+	out->AddValue("ch2_val", String(input_Y.ImpulsLength));
+	out->AddValue("ch3_val", String(input_CH3.ImpulsLength));
+	out->AddValue("ch4_val", String(input_CH4.ImpulsLength));
+	out->AddValue("ch5_val", String(input_CH5.ImpulsLength));
+	out->AddValue("ch6_val", String(input_CH6.ImpulsLength));
+	out->endObject();
+}
+
+void Values_Get() {
+	JsonString ret = JsonString();
+	printValues(&ret);
+	webServer.jsonOk(&ret);
+}
 
 void EventSourceName() {
 	webServer.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -485,6 +611,13 @@ void handleStearing() {
 			Serial.println("right end");
 			rightLight->end();
 		}
+		if (state.alarm) {
+			if (!alarmBlinker->isRunning()) alarmBlinker->begin();
+		}
+		else {
+			if (alarmBlinker->isRunning()) alarmBlinker->end();
+		}
+
 		return;
 	}
 
@@ -536,6 +669,14 @@ void handleStearing() {
 			rightLight->end();
 		}
 	}
+
+	if (state.alarm && !leftLight->isRunning() && !rightLight->isRunning()) {
+		if (!alarmBlinker->isRunning()) alarmBlinker->begin();
+	}
+	else {
+		if (alarmBlinker->isRunning()) alarmBlinker->end();
+	}
+
 }
 
 
@@ -604,6 +745,54 @@ void handleSpeed() {
 }
 
 
+void handleHeadLight() {
+	if (input_Light->pos > 90)
+		btnLight.setValue(HIGH);
+	else
+		btnLight.setValue(LOW);
+
+	if (state.parkingLight) {
+		portExt0->write(PIN_EXT0_PARKING_LIGHT, lightON);
+		portExt1->write(PIN_EXT1_PARKING_LIGHT, lightON);
+		/*if (state.fogLight)
+			portExt->write(bitFogLight, lightON);
+		else
+			portExt->write(bitFogLight, lightOFF);*/
+	}
+	else {
+		portExt0->write(PIN_EXT0_PARKING_LIGHT, lightOFF);
+		portExt1->write(PIN_EXT1_PARKING_LIGHT, lightOFF);
+		//portExt->write(bitFogLight, lightOFF);
+	}
+
+	if (state.headLight)
+		portExt0->write(PIN_EXT0_HEAD_LIGHT, lightON);
+	else
+		portExt0->write(PIN_EXT0_HEAD_LIGHT, lightOFF);
+
+	if (state.highLight)
+		portExt0->write(PIN_EXT0_HIGH_LIGHT, lightON);
+	else
+		portExt0->write(PIN_EXT0_HIGH_LIGHT, lightOFF);
+
+}
+
+void handleSiren() {
+	if (state.siren == 0) {
+		sirenBlinker->end();
+	}
+	else if (state.siren == 2) {
+		if (!sirenBlinker->isRunning()) sirenBlinker->begin();
+	}
+	else if (state.siren == 3) {
+		if (!sirenBlinker->isRunning()) sirenBlinker->begin();
+	}
+}
+
+
+
+unsigned long last_CH4_read = 0;
+
 void loop()
 {
 
@@ -612,7 +801,7 @@ void loop()
 		attachInterrupt(digitalPinToInterrupt(PIN_SERVO_X), pinServo_X_CHANGE, CHANGE);
 		attachInterrupt(digitalPinToInterrupt(PIN_SERVO_Y), pinServo_Y_CHANGE, CHANGE);
 		attachInterrupt(digitalPinToInterrupt(PIN_SERVO_CH3), pinServo_CH3_CHANGE, CHANGE);
-		attachInterrupt(digitalPinToInterrupt(PIN_SERVO_CH4), pinServo_CH4_CHANGE, CHANGE);
+		//attachInterrupt(digitalPinToInterrupt(PIN_SERVO_CH4), pinServo_CH4_CHANGE, CHANGE);
 		attachInterrupt(digitalPinToInterrupt(PIN_SERVO_CH5), pinServo_CH5_CHANGE, CHANGE);
 		attachInterrupt(digitalPinToInterrupt(PIN_SERVO_CH6), pinServo_CH6_CHANGE, CHANGE);
 		interruptAttached = true;
@@ -621,6 +810,14 @@ void loop()
 	dnsServer.processNextRequest();
 	joypads.loop();
 	webServer.loop();
+
+	if (digitalRead(PIN_SERVO_CH4) == LOW && ((millis() - last_CH4_read) > 300)) {
+		last_CH4_read = millis();
+		while (digitalRead(PIN_SERVO_CH4) == LOW && (millis() - last_CH4_read) < 25);
+		input_CH4.Start();
+		while (digitalRead(PIN_SERVO_CH4) == HIGH && (millis() - last_CH4_read) < 25);
+		input_CH4.Stop();
+	}
 
 
 	input_X.loop();
@@ -642,10 +839,10 @@ void loop()
 	if (input_CH4.isChanged) {
 		Serial.printf("Servo CH4 = %i (%i)\n", input_CH4.pos, input_CH4.ImpulsLength);
 	}
-	if (input_CH4.isChanged) {
+	if (input_CH5.isChanged) {
 		Serial.printf("Servo CH5 = %i (%i)\n", input_CH5.pos, input_CH5.ImpulsLength);
 	}
-	if (input_CH4.isChanged) {
+	if (input_CH6.isChanged) {
 		Serial.printf("Servo CH6 = %i (%i)\n", input_CH6.pos, input_CH6.ImpulsLength);
 	}
 
@@ -654,22 +851,19 @@ void loop()
 		//btnFire.setValue(joypads.getValue("fire"));
 		//btnLight.setValue(joypads.getValue("light"));
 		handleVeichle();
-		//handleCabin();
-		//handleGun();
-		//handleFire();
 	}
 
 	handleStearing();
 	handleSpeed();
+	handleHeadLight();
+	handleSiren();
 
-	//smokeGenerator.loop();
-	//turbineBlinker.loop();
-	//leftMotor->loop();
-	//rightMotor->loop();
-	//cabinMotor->loop();
-	//buttons
-	//btnStartStop.handle();
-	//btnFire.handle();
-	//btnLight.handle();
-	//gunStick.handle();
+
+	stopLight->loop();
+	leftLight->loop();
+	rightLight->loop();
+	BackLight->loop();
+	alarmBlinker->loop();
+	sirenBlinker->loop();
+
 }

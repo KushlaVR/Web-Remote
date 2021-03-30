@@ -1,5 +1,5 @@
 {
-  "ssid": "GAZ13",
+  "ssid": "RC_71",
   "password": "12345678",
 
   "ch1_min": "1114",
@@ -14,7 +14,14 @@
   "ch4_min": "1007",
   "ch4_max": "2014",
 
-  "port_addr": "63",
+  "ch5_min": "1007",
+  "ch5_max": "2014",
+
+  "ch6_min": "1007",
+  "ch6_max": "2014",
+
+  "port_addr0": "39",
+  "port_addr1": "38",
 
   "stop_light_duration": "2000",
   "back_light_timeout": "500",

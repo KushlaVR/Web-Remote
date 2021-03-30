@@ -14,6 +14,20 @@ bool Joypad::keepAlive()
 	if (this->client.connected()) {
 		Serial.printf_P(PSTR("Client %i is still connected\n"), id);
 		this->client.println(F("event: event\ndata: { \"TYPE\":\"KEEP-ALIVE\" }\n"));   // Extra newline required by SSE standard
+		this->client.flush(20);
+		int i = this->client.availableForWrite();
+		if (i < this->availableForWrite) {
+			errorCount++;
+			Serial.println(this->availableForWrite);
+
+			if (errorCount > 2) {
+				Serial.printf_P(PSTR("Client %i timeout and disconnected;\n"), id);
+				this->client.stop();
+				this->clientIP = INADDR_NONE;
+				return false;
+			}
+		}
+		this->availableForWrite = i;
 		report = millis();
 		return true;
 	}

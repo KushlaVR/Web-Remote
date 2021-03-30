@@ -13,7 +13,7 @@
     <link rel="manifest" href="/manifest.json">
 </head>
 <body style="overflow-y:visible">
-    <div class="container">
+    <!--<div class="container">
         <div class="row">
             <div class="col-12">
                 <a class="btn btn-primary plate" href="control.html">
@@ -22,7 +22,7 @@
                 </a>
             </div>
         </div>
-    </div>
+    </div>-->
 
     <div class="container">
         <div class="settings">
@@ -190,11 +190,86 @@
                     </div>
                 </div>
 
+
+                <!-- CH5 -->
+                <h2>Ch 5</h2>
+                <div class="form-group">
+                    <label>min</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="ch5_min" class="form-control" step="1" min="0" max="3000" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">0<sup>ms</sup>..3000<sup>ms</sup></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>max</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="ch5_max" class="form-control" step="1" min="0" max="3000" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">0<sup>ms</sup>..3000<sup>ms</sup></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>current</label>
+                    <div class="input-group">
+                        <div type="number" name="ch5_val" class="form-control"></div>
+                        <div class="input-group-append">
+                            <span class="input-group-text">0<sup>ms</sup>..3000<sup>ms</sup></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CH63 -->
+                <h2>Ch 6</h2>
+                <div class="form-group">
+                    <label>min</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="ch6_min" class="form-control" step="1" min="0" max="3000" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">0<sup>ms</sup>..3000<sup>ms</sup></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>max</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="ch6_max" class="form-control" step="1" min="0" max="3000" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">0<sup>ms</sup>..3000<sup>ms</sup></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>current</label>
+                    <div class="input-group">
+                        <div type="number" name="ch6_val" class="form-control"></div>
+                        <div class="input-group-append">
+                            <span class="input-group-text">0<sup>ms</sup>..3000<sup>ms</sup></span>
+                        </div>
+                    </div>
+                </div>
+
                 <h2>Light settings</h2>
                 <div class="form-group">
-                    <label>Port address</label>
+                    <label>Onboard port address</label>
                     <div class="input-group">
-                        <input type="number" maxlength="5" name="port_addr" class="form-control" step="1" min="32" max="63" required="required" />
+                        <input type="number" maxlength="5" name="port_addr0" class="form-control" step="1" min="32" max="63" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">32..63</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>External port address</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="port_addr1" class="form-control" step="1" min="32" max="63" required="required" />
                         <div class="input-group-append">
                             <span class="input-group-text">32..63</span>
                         </div>
@@ -203,7 +278,8 @@
 
                 <div>Type of port extender IC address pin configuration.</div>
                 <div class="row">
-                    <div class="col-6">
+                    <div class="col-12">
+                        <h5>address for PCF8574</h5>
                         <p>32 - 0x20 (PCF8574 pin A->000)</p>
                         <p>33 - 0x21 (PCF8574 pin A->001)</p>
                         <p>34 - 0x22 (PCF8574 pin A->010)</p>
@@ -213,7 +289,8 @@
                         <p>38 - 0x26 (PCF8574 pin A->110)</p>
                         <p>39 - 0x27 (PCF8574 pin A->111)</p>
                     </div>
-                    <div class="col-6">
+                    <div class="col-13">
+                        <h5>address for PCF8574A*</h5>
                         <p>56 - 0x38 (PCF8574A* pin A->000)</p>
                         <p>57 - 0x39 (PCF8574A* pin A->001)</p>
                         <p>58 - 0x3A (PCF8574A* pin A->010)</p>
