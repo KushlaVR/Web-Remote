@@ -23,6 +23,7 @@
 #include "Blinker.h"
 #include "PCF8574.h"
 #include "BenchMark.h"
+#include "DFRobotDFPlayerMini.h"
 
 
 /*
@@ -99,7 +100,10 @@ BenchMark input_CH5 = BenchMark();
 BenchMark input_CH6 = BenchMark();
 
 BenchMark* input_Light = &input_CH4;
+BenchMark* input_Siren = &input_CH6;
 
+DFRobotDFPlayerMini* myDFPlayer;
+bool is_MP3_available = false;
 
 PCF8574* portExt0;// = PCF8574(0x3F);
 PCF8574* portExt1;// = PCF8574(0x3F);
@@ -133,6 +137,16 @@ void btnLight_Hold();
 void btnLight_Release();
 VirtualButton btnLight = VirtualButton(btnLight_Press, btnLight_Hold, btnLight_Release);
 
+
+void btnSiren_Press();
+void btnSiren_Hold();
+void btnSiren_Release();
+VirtualButton btnSiren = VirtualButton(btnSiren_Press, btnSiren_Hold, btnSiren_Release);
+
+void btnSirenSound_Press();
+void btnSirenSound_Hold();
+void btnSirenSound_Release();
+VirtualButton btnSirenSound = VirtualButton(btnSirenSound_Press, btnSirenSound_Hold, btnSirenSound_Release);
 
 
 bool interruptAttached = false;
@@ -229,6 +243,26 @@ void btnLight_Release() {
 
 }
 
+
+void btnSiren_Press() {
+	if (!sirenBlinker->isRunning()) sirenBlinker->begin();
+};
+void btnSiren_Hold() {};
+void btnSiren_Release() {
+	if (sirenBlinker->isRunning()) sirenBlinker->end();
+};
+
+void btnSirenSound_Press() {
+	if (is_MP3_available) {
+		myDFPlayer->loop(1);
+	}
+};
+void btnSirenSound_Hold() {};
+void btnSirenSound_Release() {
+	if (is_MP3_available) {
+		myDFPlayer->stop();
+	}
+};
 
 
 void reloadConfig() {
@@ -330,11 +364,26 @@ void setupBlinkers() {
 
 void setup()
 {
-	Serial.begin(115200);
+	Serial.begin(9600);
 	console.output = &Serial;
 	console.println();
 	console.println();
 	console.println();
+
+	myDFPlayer = new DFRobotDFPlayerMini();
+
+	if (!myDFPlayer->begin(Serial)) {
+		console.println(F("MP3 init failed!"));
+		is_MP3_available = false;
+	}
+	else {
+		is_MP3_available = true;
+		myDFPlayer->setTimeOut(500); //Set serial communictaion time out 500ms
+		myDFPlayer->volume(10);
+		myDFPlayer->outputDevice(DFPLAYER_DEVICE_SD);
+		myDFPlayer->play(1);
+		myDFPlayer->pause();
+	}
 
 	String s;
 	if (!SPIFFS.begin()) {
@@ -778,14 +827,20 @@ void handleHeadLight() {
 }
 
 void handleSiren() {
-	if (state.siren == 0) {
-		sirenBlinker->end();
+	if (input_Siren->isValid()) {
+		if (input_Light->pos > 45)
+			btnSiren.setValue(HIGH);
+		else
+			btnSiren.setValue(LOW);
+
+		if (input_Light->pos > 135)
+			btnSirenSound.setValue(HIGH);
+		else
+			btnSirenSound.setValue(LOW);
 	}
-	else if (state.siren == 2) {
-		if (!sirenBlinker->isRunning()) sirenBlinker->begin();
-	}
-	else if (state.siren == 3) {
-		if (!sirenBlinker->isRunning()) sirenBlinker->begin();
+	else {
+		btnSiren.setValue(LOW);
+		btnSirenSound.setValue(LOW);
 	}
 }
 
