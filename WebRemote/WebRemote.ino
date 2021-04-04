@@ -34,7 +34,7 @@
 
 +На кнопку 4 канала можно вывести свет. Как раньше делали, первое нажатие габариты, второе ближний, третье дальний. Долгое нажатие- аварийка.
 
-На крутилку 3 канала хочу сделать включение проблесковых маячков (малый поворот) и маячки плюс сирена(большой поворот)
++На крутилку 3 канала хочу сделать включение проблесковых маячков (малый поворот) и маячки плюс сирена(большой поворот)
 
 А на 6 канал включение света в кабине(первое положение) и в будке(второе положение)
 
@@ -65,7 +65,7 @@
 
 #define PIN_EXT1_BLINKER_LEFT 0
 #define PIN_EXT1_BLINKER_RIGHT 1
-#define PIN_EXT1_PARKING_LIGHT 1
+#define PIN_EXT1_PARKING_LIGHT 2
 
 #define lightOFF HIGH
 #define lightON LOW
@@ -100,7 +100,7 @@ BenchMark input_CH5 = BenchMark();
 BenchMark input_CH6 = BenchMark();
 
 BenchMark* input_Light = &input_CH4;
-BenchMark* input_Siren = &input_CH6;
+BenchMark* input_Siren = &input_CH3;
 
 DFRobotDFPlayerMini* myDFPlayer;
 bool is_MP3_available = false;
@@ -372,18 +372,28 @@ void setup()
 
 	myDFPlayer = new DFRobotDFPlayerMini();
 
-	if (!myDFPlayer->begin(Serial)) {
+
+	myDFPlayer->begin(Serial);
+
+
+	/*if (!myDFPlayer->begin(Serial)) {
 		console.println(F("MP3 init failed!"));
 		is_MP3_available = false;
 	}
-	else {
-		is_MP3_available = true;
-		myDFPlayer->setTimeOut(500); //Set serial communictaion time out 500ms
-		myDFPlayer->volume(10);
-		myDFPlayer->outputDevice(DFPLAYER_DEVICE_SD);
-		myDFPlayer->play(1);
-		myDFPlayer->pause();
-	}
+	else {*/
+	is_MP3_available = true;
+	myDFPlayer->setTimeOut(500); //Set serial communictaion time out 500ms
+	delay(100);
+	myDFPlayer->volume(30);
+	delay(100);
+	myDFPlayer->outputDevice(DFPLAYER_DEVICE_SD);
+	delay(100);
+	//myDFPlayer->play(1);
+	//myDFPlayer->pause();
+//}
+
+	delay(100);
+	console.println(F("MP3 ready"));
 
 	String s;
 	if (!SPIFFS.begin()) {
@@ -828,12 +838,12 @@ void handleHeadLight() {
 
 void handleSiren() {
 	if (input_Siren->isValid()) {
-		if (input_Light->pos > 45)
+		if (input_Siren->pos > 45)
 			btnSiren.setValue(HIGH);
 		else
 			btnSiren.setValue(LOW);
 
-		if (input_Light->pos > 135)
+		if (input_Siren->pos > 135)
 			btnSirenSound.setValue(HIGH);
 		else
 			btnSirenSound.setValue(LOW);
