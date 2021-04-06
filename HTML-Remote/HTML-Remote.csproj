@@ -185,6 +185,9 @@
     </Content>
     <Content Include="js\kushlavr.js" />
     <Content Include="js\slider.js" />
+    <Content Include="js\slider.min.js">
+      <DependentUpon>slider.js</DependentUpon>
+    </Content>
     <Content Include="mp3\01692.mp3" />
     <Content Include="mp3\03037.mp3" />
     <Content Include="mp3\03049.mp3" />

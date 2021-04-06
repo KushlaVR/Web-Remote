@@ -709,3 +709,13 @@ class Output {
 }
 
 
+class Icon extends Output {
+
+
+    constructor(element: any) {
+        super(element);
+
+    }
+
+
+}

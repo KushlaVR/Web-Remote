@@ -903,8 +903,13 @@ void handleSiren() {
 }
 
 void handleCabin() {
-	if (input_Cabin->pos > 135) {
-		btnCabin.setValue(HIGH);
+	if (input_Cabin->isValid()) {
+		if (input_Cabin->pos > 135) {
+			btnCabin.setValue(HIGH);
+		}
+		else {
+			btnCabin.setValue(LOW);
+		}
 	}
 	else {
 		btnCabin.setValue(LOW);
@@ -912,8 +917,13 @@ void handleCabin() {
 }
 
 void handleInterior() {
-	if (input_Cabin->pos < 45) {
-		btnInterior.setValue(HIGH);
+	if (input_Interior->isValid()) {
+		if (input_Cabin->pos < 45) {
+			btnInterior.setValue(HIGH);
+		}
+		else {
+			btnInterior.setValue(LOW);
+		}
 	}
 	else {
 		btnInterior.setValue(LOW);
