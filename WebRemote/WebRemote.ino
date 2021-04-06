@@ -36,7 +36,7 @@
 
 +На крутилку 3 канала хочу сделать включение проблесковых маячков (малый поворот) и маячки плюс сирена(большой поворот)
 
-А на 6 канал включение света в кабине(первое положение) и в будке(второе положение)
+ +А на 6 канал включение света в кабине(первое положение) и в будке(второе положение)
 
 */
 
@@ -63,9 +63,12 @@
 #define PIN_EXT0_HEAD_LIGHT 6
 #define PIN_EXT0_PARKING_LIGHT 7
 
+#define PIN_EXT0_CABIN PIN_EXT0_FOG
+
 #define PIN_EXT1_BLINKER_LEFT 0
 #define PIN_EXT1_BLINKER_RIGHT 1
 #define PIN_EXT1_PARKING_LIGHT 2
+#define PIN_EXT1_INTERIOR 3
 
 #define lightOFF HIGH
 #define lightON LOW
@@ -86,6 +89,7 @@ struct State {
 	bool headLight;
 	bool highLight;
 	bool cabinLight;
+	bool interiorLight;
 
 	int siren;
 
@@ -101,6 +105,8 @@ BenchMark input_CH6 = BenchMark();
 
 BenchMark* input_Light = &input_CH4;
 BenchMark* input_Siren = &input_CH3;
+BenchMark* input_Cabin = &input_CH6;
+BenchMark* input_Interior = &input_CH6;
 
 DFRobotDFPlayerMini* myDFPlayer;
 bool is_MP3_available = false;
@@ -147,6 +153,17 @@ void btnSirenSound_Press();
 void btnSirenSound_Hold();
 void btnSirenSound_Release();
 VirtualButton btnSirenSound = VirtualButton(btnSirenSound_Press, btnSirenSound_Hold, btnSirenSound_Release);
+
+void btnInterior_Press();
+void btnInterior_Hold();
+void btnInterior_Release();
+VirtualButton btnInterior = VirtualButton(btnInterior_Press, btnInterior_Hold, btnInterior_Release);
+
+void btnCabin_Press();
+void btnCabin_Hold();
+void btnCabin_Release();
+VirtualButton btnCabin = VirtualButton(btnCabin_Press, btnCabin_Hold, btnCabin_Release);
+
 
 
 bool interruptAttached = false;
@@ -264,6 +281,37 @@ void btnSirenSound_Release() {
 	}
 };
 
+
+void btnInterior_Press() {
+	if (state.interiorLight == 1) {
+		state.interiorLight = 0;
+		portExt1->set(PIN_EXT1_INTERIOR, lightOFF);
+	}
+	else {
+		state.interiorLight = 1;
+		portExt1->set(PIN_EXT1_INTERIOR, lightON);
+	}
+};
+void btnInterior_Hold() {
+};
+void btnInterior_Release() {
+};
+
+
+void btnCabin_Press() {
+	if (state.cabinLight == 1) {
+		state.cabinLight = 0;
+		portExt0->set(PIN_EXT0_CABIN, lightOFF);
+	}
+	else {
+		state.cabinLight = 1;
+		portExt0->set(PIN_EXT0_CABIN, lightON);
+	}
+};
+void btnCabin_Hold() {
+};
+void btnCabin_Release() {
+};
 
 void reloadConfig() {
 
@@ -854,7 +902,23 @@ void handleSiren() {
 	}
 }
 
+void handleCabin() {
+	if (input_Cabin->pos > 135) {
+		btnCabin.setValue(HIGH);
+	}
+	else {
+		btnCabin.setValue(LOW);
+	}
+}
 
+void handleInterior() {
+	if (input_Cabin->pos < 45) {
+		btnInterior.setValue(HIGH);
+	}
+	else {
+		btnInterior.setValue(LOW);
+	}
+}
 
 unsigned long last_CH4_read = 0;
 
@@ -878,12 +942,11 @@ void loop()
 
 	if (digitalRead(PIN_SERVO_CH4) == LOW && ((millis() - last_CH4_read) > 300)) {
 		last_CH4_read = millis();
-		while (digitalRead(PIN_SERVO_CH4) == LOW && (millis() - last_CH4_read) < 25);
+		while (digitalRead(PIN_SERVO_CH4) == LOW && (millis() - last_CH4_read) < 25) {};
 		input_CH4.Start();
-		while (digitalRead(PIN_SERVO_CH4) == HIGH && (millis() - last_CH4_read) < 25);
+		while (digitalRead(PIN_SERVO_CH4) == HIGH && (millis() - last_CH4_read) < 25) {};
 		input_CH4.Stop();
 	}
-
 
 	input_X.loop();
 	input_Y.loop();
@@ -922,7 +985,8 @@ void loop()
 	handleSpeed();
 	handleHeadLight();
 	handleSiren();
-
+	handleCabin();
+	handleInterior();
 
 	stopLight->loop();
 	leftLight->loop();

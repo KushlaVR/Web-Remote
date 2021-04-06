@@ -111,6 +111,8 @@
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="data\config-0.json" />
+    <None Include="data\config-a.json" />
     <None Include="data\config.json" />
     <None Include="data\css\bootstrap.css" />
     <None Include="data\css\slider.css" />

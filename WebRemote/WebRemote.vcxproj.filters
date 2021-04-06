@@ -54,6 +54,12 @@
       <Filter>Misc Files</Filter>
     </None>
     <None Include="data\html\sniper.html" />
+    <None Include="data\config-a.json">
+      <Filter>Misc Files</Filter>
+    </None>
+    <None Include="data\config-0.json">
+      <Filter>Misc Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.WebRemote.vsarduino.h">
