@@ -282,8 +282,11 @@ void btnSirenSound_Release() {
 };
 
 
+bool btnInterior_ready = false;
+bool btnCabin_ready = false;
+
 void btnInterior_Press() {
-	if (state.interiorLight == 1) {
+	if (state.interiorLight == 1 || btnInterior_ready == false) {
 		state.interiorLight = 0;
 		portExt1->set(PIN_EXT1_INTERIOR, lightOFF);
 	}
@@ -297,9 +300,8 @@ void btnInterior_Hold() {
 void btnInterior_Release() {
 };
 
-
 void btnCabin_Press() {
-	if (state.cabinLight == 1) {
+	if (state.cabinLight == 1 || btnCabin_ready == false) {
 		state.cabinLight = 0;
 		portExt0->set(PIN_EXT0_CABIN, lightOFF);
 	}
@@ -902,12 +904,15 @@ void handleSiren() {
 	}
 }
 
+
 void handleCabin() {
 	if (input_Cabin->isValid()) {
 		if (input_Cabin->pos > 135) {
 			btnCabin.setValue(HIGH);
 		}
 		else {
+			btnCabin_ready = true;
+			//Serial.println("btnCabin_ready");
 			btnCabin.setValue(LOW);
 		}
 	}
@@ -922,6 +927,8 @@ void handleInterior() {
 			btnInterior.setValue(HIGH);
 		}
 		else {
+			btnInterior_ready = true;
+			//Serial.println("btnInterior_ready");
 			btnInterior.setValue(LOW);
 		}
 	}
@@ -985,9 +992,6 @@ void loop()
 	}
 
 	if (joypads.getCount() > 0) {
-		//btnStartStop.setValue(joypads.getValue("start"));
-		//btnFire.setValue(joypads.getValue("fire"));
-		//btnLight.setValue(joypads.getValue("light"));
 		handleVeichle();
 	}
 
