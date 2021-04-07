@@ -811,9 +811,9 @@ void handleSpeed() {
 
 
 	int speed = input_Y.pos - center;
-	if (input_Y.isChanged) {
+	/*if (input_Y.isChanged) {
 		Serial.printf("delta=%i;f=%i;r=%i;c=%i\n", speed, forward_limit, reverce_limit, center);
-	}
+	}*/
 
 	if (speed > forward_limit) {
 		if (BackLight->isRunning()) {
@@ -824,8 +824,9 @@ void handleSpeed() {
 	else if (speed < reverce_limit) {
 		if (!BackLight->isRunning()) {
 			Serial.println("BackLight begin");
-			BackLight->begin();
 		}
+		BackLight->begin();
+
 	}
 
 
