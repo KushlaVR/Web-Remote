@@ -13,8 +13,6 @@ var __extends = (this && this.__extends) || (function () {
 })();
 /**
  *
- * Slider
- *
  * */
 var WorkSpace = /** @class */ (function () {
     function WorkSpace(form) {
@@ -24,6 +22,7 @@ var WorkSpace = /** @class */ (function () {
         this.values = new Dictionary();
         this.sent = new Dictionary();
         this.tranCount = 0;
+        this.timer = null;
         this.reportInterval = 100; //Інтервал синхронізації даних
         this.readonlyFields = new Array();
         this.tran = 0;
@@ -85,6 +84,7 @@ var WorkSpace = /** @class */ (function () {
     WorkSpace.prototype.send = function (value) {
         var _this = this;
         if (this.eventSource) {
+            //console.log("ajax!");
             this._readyToSend = false;
             $.ajax({
                 url: "/api/post",
@@ -113,7 +113,7 @@ var WorkSpace = /** @class */ (function () {
     WorkSpace.prototype.sendData = function () {
         var _this = this;
         //Якщо таймер не заведено, відправляємо пакет і запускаємо таймер
-        if (this.timer === 0) {
+        if (this.timer === null) {
             if (this.readyToSend() == true) {
                 var v = new Array();
                 var changed = false;
@@ -131,7 +131,7 @@ var WorkSpace = /** @class */ (function () {
                 }
             }
             this.timer = setTimeout(function () {
-                _this.timer = 0;
+                _this.timer = null;
                 _this.sendData();
             }, this.reportInterval);
         }
@@ -647,11 +647,4 @@ var Output = /** @class */ (function () {
     };
     return Output;
 }());
-var Icon = /** @class */ (function (_super) {
-    __extends(Icon, _super);
-    function Icon(element) {
-        return _super.call(this, element) || this;
-    }
-    return Icon;
-}(Output));
 //# sourceMappingURL=slider.js.map

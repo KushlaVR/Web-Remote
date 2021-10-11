@@ -1,5 +1,4 @@
 ﻿#pragma once
-#pragma once
 #include "WebUIController.h"
 
 enum PotentiometerLinearity {
@@ -17,10 +16,12 @@ public:
 	int ch1_min;
 	int ch1_center;
 	int ch1_max;
+	int stearing_linearity;
 
 	int ch2_min;
 	int ch2_center;
 	int ch2_max;
+	int inertion = 20;
 
 	int ch3_min;
 	int ch3_center;
@@ -38,14 +39,11 @@ public:
 	int ch6_max;
 
 	int port_addr0;
-	int port_addr1;
+	//int port_addr1;
 
 	int turn_light_limit;
 	int reverce_limit;
 
-	int gear0;
-	int gear1;
-	int gear2;
 
 	int stop_light_duration;//в мілісекундах
 	int back_light_timeout;//в мілісекундах

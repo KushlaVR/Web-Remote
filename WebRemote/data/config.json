@@ -1,36 +1,33 @@
 {
-  "ssid": "RC_71",
+  "ssid": "RV",
   "password": "12345678",
 
-  "ch1_min": "1114",
-  "ch1_max": "2314",
+  "ch1_min": "45",
+  "ch1_center": "90",
+  "ch1_max": "135",
 
-  "ch2_min": "900",
-  "ch2_max": "2075",
+  "ch2_min": "45",
+  "ch2_center": "90",
+  "ch2_max": "135",
+  "inertion": "20",
 
-  "ch3_min": "1100",
-  "ch3_max": "1800",
+  "ch3_min": "45",
+  "ch3_max": "135",
 
-  "ch4_min": "1007",
-  "ch4_max": "2014",
+  "ch4_min": "45",
+  "ch4_max": "135",
 
-  "ch5_min": "1007",
-  "ch5_max": "2014",
+  "ch5_min": "45",
+  "ch5_max": "135",
 
-  "ch6_min": "1007",
-  "ch6_max": "2014",
+  "ch6_min": "45",
+  "ch6_max": "135",
 
   "port_addr0": "39",
-  "port_addr1": "38",
 
   "stop_light_duration": "2000",
   "back_light_timeout": "500",
   "reverce_limit": "5",
-  "turn_light_limit": "50",
-
-  "gear0": "90",
-  "gear1": "60",
-  "gear2": "120"
-
+  "turn_light_limit": "50"
 
 }

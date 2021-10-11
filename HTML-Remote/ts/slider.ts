@@ -1,7 +1,5 @@
 ﻿/**
  * 
- * Slider
- * 
  * */
 class WorkSpace {
 
@@ -15,12 +13,12 @@ class WorkSpace {
     private outputs: Array<Output> = new Array<Output>();
     values: Dictionary<string> = new Dictionary<string>();
     sent: Dictionary<string> = new Dictionary<string>();
-    tranCount: number = 0;
-    timer: any;
-    reportInterval: number = 100;//Інтервал синхронізації даних
+    tranCount = 0;
+    timer: NodeJS.Timeout = null;
+    reportInterval = 100;//Інтервал синхронізації даних
     fields: Array<string>;
     readonlyFields: Array<string> = new Array<string>();
-    tran: number = 0;
+    tran = 0;
 
     constructor(form: HTMLFormElement) {
         this.form = form;
@@ -30,7 +28,7 @@ class WorkSpace {
     }
 
     public static init(form: JQuery) {
-        var workSpace: WorkSpace = new WorkSpace(<any>(form[0]));
+        const workSpace: WorkSpace = new WorkSpace(<any>(form[0]));
         workSpace.registerInputs();
         workSpace.registerOutputs();
         //workSpace.ConnectWS();
@@ -79,7 +77,7 @@ class WorkSpace {
         this.send(JSON.stringify({ client: this.client, fields: this.fields }));
     }
 
-    private _readyToSend: boolean = true;
+    private _readyToSend = true;
     private readyToSend(): boolean {
         if (this.eventSource)
             return this._readyToSend;
@@ -88,6 +86,7 @@ class WorkSpace {
 
     private send(value: string): void {
         if (this.eventSource) {
+            //console.log("ajax!");
             this._readyToSend = false;
             $.ajax({
                 url: "/api/post",
@@ -104,11 +103,11 @@ class WorkSpace {
                 this._readyToSend = true;
             });
         } //else
-            //if (this.socket) {
-            //    this._readyToSend = false;
-            //    this.socket.send(value);
-            //    this._readyToSend = true;
-            //}
+        //if (this.socket) {
+        //    this._readyToSend = false;
+        //    this.socket.send(value);
+        //    this._readyToSend = true;
+        //}
     }
 
     /**
@@ -116,7 +115,7 @@ class WorkSpace {
      * */
     private sendData(): void {
         //Якщо таймер не заведено, відправляємо пакет і запускаємо таймер
-        if (this.timer === 0) {
+        if (this.timer === null) {
             if (this.readyToSend() == true) {
                 var v = new Array<string>();
                 var changed: boolean = false;
@@ -134,7 +133,7 @@ class WorkSpace {
             }
 
             this.timer = setTimeout(() => {
-                this.timer = 0;
+                this.timer = null;
                 this.sendData();
             }, this.reportInterval);
         }
@@ -705,17 +704,5 @@ class Output {
     initLayout(): void {
 
     }
-
-}
-
-
-class Icon extends Output {
-
-
-    constructor(element: any) {
-        super(element);
-
-    }
-
 
 }

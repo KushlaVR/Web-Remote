@@ -163,6 +163,7 @@
     <ClInclude Include="PCF8574.h" />
     <ClInclude Include="RoboconMotor.h" />
     <ClInclude Include="SetupController.h" />
+    <ClInclude Include="Stearing.h" />
     <ClInclude Include="WebUIController.h" />
     <ClInclude Include="__vm\.WebRemote.vsarduino.h" />
   </ItemGroup>
@@ -177,6 +178,7 @@
     <ClCompile Include="PCF8574.cpp" />
     <ClCompile Include="RoboconMotor.cpp" />
     <ClCompile Include="SetupController.cpp" />
+    <ClCompile Include="Stearing.cpp" />
     <ClCompile Include="WebUIController.cpp" />
   </ItemGroup>
   <ItemGroup>
