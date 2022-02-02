@@ -431,13 +431,16 @@ void setup()
 		is_MP3_available = false;
 	}
 	else {*/
-	is_MP3_available = true;
-	myDFPlayer->setTimeOut(500); //Set serial communictaion time out 500ms
-	delay(100);
-	myDFPlayer->volume(30);
-	delay(100);
-	myDFPlayer->outputDevice(DFPLAYER_DEVICE_SD);
-	delay(100);
+	is_MP3_available = false;
+	if (is_MP3_available) {
+		myDFPlayer->setTimeOut(500); //Set serial communictaion time out 500ms
+		delay(100);
+		myDFPlayer->volume(30);
+		delay(100);
+		myDFPlayer->outputDevice(DFPLAYER_DEVICE_SD);
+		delay(100);
+	}
+
 	//myDFPlayer->play(1);
 	//myDFPlayer->pause();
 //}
