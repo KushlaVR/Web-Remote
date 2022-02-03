@@ -29,13 +29,13 @@ public:
 	int ch4_min;
 	int ch4_max;
 
-	int ch5_min;
+	/*int ch5_min;
 	int ch5_center;
-	int ch5_max;
+	int ch5_max;*/
 
-	int ch6_min;
+	/*int ch6_min;
 	int ch6_center;
-	int ch6_max;
+	int ch6_max;*/
 
 	int port_addr0;
 	int port_addr1;
