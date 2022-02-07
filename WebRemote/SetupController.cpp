@@ -35,12 +35,6 @@ void SetupController::loadConfig()
 		cfg.AddValue("ch4_min", "1007");
 		cfg.AddValue("ch4_max", "2014");
 
-		cfg.AddValue("ch5_min", "1007");
-		cfg.AddValue("ch5_max", "2014");
-
-		cfg.AddValue("ch6_min", "1007");
-		cfg.AddValue("ch6_max", "2014");
-
 		cfg.AddValue("turn_light_limit", "50");
 		cfg.AddValue("reverce_limit", "5");
 
@@ -48,11 +42,22 @@ void SetupController::loadConfig()
 		cfg.AddValue("back_light_timeout", "500");
 
 		cfg.AddValue("port_addr0", "39");
-		cfg.AddValue("port_addr1", "119");
+		//cfg.AddValue("port_addr1", "119");
 
-		cfg.AddValue("gear0", "90");
+		cfg.AddValue("gearbox_mode", "0");
+
+		cfg.AddValue("gearN", "90");
 		cfg.AddValue("gear1", "60");
 		cfg.AddValue("gear2", "120");
+
+		cfg.AddValue("gear1_min", "60");
+		cfg.AddValue("gear1_max", "120");
+
+		cfg.AddValue("gear2_min", "90");
+		cfg.AddValue("gear3_max", "120");
+
+		cfg.AddValue("gearR_min", "60");
+		cfg.AddValue("gearR_max", "100");
 
 		cfg.endObject();
 
@@ -82,31 +87,31 @@ void SetupController::loadConfig()
 
 	this->cfg->ch3_min = cfg.getInt("ch3_min");
 	this->cfg->ch3_max = cfg.getInt("ch3_max");
+	this->cfg->ch3_center = this->cfg->ch3_min + ((this->cfg->ch3_max - this->cfg->ch3_min) / 2);
 
 	this->cfg->ch4_min = cfg.getInt("ch4_min");
 	this->cfg->ch4_max = cfg.getInt("ch4_max");
-
-	this->cfg->ch5_min = cfg.getInt("ch5_min");
-	this->cfg->ch5_max = cfg.getInt("ch5_max");
-	this->cfg->ch5_center = this->cfg->ch5_min + ((this->cfg->ch5_max - this->cfg->ch5_min) / 2);
-
-	this->cfg->ch6_min = cfg.getInt("ch6_min");
-	this->cfg->ch6_max = cfg.getInt("ch6_max");
-	this->cfg->ch6_center = this->cfg->ch6_min + ((this->cfg->ch6_max - this->cfg->ch6_min) / 2);
+	this->cfg->ch4_center = this->cfg->ch4_min + ((this->cfg->ch4_max - this->cfg->ch4_min) / 2);
+	
+	this->cfg->port_addr0 = cfg.getInt("port_addr0");
 
 	this->cfg->turn_light_limit = cfg.getInt("turn_light_limit");
 	this->cfg->reverce_limit = cfg.getInt("reverce_limit");
-	this->cfg->port_addr0 = cfg.getInt("port_addr0");
-	this->cfg->port_addr1 = cfg.getInt("port_addr1");
-
 	this->cfg->stop_light_duration = cfg.getInt("stop_light_duration");
 	this->cfg->back_light_timeout = cfg.getInt("back_light_timeout");
 
-	this->cfg->gear0 = cfg.getInt("gear0");
+	this->cfg->gearN = cfg.getInt("gearN");
 	this->cfg->gear1 = cfg.getInt("gear1");
 	this->cfg->gear2 = cfg.getInt("gear2");
 
+	this->cfg->gear1_min = cfg.getInt("gear1_min");
+	this->cfg->gear1_max = cfg.getInt("gear1_max");
 
+	this->cfg->gear2_min = cfg.getInt("gear2_min");
+	this->cfg->gear2_max = cfg.getInt("gear2_max");
+
+	this->cfg->gearR_min = cfg.getInt("gearR_min");
+	this->cfg->gearR_max = cfg.getInt("gearR_max");
 }
 
 void SetupController::saveConfig()
@@ -141,23 +146,25 @@ void SetupController::printConfig(JsonString* out)
 	out->AddValue("ch4_min", String(cfg->ch4_min));
 	out->AddValue("ch4_max", String(cfg->ch4_max));
 
-	out->AddValue("ch5_min", String(cfg->ch5_min));
-	out->AddValue("ch5_max", String(cfg->ch5_max));
-
-	out->AddValue("ch6_min", String(cfg->ch6_min));
-	out->AddValue("ch6_max", String(cfg->ch6_max));
-
 	out->AddValue("turn_light_limit", String(cfg->turn_light_limit));
 	out->AddValue("reverce_limit", String(cfg->reverce_limit));
 	out->AddValue("port_addr0", String(cfg->port_addr0));
-	out->AddValue("port_addr1", String(cfg->port_addr1));
 
 	out->AddValue("stop_light_duration", String(cfg->stop_light_duration));
 	out->AddValue("back_light_timeout", String(cfg->back_light_timeout));
 
-	out->AddValue("gear0", String(cfg->gear0));
+	out->AddValue("gearN", String(cfg->gearN));
 	out->AddValue("gear1", String(cfg->gear1));
 	out->AddValue("gear2", String(cfg->gear2));
+	
+	out->AddValue("gear1_min", String(cfg->gear1_min));
+	out->AddValue("gear1_max", String(cfg->gear1_max));
+
+	out->AddValue("gear2_min", String(cfg->gear2_min));
+	out->AddValue("gear2_max", String(cfg->gear2_max));
+
+	out->AddValue("gearR_min", String(cfg->gearR_min));
+	out->AddValue("gearR_max", String(cfg->gearR_max));
 	
 	out->endObject();
 }
@@ -185,27 +192,31 @@ void SetupController::Setup_Post()
 
 	if (webServer.hasArg("ch3_min")) { setupController.cfg->ch3_min = webServer.arg("ch3_min").toInt(); }
 	if (webServer.hasArg("ch3_max")) { setupController.cfg->ch3_max = webServer.arg("ch3_max").toInt(); }
+	setupController.cfg->ch3_center = setupController.cfg->ch3_min + ((setupController.cfg->ch3_max - setupController.cfg->ch3_min) / 2);
 
 	if (webServer.hasArg("ch4_min")) { setupController.cfg->ch4_min = webServer.arg("ch4_min").toInt(); }
 	if (webServer.hasArg("ch4_max")) { setupController.cfg->ch4_max = webServer.arg("ch4_max").toInt(); }
-
-	if (webServer.hasArg("ch5_min")) { setupController.cfg->ch5_min = webServer.arg("ch5_min").toInt(); }
-	if (webServer.hasArg("ch5_max")) { setupController.cfg->ch5_max = webServer.arg("ch5_max").toInt(); }
-
-	if (webServer.hasArg("ch6_min")) { setupController.cfg->ch6_min = webServer.arg("ch6_min").toInt(); }
-	if (webServer.hasArg("ch6_max")) { setupController.cfg->ch6_max = webServer.arg("ch6_max").toInt(); }
+	setupController.cfg->ch4_center = setupController.cfg->ch4_min + ((setupController.cfg->ch4_max - setupController.cfg->ch4_min) / 2);
 
 	if (webServer.hasArg("turn_light_limit")) { setupController.cfg->turn_light_limit = webServer.arg("turn_light_limit").toInt(); }
 	if (webServer.hasArg("reverce_limit")) { setupController.cfg->reverce_limit = webServer.arg("reverce_limit").toInt(); }
 	if (webServer.hasArg("port_addr0")) { setupController.cfg->port_addr0 = webServer.arg("port_addr0").toInt(); }
-	if (webServer.hasArg("port_addr1")) { setupController.cfg->port_addr1 = webServer.arg("port_addr1").toInt(); }
 
 	if (webServer.hasArg("stop_light_duration")) { setupController.cfg->stop_light_duration = webServer.arg("stop_light_duration").toInt(); }
 	if (webServer.hasArg("back_light_timeout")) { setupController.cfg->back_light_timeout = webServer.arg("back_light_timeout").toInt(); }
 
-	if (webServer.hasArg("gear0")) { setupController.cfg->gear0 = webServer.arg("gear0").toInt(); }
+	if (webServer.hasArg("gearN")) { setupController.cfg->gearN = webServer.arg("gearN").toInt(); }
 	if (webServer.hasArg("gear1")) { setupController.cfg->gear1 = webServer.arg("gear1").toInt(); }
 	if (webServer.hasArg("gear2")) { setupController.cfg->gear2 = webServer.arg("gear2").toInt(); }
+
+	if (webServer.hasArg("gear1_min")) { setupController.cfg->gear1_min = webServer.arg("gear1_min").toInt(); }
+	if (webServer.hasArg("gear1_max")) { setupController.cfg->gear1_max = webServer.arg("gear1_max").toInt(); }
+
+	if (webServer.hasArg("gear2_min")) { setupController.cfg->gear2_min = webServer.arg("gear2_min").toInt(); }
+	if (webServer.hasArg("gear2_max")) { setupController.cfg->gear2_max = webServer.arg("gear2_max").toInt(); }
+
+	if (webServer.hasArg("gearR_min")) { setupController.cfg->gearR_min = webServer.arg("gearR_min").toInt(); }
+	if (webServer.hasArg("gearR_max")) { setupController.cfg->gearR_max = webServer.arg("gearR_max").toInt(); }
 
 	setupController.saveConfig();
 
