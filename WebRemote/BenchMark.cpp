@@ -13,12 +13,18 @@ BenchMark::~BenchMark()
 
 void BenchMark::Start()
 {
+	lastMeasure = millis();
 	m = micros();
 }
 
 void BenchMark::Stop()
 {
 	length = micros() - m;
+}
+
+bool BenchMark::isActual()
+{
+	return ((millis() - lastMeasure) <= inteval);
 }
 
 void BenchMark::loop()

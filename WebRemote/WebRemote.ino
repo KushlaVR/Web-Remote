@@ -1,7 +1,8 @@
 ﻿/*
  Name:		WebRemote.ino
  Created:	4/23/2020 11:30:33 PM
- Author:	Віталік
+ Author:	kushlavr@gmail.com
+			kushlavr.github.io
 */
 
 #include <ESP8266WiFi.h>
@@ -32,7 +33,13 @@
 
 2) Y - газ
 
-3) На кнопку 4 канала можно вывести свет. Как раньше делали, первое нажатие габариты, второе ближний, третье дальний. Долгое нажатие- аварийка.
+3) На кнопку 4 канала можно вывести свет.
+	* первое нажатие габариты,
+	* второе ближний,
+	* третье дальний.
+	* Долгое нажатие- аварийка.
+	* двойной клик - Включение/виключение туманок
+
 
 4) Коробка
 	В мануал режиме
@@ -48,12 +55,12 @@
 #define MOSFET_OFF MAX_PWM_VALUE
 #define MOSFET_ON 0
 
-#define PIN_SERVO_X 14//ok
-#define PIN_SERVO_Y 12//ok
-#define PIN_SERVO_CH3 13//ok
+#define PIN_SERVO_X 14//ok - D5
+#define PIN_SERVO_Y 12//ok - D6
+#define PIN_SERVO_CH3 13//ok - D7
 #define PIN_SERVO_CH4 16//OK D0 - no interrupt
-#define PIN_SERVO_CH5 2//D4 - 
-#define PIN_SERVO_CH6 15
+#define PIN_SERVO_CH5 2//D4 - X_OUTPUT
+#define PIN_SERVO_CH6 15//D8 - GEARBOX_OUTPUT
 
 #define PIN_I2C_SCL D1 //pcf8574
 #define PIN_I2C_SDA D2 //pcf8574
@@ -66,6 +73,9 @@
 #define PIN_EXT0_HIGH_LIGHT 5
 #define PIN_EXT0_HEAD_LIGHT 6
 #define PIN_EXT0_PARKING_LIGHT 7
+
+#define PIN_X_OUTPUT PIN_SERVO_CH5
+#define PIN_GEARBOX_OUTPUT PIN_SERVO_CH6
 
 //#define PIN_EXT0_CABIN PIN_EXT0_FOG
 
@@ -89,7 +99,7 @@ struct State {
 	bool parkingLight;
 	bool headLight;
 	bool highLight;
-	bool cabinLight;
+	bool fogLight;
 	bool interiorLight;
 
 	int siren;
@@ -101,13 +111,8 @@ BenchMark input_X = BenchMark();
 BenchMark input_Y = BenchMark();
 BenchMark input_CH3 = BenchMark();
 BenchMark input_CH4 = BenchMark();
-//BenchMark input_CH5 = BenchMark();
-//BenchMark input_CH6 = BenchMark();
 
 BenchMark* input_Light = &input_CH3;
-//BenchMark* input_Siren = &input_CH3;
-//BenchMark* input_Cabin = &input_CH6;
-//BenchMark* input_Interior = &input_CH6;
 
 DFRobotDFPlayerMini* myDFPlayer;
 bool is_MP3_available = false;
@@ -121,7 +126,8 @@ extBlinker* rightLight;
 extBlinker* BackLight;
 extBlinker* alarmBlinker;
 
-//extBlinker* sirenBlinker;
+Servo X_output = Servo();
+Servo Gearbox_output = Servo();
 
 
 void reloadConfig();
@@ -145,25 +151,10 @@ void btnLight_Release();
 VirtualButton btnLight = VirtualButton(btnLight_Press, btnLight_Hold, btnLight_Release);
 
 
-//void btnSiren_Press();
-//void btnSiren_Hold();
-//void btnSiren_Release();
-//VirtualButton btnSiren = VirtualButton(btnSiren_Press, btnSiren_Hold, btnSiren_Release);
-
 void btnSirenSound_Press();
 void btnSirenSound_Hold();
 void btnSirenSound_Release();
 VirtualButton btnSirenSound = VirtualButton(btnSirenSound_Press, btnSirenSound_Hold, btnSirenSound_Release);
-
-//void btnInterior_Press();
-//void btnInterior_Hold();
-//void btnInterior_Release();
-//VirtualButton btnInterior = VirtualButton(btnInterior_Press, btnInterior_Hold, btnInterior_Release);
-
-//void btnCabin_Press();
-//void btnCabin_Hold();
-//void btnCabin_Release();
-//VirtualButton btnCabin = VirtualButton(btnCabin_Press, btnCabin_Hold, btnCabin_Release);
 
 
 
@@ -189,34 +180,26 @@ void ICACHE_RAM_ATTR  pinServo_CH3_CHANGE() {
 	else
 		input_CH3.Stop();
 }
-/*
-void ICACHE_RAM_ATTR  pinServo_CH4_CHANGE() {
-	if (digitalRead(PIN_SERVO_CH4))
-		input_CH4.Start();
-	else
-		input_CH4.Stop();
-}*/
 
+bool btnLight_Handled = false;
+ulong lastPress = 0;
 
-/*void ICACHE_RAM_ATTR  pinServo_CH5_CHANGE() {
-	if (digitalRead(PIN_SERVO_CH4))
-		input_CH5.Start();
+void btnLight_DoubleClick() {
+	Serial.println("btnLight_DoubleClick");
+	if (state.fogLight)
+		state.fogLight = false;
 	else
-		input_CH5.Stop();
+		state.fogLight = true;
+	btnLight_Handled = true;
 }
 
-void ICACHE_RAM_ATTR  pinServo_CH6_CHANGE() {
-	if (digitalRead(PIN_SERVO_CH6))
-		input_CH6.Start();
-	else
-		input_CH6.Stop();
-}
-*/
-
-
-bool alarmChanged = false;
 void btnLight_Press() {
 	Serial.println("btnLight_Press");
+	ulong m = millis() - lastPress;
+	if (m < 500) {
+		btnLight_DoubleClick();
+	}
+	lastPress = millis();
 }
 
 void btnLight_Hold() {
@@ -225,13 +208,13 @@ void btnLight_Hold() {
 		state.alarm = false;
 	else
 		state.alarm = true;
-	alarmChanged = true;
+	btnLight_Handled = true;
 }
 
 void btnLight_Release() {
 	Serial.println("btnLight_Release");
-	if (alarmChanged) {
-		alarmChanged = false;
+	if (btnLight_Handled) {
+		btnLight_Handled = false;
 		return;
 	}
 	if (state.parkingLight == false) {
@@ -261,15 +244,6 @@ void btnLight_Release() {
 
 }
 
-
-//void btnSiren_Press() {
-//	if (!sirenBlinker->isRunning()) sirenBlinker->begin();
-//};
-//void btnSiren_Hold() {};
-//void btnSiren_Release() {
-//	if (sirenBlinker->isRunning()) sirenBlinker->end();
-//};
-
 void btnSirenSound_Press() {
 	if (is_MP3_available) {
 		myDFPlayer->loop(1);
@@ -281,40 +255,6 @@ void btnSirenSound_Release() {
 		myDFPlayer->stop();
 	}
 };
-
-
-//bool btnInterior_ready = false;
-bool btnCabin_ready = false;
-
-//void btnInterior_Press() {
-//	if (state.interiorLight == 1 || btnInterior_ready == false) {
-//		state.interiorLight = 0;
-//		portExt1->set(PIN_EXT1_INTERIOR, lightOFF);
-//	}
-//	else {
-//		state.interiorLight = 1;
-//		portExt1->set(PIN_EXT1_INTERIOR, lightON);
-//	}
-//};
-//void btnInterior_Hold() {
-//};
-//void btnInterior_Release() {
-//};
-
-//void btnCabin_Press() {
-//	if (state.cabinLight == 1 || btnCabin_ready == false) {
-//		state.cabinLight = 0;
-//		portExt0->set(PIN_EXT0_CABIN, lightOFF);
-//	}
-//	else {
-//		state.cabinLight = 1;
-//		portExt0->set(PIN_EXT0_CABIN, lightON);
-//	}
-//};
-//void btnCabin_Hold() {
-//};
-//void btnCabin_Release() {
-//};
 
 void reloadConfig() {
 
@@ -337,16 +277,7 @@ void reloadConfig() {
 	input_CH4.IN_center = config.ch4_min + ((config.ch4_max - config.ch4_min) / 2);
 	input_CH4.IN_min = config.ch4_min;
 
-	/*input_CH5.IN_max = config.ch5_max;
-	input_CH5.IN_center = config.ch5_center;
-	input_CH5.IN_min = config.ch5_min;*/
-
-	//input_CH6.IN_max = config.ch6_max;
-	//input_CH6.IN_center = config.ch6_center;
-	//input_CH6.IN_min = config.ch6_min;
-
 }
-
 
 void setupBlinkers() {
 
@@ -356,7 +287,6 @@ void setupBlinkers() {
 	rightLight = new extBlinker("Right light", portExt0);
 	BackLight = new extBlinker("Back light", portExt0);
 	alarmBlinker = new extBlinker("Alarm light", portExt0);
-	//sirenBlinker = new extBlinker("Siren light", portExt1);
 
 	stopLight
 		->Add(PIN_EXT0_STOP, 0, lightOFF)
@@ -400,16 +330,6 @@ void setupBlinkers() {
 		->repeat = true;
 	alarmBlinker->offLevel = lightOFF;
 
-
-	/*sirenBlinker
-		->Add(PIN_EXT1_BLINKER_LEFT, 0, lightON)
-		->Add(PIN_EXT1_BLINKER_RIGHT, 0, lightOFF)
-		->Add(PIN_EXT1_BLINKER_LEFT, 500, lightOFF)
-		->Add(PIN_EXT1_BLINKER_RIGHT, 500, lightON)
-		->Add(PIN_EXT1_BLINKER_LEFT, 1000, lightOFF)
-		->Add(PIN_EXT1_BLINKER_RIGHT, 1000, lightOFF)
-		->repeat = true;
-	sirenBlinker->offLevel = lightOFF;*/
 
 }
 
@@ -506,13 +426,13 @@ void setup()
 	portExt0->begin(PIN_I2C_SDA, PIN_I2C_SCL);
 	portExt0->write8(0x00);
 
-	/*portExt1 = new PCF8574(config.port_addr1);
-	portExt1->begin(PIN_I2C_SDA, PIN_I2C_SCL);
-	portExt1->write8(0x00);*/
-
 	delay(1000);
 	portExt0->write8(0xFF);
-	//portExt1->write8(0xFF);
+
+	btnLight.bounce = 100;
+
+	pinMode(PIN_X_OUTPUT, OUTPUT);
+	pinMode(PIN_GEARBOX_OUTPUT, OUTPUT);
 
 	setupBlinkers();
 
@@ -527,8 +447,6 @@ void printValues(JsonString* out)
 	out->AddValue("ch2_val", String(input_Y.ImpulsLength));
 	out->AddValue("ch3_val", String(input_CH3.ImpulsLength));
 	out->AddValue("ch4_val", String(input_CH4.ImpulsLength));
-	//out->AddValue("ch5_val", String(input_CH5.ImpulsLength));
-	//out->AddValue("ch6_val", String(input_CH6.ImpulsLength));
 	out->endObject();
 }
 
@@ -610,7 +528,6 @@ void Post() {
 		webServer.Ok();
 	}
 }
-
 
 void handleVeichle() {
 	/*
@@ -711,7 +628,6 @@ void handleVeichle() {
 	*/
 }
 
-
 void handleStearing() {
 	if (!input_X.isValid()) {
 		if (leftLight->isRunning())
@@ -792,6 +708,34 @@ void handleStearing() {
 
 }
 
+void handleHeadLight() {
+	if (input_Light->pos > 90)
+		btnLight.setValue(HIGH);
+	else
+		btnLight.setValue(LOW);
+
+	if (state.parkingLight) {
+		portExt0->write(PIN_EXT0_PARKING_LIGHT, lightON);
+	}
+	else {
+		portExt0->write(PIN_EXT0_PARKING_LIGHT, lightOFF);
+	}
+
+	if (state.headLight)
+		portExt0->write(PIN_EXT0_HEAD_LIGHT, lightON);
+	else
+		portExt0->write(PIN_EXT0_HEAD_LIGHT, lightOFF);
+
+	if (state.highLight)
+		portExt0->write(PIN_EXT0_HIGH_LIGHT, lightON);
+	else
+		portExt0->write(PIN_EXT0_HIGH_LIGHT, lightOFF);
+
+	if (state.fogLight)
+		portExt0->write(PIN_EXT0_FOG, lightON);
+	else
+		portExt0->write(PIN_EXT0_FOG, lightOFF);
+}
 
 void handleSpeed() {
 	if (!input_Y.isValid()) {
@@ -830,9 +774,7 @@ void handleSpeed() {
 			Serial.println("BackLight begin");
 		}
 		BackLight->begin();
-
 	}
-
 
 	if (state.speed != speed) {
 		//швидкість змінилась
@@ -858,91 +800,37 @@ void handleSpeed() {
 
 }
 
-
-void handleHeadLight() {
-	if (input_Light->pos > 90)
-		btnLight.setValue(HIGH);
-	else
-		btnLight.setValue(LOW);
-
-	if (state.parkingLight) {
-		portExt0->write(PIN_EXT0_PARKING_LIGHT, lightON);
-		//portExt1->write(PIN_EXT1_PARKING_LIGHT, lightON);
-		/*if (state.fogLight)
-			portExt->write(bitFogLight, lightON);
-		else
-			portExt->write(bitFogLight, lightOFF);*/
-	}
-	else {
-		portExt0->write(PIN_EXT0_PARKING_LIGHT, lightOFF);
-		//portExt1->write(PIN_EXT1_PARKING_LIGHT, lightOFF);
-		//portExt->write(bitFogLight, lightOFF);
+void handle_X_output() {
+	if (!X_output.attached()) {
+		X_output.attach(PIN_X_OUTPUT);
 	}
 
-	if (state.headLight)
-		portExt0->write(PIN_EXT0_HEAD_LIGHT, lightON);
-	else
-		portExt0->write(PIN_EXT0_HEAD_LIGHT, lightOFF);
 
-	if (state.highLight)
-		portExt0->write(PIN_EXT0_HIGH_LIGHT, lightON);
-	else
-		portExt0->write(PIN_EXT0_HIGH_LIGHT, lightOFF);
 
-}
-/*
-void handleSiren() {
-	if (input_Siren->isValid()) {
-		if (input_Siren->pos > 45)
-			btnSiren.setValue(HIGH);
-		else
-			btnSiren.setValue(LOW);
 
-		if (input_Siren->pos > 135)
-			btnSirenSound.setValue(HIGH);
-		else
-			btnSirenSound.setValue(LOW);
+	if (config.gearbox_mode == 0) {//Manual mode
+
 	}
-	else {
-		btnSiren.setValue(LOW);
-		btnSirenSound.setValue(LOW);
+	else {//Automatic mode
+
 	}
 }
-*/
 
-//void handleCabin() {
-//	if (input_Cabin->isValid()) {
-//		if (input_Cabin->pos > 135) {
-//			btnCabin.setValue(HIGH);
-//		}
-//		else {
-//			btnCabin_ready = true;
-//			//Serial.println("btnCabin_ready");
-//			btnCabin.setValue(LOW);
-//		}
-//	}
-//	else {
-//		btnCabin.setValue(LOW);
-//	}
-//}
-/*
-void handleInterior() {
-	if (input_Interior->isValid()) {
-		if (input_Cabin->pos < 45) {
-			btnInterior.setValue(HIGH);
-		}
-		else {
-			btnInterior_ready = true;
-			//Serial.println("btnInterior_ready");
-			btnInterior.setValue(LOW);
-		}
+void handle_Gearbox() {
+	if (!Gearbox_output.attached()) {
+		Gearbox_output.attach(PIN_GEARBOX_OUTPUT);
 	}
-	else {
-		btnInterior.setValue(LOW);
-	}
-}*/
 
-unsigned long last_CH4_read = 0;
+
+	if (config.gearbox_mode == 0) {//Manual mode
+		if (input_CH4.)
+	}
+	else {//Automatic mode
+
+	}
+}
+
+
 
 void loop()
 {
@@ -952,9 +840,6 @@ void loop()
 		attachInterrupt(digitalPinToInterrupt(PIN_SERVO_X), pinServo_X_CHANGE, CHANGE);
 		attachInterrupt(digitalPinToInterrupt(PIN_SERVO_Y), pinServo_Y_CHANGE, CHANGE);
 		attachInterrupt(digitalPinToInterrupt(PIN_SERVO_CH3), pinServo_CH3_CHANGE, CHANGE);
-		//attachInterrupt(digitalPinToInterrupt(PIN_SERVO_CH4), pinServo_CH4_CHANGE, CHANGE);
-		//attachInterrupt(digitalPinToInterrupt(PIN_SERVO_CH5), pinServo_CH5_CHANGE, CHANGE);
-		//attachInterrupt(digitalPinToInterrupt(PIN_SERVO_CH6), pinServo_CH6_CHANGE, CHANGE);
 		interruptAttached = true;
 	}
 
@@ -962,20 +847,21 @@ void loop()
 	joypads.loop();
 	webServer.loop();
 
-	if (digitalRead(PIN_SERVO_CH4) == LOW && ((millis() - last_CH4_read) > 300)) {
-		last_CH4_read = millis();
-		while (digitalRead(PIN_SERVO_CH4) == LOW && (millis() - last_CH4_read) < 25) {};
-		input_CH4.Start();
-		while (digitalRead(PIN_SERVO_CH4) == HIGH && (millis() - last_CH4_read) < 25) {};
-		input_CH4.Stop();
+	if (digitalRead(PIN_SERVO_CH4) == LOW && !(input_CH4.isActual())) {
+		ulong measureStart = millis();
+		bool timeout = false;
+		while (digitalRead(PIN_SERVO_CH4) == LOW && !timeout) { timeout = (millis() - measureStart) < 25; };
+		if (!timeout) {
+			input_CH4.Start();
+			while (digitalRead(PIN_SERVO_CH4) == HIGH && !timeout) { timeout = (millis() - measureStart) < 25; };
+			input_CH4.Stop();
+		}
 	}
 
 	input_X.loop();
 	input_Y.loop();
 	input_CH3.loop();
 	input_CH4.loop();
-	//input_CH5.loop();
-	//input_CH6.loop();
 
 	if (input_X.isChanged) {
 		Serial.printf("Servo X = %i (%i)\n", input_X.pos, input_X.ImpulsLength);
@@ -989,29 +875,22 @@ void loop()
 	if (input_CH4.isChanged) {
 		Serial.printf("Servo CH4 = %i (%i)\n", input_CH4.pos, input_CH4.ImpulsLength);
 	}
-	//if (input_CH5.isChanged) {
-	//	Serial.printf("Servo CH5 = %i (%i)\n", input_CH5.pos, input_CH5.ImpulsLength);
-	//}
-	//if (input_CH6.isChanged) {
-	//	Serial.printf("Servo CH6 = %i (%i)\n", input_CH6.pos, input_CH6.ImpulsLength);
-	//}
+
 
 	if (joypads.getCount() > 0) {
 		handleVeichle();
 	}
 
 	handleStearing();
-	handleSpeed();
 	handleHeadLight();
-	//handleSiren();
-	//handleCabin();
-	//handleInterior();
+	handleSpeed();
+	handle_X_output();
+	handle_Gearbox();
 
 	stopLight->loop();
 	leftLight->loop();
 	rightLight->loop();
 	BackLight->loop();
 	alarmBlinker->loop();
-	//sirenBlinker->loop();
 
 }
