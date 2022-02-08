@@ -805,11 +805,8 @@ void handle_X_output() {
 		X_output.attach(PIN_X_OUTPUT);
 	}
 
-
-
-
 	if (config.gearbox_mode == 0) {//Manual mode
-
+		X_output.writeMicroseconds(input_X.ImpulsLength);
 	}
 	else {//Automatic mode
 
@@ -821,9 +818,22 @@ void handle_Gearbox() {
 		Gearbox_output.attach(PIN_GEARBOX_OUTPUT);
 	}
 
-
 	if (config.gearbox_mode == 0) {//Manual mode
-		if (input_CH4.)
+		if (input_CH4.pos > (90 - 45) && input_CH4.pos < (90 + 45))//N
+		{
+			Gearbox_output.write(config.gearN);
+		}
+		else if (input_CH4.pos < (90 - 45))//Gear 1
+		{
+			Gearbox_output.write(config.gear1);
+		}
+		else {//Gear 2 (якщо їдемо назад - то включається тільки 1 передача)
+			if (state.speed < 0)//R
+				Gearbox_output.write(config.gear1);
+			else {
+				Gearbox_output.write(config.gear2);
+			}
+		}
 	}
 	else {//Automatic mode
 

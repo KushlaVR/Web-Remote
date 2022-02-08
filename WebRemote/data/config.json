@@ -21,16 +21,25 @@
   "ch6_max": "2014",
 
   "port_addr0": "39",
-  "port_addr1": "38",
 
   "stop_light_duration": "2000",
   "back_light_timeout": "500",
   "reverce_limit": "5",
   "turn_light_limit": "50",
 
-  "gear0": "90",
-  "gear1": "60",
-  "gear2": "120"
+  "gearbox_mode": 0,
 
+  "gearN": "90",
+  "gear1": "60",
+  "gear2": "120",
+
+  "gear1_min": "0",
+  "gear1_max": "100",
+
+  "gear2_min": "40",
+  "gear2_max": "100",
+
+  "gearR_min": "0",
+  "gearR_max": "50"
 
 }
