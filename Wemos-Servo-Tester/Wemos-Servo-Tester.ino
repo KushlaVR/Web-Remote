@@ -29,15 +29,15 @@ void setup() {
 	pinMode(D7, OUTPUT);
 	pinMode(D8, OUTPUT);
 
-	servo1.attach(D0);
-	servo2.attach(D1);
-	servo3.attach(D2);
-	servo4.attach(D3);
-	servo5.attach(D4);
-	servo6.attach(D5);
+	servo1.attach(D1);
+	servo2.attach(D2);
+	servo3.attach(D3);
+	servo4.attach(D4);
+	servo5.attach(D8);
+	servo6.attach(D7);
 	servo7.attach(D6);
-	servo8.attach(D7);
-	servo9.attach(D8);
+	servo8.attach(D5);
+	servo9.attach(D0);
 
 }
 

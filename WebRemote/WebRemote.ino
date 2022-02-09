@@ -335,16 +335,12 @@ void setupBlinkers() {
 
 void setup()
 {
-	Serial.begin(9600);
 	console.output = &Serial;
 	console.println();
 	console.println();
 	console.println();
 
 	myDFPlayer = new DFRobotDFPlayerMini();
-
-
-	myDFPlayer->begin(Serial);
 
 
 	/*if (!myDFPlayer->begin(Serial)) {
@@ -354,6 +350,8 @@ void setup()
 	else {*/
 	is_MP3_available = false;
 	if (is_MP3_available) {
+		Serial.begin(9600);
+		myDFPlayer->begin(Serial);
 		myDFPlayer->setTimeOut(500); //Set serial communictaion time out 500ms
 		delay(100);
 		myDFPlayer->volume(30);
@@ -361,6 +359,10 @@ void setup()
 		myDFPlayer->outputDevice(DFPLAYER_DEVICE_SD);
 		delay(100);
 	}
+	else {
+		Serial.begin(115200);
+	}
+
 
 	//myDFPlayer->play(1);
 	//myDFPlayer->pause();
@@ -840,6 +842,96 @@ void handle_Gearbox() {
 	}
 }
 
+int cmdPos = 0;
+char cmd[256];
+
+
+
+void cmdMotor(String val) {
+
+	input_Y.SetFakeValue(val.toInt());
+
+	Serial.print("cmd-motor");
+	Serial.println(val);
+
+}
+
+void cmdStearing(String val) {
+
+	input_X.SetFakeValue(val.toInt());
+
+	Serial.print("cmd-stearing");
+	Serial.println(val);
+}
+
+
+void cmdLight(String val) {
+	Serial.print("cmd-loght");
+	Serial.println(val);
+}
+
+
+void cmdGearbox(String val) {
+	Serial.print("cmd-gearbox");
+	Serial.println(val);
+}
+
+void cmdInfo(String val) {
+
+
+	JsonString out;
+	setupController.printConfig(&out);
+	Serial.println(out);
+
+	Serial.print("input_X.ImpulsLength: ");
+	Serial.println(input_X.ImpulsLength);
+
+
+	Serial.print("input_Y.ImpulsLength: ");
+	Serial.println(input_Y.ImpulsLength);
+
+
+	Serial.print("input_CH3.ImpulsLength: ");
+	Serial.println(input_CH3.ImpulsLength);
+
+
+	Serial.print("input_CH3.ImpulsLength: ");
+	Serial.println(input_CH4.ImpulsLength);
+}
+
+
+void handleSerial() {
+	while (Serial.available()) {
+		cmd[cmdPos] = Serial.read();
+		if (cmd[cmdPos] == 10 || cmd[cmdPos] == 13) {
+			if (cmdPos > 0) {
+				cmd[cmdPos + 1] = 0;
+				String s = String(cmd);
+				if (s.startsWith("y=")) {
+					cmdMotor(s.substring(2));
+				}
+				else if (s.startsWith("x=")) {
+					cmdStearing(s.substring(2));
+				}
+				else if (s.startsWith("ch3=")) {
+					cmdLight(s.substring(4));
+				}
+				else if (s.startsWith("ch4=")) {
+					cmdGearbox(s.substring(4));
+				} else if (s.startsWith("?")) {
+					cmdInfo(s.substring(1));
+				}
+			}
+			cmdPos = 0;
+		}
+		else if (cmdPos == 255) {
+			cmdPos = 0;
+		}
+		else {
+			cmdPos++;
+		}
+	}
+}
 
 
 void loop()
@@ -902,5 +994,7 @@ void loop()
 	rightLight->loop();
 	BackLight->loop();
 	alarmBlinker->loop();
+
+	handleSerial();
 
 }
