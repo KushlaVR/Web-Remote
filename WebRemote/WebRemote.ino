@@ -873,6 +873,16 @@ void cmdLight(String val) {
 
 void cmdGearbox(String val) {
 	Serial.print("cmd-gearbox");
+	if (val == "a") {
+		Serial.print(" mode auto");
+		config.gearbox_mode = 1;
+		setupController.saveConfig();
+	};
+	if (val == "m") {
+		Serial.print(" mode manual");
+		config.gearbox_mode = 1;
+		setupController.saveConfig();
+	};
 	Serial.println(val);
 }
 
@@ -918,7 +928,8 @@ void handleSerial() {
 				}
 				else if (s.startsWith("ch4=")) {
 					cmdGearbox(s.substring(4));
-				} else if (s.startsWith("?")) {
+				}
+				else if (s.startsWith("?")) {
 					cmdInfo(s.substring(1));
 				}
 			}
