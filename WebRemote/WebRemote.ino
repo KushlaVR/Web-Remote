@@ -25,7 +25,7 @@
 #include "PCF8574.h"
 #include "BenchMark.h"
 #include "DFRobotDFPlayerMini.h"
-
+#include "GearBox.h"
 
 /*
 
@@ -93,7 +93,7 @@ enum Ignition {
 
 struct State {
 	int speed;
-	int speedOutputValie;
+	int speedOutputValue;
 
 	int gear;
 
@@ -132,6 +132,7 @@ extBlinker* alarmBlinker;
 Servo Y_output = Servo();
 Servo Gearbox_output = Servo();
 
+GearBox gearBox = GearBox();
 
 void reloadConfig();
 
@@ -279,6 +280,8 @@ void reloadConfig() {
 	input_CH4.IN_max = config.ch4_max;
 	input_CH4.IN_center = config.ch4_min + ((config.ch4_max - config.ch4_min) / 2);
 	input_CH4.IN_min = config.ch4_min;
+
+	gearBox.acceleration_to_100 = config.acceleration_to_100;
 
 }
 
@@ -809,10 +812,10 @@ void SetSpeed(int pos) {
 	if (!Y_output.attached()) {
 		Y_output.attach(PIN_Y_OUTPUT);
 	}
-	if (pos != state.speedOutputValie) {
-		state.speedOutputValie = pos;
+	if (pos != state.speedOutputValue) {
+		state.speedOutputValue = pos;
 		Y_output.writeMicroseconds(pos);
-		Serial.print("speed regulator pos: "); Serial.println(state.speedOutputValie);
+		Serial.print("speed regulator pos: "); Serial.println(state.speedOutputValue);
 	}
 
 }
@@ -822,7 +825,7 @@ void handle_Y_output() {
 		SetSpeed(input_Y.ImpulsLength);
 	}
 	else {//Automatic mode
-
+		gearBox.SetAcceleratorPedalPosition(input_Y.pos * 100.0 / 180.0);
 	}
 }
 
@@ -859,6 +862,7 @@ void handle_Gearbox() {
 	}
 	else {//Automatic mode
 
+		gearBox.loop();
 	}
 }
 
@@ -914,14 +918,8 @@ void cmdInfo(String val) {
 	Serial.println(out);
 
 	Serial.print("input_X.ImpulsLength: ");	Serial.print(input_X.ImpulsLength); Serial.print(" pos: "); Serial.println(input_X.pos);
-
-
 	Serial.print("input_Y.ImpulsLength: ");	Serial.print(input_Y.ImpulsLength); Serial.print(" pos: "); Serial.println(input_Y.pos);
-
-
 	Serial.print("input_CH3.ImpulsLength: ");	Serial.print(input_CH3.ImpulsLength); Serial.print(" pos: "); Serial.println(input_CH3.pos);
-
-
 	Serial.print("input_CH4.ImpulsLength: ");	Serial.print(input_CH4.ImpulsLength); Serial.print(" pos: "); Serial.println(input_CH4.pos);
 
 
@@ -932,6 +930,9 @@ void cmdInfo(String val) {
 	Serial.print("state.highLight: ");	Serial.println(state.highLight);
 	Serial.print("state.parkingLight: ");	Serial.println(state.parkingLight);
 	Serial.print("state.alarm: ");	Serial.println(state.alarm);
+
+	Serial.print("gearBox.acceleratorPedalPosition: "); Serial.println(gearBox.acceleratorPedalPosition);
+	Serial.print("gearBox.speed: "); Serial.println(gearBox.speed);
 
 }
 

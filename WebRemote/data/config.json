@@ -27,7 +27,9 @@
   "reverce_limit": "5",
   "turn_light_limit": "50",
 
-  "gearbox_mode": 0,
+  "gearbox_mode": "0",
+
+  "acceleration_to_100": "5000",
 
   "gearN": "90",
   "gear1": "60",

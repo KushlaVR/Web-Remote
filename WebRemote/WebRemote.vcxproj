@@ -158,6 +158,7 @@
     <ClInclude Include="Button.h" />
     <ClInclude Include="Collection.h" />
     <ClInclude Include="Console.h" />
+    <ClInclude Include="GearBox.h" />
     <ClInclude Include="Joypad.h" />
     <ClInclude Include="Json.h" />
     <ClInclude Include="PCF8574.h" />
@@ -172,6 +173,7 @@
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="Collection.cpp" />
     <ClCompile Include="Console.cpp" />
+    <ClCompile Include="GearBox.cpp" />
     <ClCompile Include="Joypad.cpp" />
     <ClCompile Include="Json.cpp" />
     <ClCompile Include="PCF8574.cpp" />

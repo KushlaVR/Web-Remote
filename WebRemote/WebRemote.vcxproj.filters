@@ -98,6 +98,9 @@
     <ClInclude Include="PCF8574.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GearBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Button.cpp">
@@ -131,6 +134,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PCF8574.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GearBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
