@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Items", "Items", "{464C4E74
 		tools\copy-PCF8574A.bat = tools\copy-PCF8574A.bat
 		tools\data.bat = tools\data.bat
 		README.md = README.md
+		test-commands.md = test-commands.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HTML-Remote", "HTML-Remote\HTML-Remote.csproj", "{F8D75A00-A638-4EBB-BC32-2E312EEC46DF}"

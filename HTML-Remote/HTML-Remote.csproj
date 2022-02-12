@@ -184,6 +184,9 @@
       <DependentUpon>jquery.js</DependentUpon>
     </Content>
     <Content Include="js\kushlavr.js" />
+    <Content Include="js\kushlavr.min.js">
+      <DependentUpon>kushlavr.js</DependentUpon>
+    </Content>
     <Content Include="js\slider.js" />
     <Content Include="js\slider.min.js">
       <DependentUpon>slider.js</DependentUpon>

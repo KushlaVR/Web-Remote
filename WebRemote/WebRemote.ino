@@ -93,6 +93,8 @@ enum Ignition {
 
 struct State {
 	int speed;
+	int speedOutputValie;
+
 	int gear;
 
 	bool alarm;
@@ -803,13 +805,21 @@ void handleSpeed() {
 
 }
 
-void handle_Y_output() {
+void SetSpeed(int pos) {
 	if (!Y_output.attached()) {
 		Y_output.attach(PIN_Y_OUTPUT);
 	}
+	if (pos != state.speedOutputValie) {
+		state.speedOutputValie = pos;
+		Y_output.writeMicroseconds(pos);
+		Serial.print("speed regulator pos: "); Serial.println(state.speedOutputValie);
+	}
 
+}
+
+void handle_Y_output() {
 	if (config.gearbox_mode == 0) {//Manual mode
-		Y_output.writeMicroseconds(input_Y.ImpulsLength);
+		SetSpeed(input_Y.ImpulsLength);
 	}
 	else {//Automatic mode
 
@@ -825,8 +835,7 @@ void SetGearPos(int pos) {
 	if (state.gear != pos) {
 		state.gear = pos;
 		Gearbox_output.write(pos);
-		Serial.print("gear selector pos: ");
-		Serial.println(state.gear);
+		Serial.print("gear selector pos: "); Serial.println(state.gear);
 	}
 }
 

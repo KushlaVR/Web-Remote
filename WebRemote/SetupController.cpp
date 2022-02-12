@@ -20,7 +20,7 @@ void SetupController::loadConfig()
 	if (!SPIFFS.exists("/config.json")) {
 		console.println(("Default setting loaded..."));
 		cfg.beginObject();
-		cfg.AddValue("ssid", "GAZ13");
+		cfg.AddValue("ssid", "RC_71");
 		cfg.AddValue("password", "12345678");
 
 		cfg.AddValue("ch1_min", "1114");

@@ -39,6 +39,8 @@ class KVR {
         if (input.length > 0) {
             if (input[0].tagName === "INPUT") {
                 input.val(value);
+            } else if (input[0].tagName === "SELECT") {
+                input.val(value);
             } else {
                 input.html(value);
             }
