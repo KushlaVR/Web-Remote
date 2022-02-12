@@ -74,7 +74,7 @@
 #define PIN_EXT0_HEAD_LIGHT 6
 #define PIN_EXT0_PARKING_LIGHT 7
 
-#define PIN_X_OUTPUT PIN_SERVO_CH5
+#define PIN_Y_OUTPUT PIN_SERVO_CH5
 #define PIN_GEARBOX_OUTPUT PIN_SERVO_CH6
 
 //#define PIN_EXT0_CABIN PIN_EXT0_FOG
@@ -126,7 +126,7 @@ extBlinker* rightLight;
 extBlinker* BackLight;
 extBlinker* alarmBlinker;
 
-Servo X_output = Servo();
+Servo Y_output = Servo();
 Servo Gearbox_output = Servo();
 
 
@@ -300,17 +300,19 @@ void setupBlinkers() {
 	leftLight
 		->Add(PIN_EXT0_LEFT, 0, lightON)
 		->Add(PIN_EXT0_LEFT, 500, lightOFF)
-		->Add(PIN_EXT0_LEFT, 1000, lightOFF);
+		->Add(PIN_EXT0_LEFT, 1000, lightOFF)
+		->repeat = true;
 	leftLight->offLevel = lightOFF;
-	//leftLight.debug = true;
+	//leftLight->debug = true;
 	//serialController.leftLight = &leftLight;
 
 	rightLight
 		->Add(PIN_EXT0_RIGHT, 0, lightON)
 		->Add(PIN_EXT0_RIGHT, 500, lightOFF)
-		->Add(PIN_EXT0_RIGHT, 1000, lightOFF);
+		->Add(PIN_EXT0_RIGHT, 1000, lightOFF)
+		->repeat = true;
 	rightLight->offLevel = lightOFF;
-	//rightLight.debug = true;
+	//rightLight->debug = true;
 	//serialController.rightLight = &rightLight;
 
 
@@ -433,7 +435,7 @@ void setup()
 
 	btnLight.bounce = 100;
 
-	pinMode(PIN_X_OUTPUT, OUTPUT);
+	pinMode(PIN_Y_OUTPUT, OUTPUT);
 	pinMode(PIN_GEARBOX_OUTPUT, OUTPUT);
 
 	setupBlinkers();
@@ -802,13 +804,13 @@ void handleSpeed() {
 
 }
 
-void handle_X_output() {
-	if (!X_output.attached()) {
-		X_output.attach(PIN_X_OUTPUT);
+void handle_Y_output() {
+	if (!Y_output.attached()) {
+		Y_output.attach(PIN_Y_OUTPUT);
 	}
 
 	if (config.gearbox_mode == 0) {//Manual mode
-		X_output.writeMicroseconds(input_X.ImpulsLength);
+		Y_output.writeMicroseconds(input_Y.ImpulsLength);
 	}
 	else {//Automatic mode
 
@@ -866,8 +868,9 @@ void cmdStearing(String val) {
 
 
 void cmdLight(String val) {
-	Serial.print("cmd-loght");
+	Serial.print("cmd-light");
 	Serial.println(val);
+	input_CH3.SetFakeValue(val.toInt());
 }
 
 
@@ -877,11 +880,14 @@ void cmdGearbox(String val) {
 		Serial.print(" mode auto");
 		config.gearbox_mode = 1;
 		setupController.saveConfig();
-	};
-	if (val == "m") {
+	}
+	else if (val == "m") {
 		Serial.print(" mode manual");
 		config.gearbox_mode = 1;
 		setupController.saveConfig();
+	}
+	else {
+		input_CH4.SetFakeValue(val.toInt());
 	};
 	Serial.println(val);
 }
@@ -893,20 +899,25 @@ void cmdInfo(String val) {
 	setupController.printConfig(&out);
 	Serial.println(out);
 
-	Serial.print("input_X.ImpulsLength: ");
-	Serial.println(input_X.ImpulsLength);
+	Serial.print("input_X.ImpulsLength: ");	Serial.print(input_X.ImpulsLength); Serial.print(" pos: "); Serial.println(input_X.pos);
 
 
-	Serial.print("input_Y.ImpulsLength: ");
-	Serial.println(input_Y.ImpulsLength);
+	Serial.print("input_Y.ImpulsLength: ");	Serial.print(input_Y.ImpulsLength); Serial.print(" pos: "); Serial.println(input_Y.pos);
 
 
-	Serial.print("input_CH3.ImpulsLength: ");
-	Serial.println(input_CH3.ImpulsLength);
+	Serial.print("input_CH3.ImpulsLength: ");	Serial.print(input_CH3.ImpulsLength); Serial.print(" pos: "); Serial.println(input_CH3.pos);
 
 
-	Serial.print("input_CH3.ImpulsLength: ");
-	Serial.println(input_CH4.ImpulsLength);
+	Serial.print("input_CH4.ImpulsLength: ");	Serial.print(input_CH4.ImpulsLength); Serial.print(" pos: "); Serial.println(input_CH4.pos);
+
+
+	Serial.print("state.speed: ");	Serial.println(state.speed);
+	Serial.print("state.fogLight: ");	Serial.println(state.fogLight);
+	Serial.print("state.headLight: ");	Serial.println(state.headLight);
+	Serial.print("state.highLight: ");	Serial.println(state.highLight);
+	Serial.print("state.parkingLight: ");	Serial.println(state.parkingLight);
+	Serial.print("state.alarm: ");	Serial.println(state.alarm);
+
 }
 
 
@@ -997,7 +1008,7 @@ void loop()
 	handleStearing();
 	handleHeadLight();
 	handleSpeed();
-	handle_X_output();
+	handle_Y_output();
 	handle_Gearbox();
 
 	stopLight->loop();

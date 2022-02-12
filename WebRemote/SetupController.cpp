@@ -42,7 +42,6 @@ void SetupController::loadConfig()
 		cfg.AddValue("back_light_timeout", "500");
 
 		cfg.AddValue("port_addr0", "39");
-		//cfg.AddValue("port_addr1", "119");
 
 		cfg.AddValue("gearbox_mode", "0");
 
@@ -153,6 +152,8 @@ void SetupController::printConfig(JsonString* out)
 	out->AddValue("stop_light_duration", String(cfg->stop_light_duration));
 	out->AddValue("back_light_timeout", String(cfg->back_light_timeout));
 
+	out->AddValue("gearbox_mode", String(cfg->gearbox_mode));
+
 	out->AddValue("gearN", String(cfg->gearN));
 	out->AddValue("gear1", String(cfg->gear1));
 	out->AddValue("gear2", String(cfg->gear2));
@@ -204,6 +205,8 @@ void SetupController::Setup_Post()
 
 	if (webServer.hasArg("stop_light_duration")) { setupController.cfg->stop_light_duration = webServer.arg("stop_light_duration").toInt(); }
 	if (webServer.hasArg("back_light_timeout")) { setupController.cfg->back_light_timeout = webServer.arg("back_light_timeout").toInt(); }
+
+	if (webServer.hasArg("gearbox_mode")) { setupController.cfg->gearbox_mode = webServer.arg("gearbox_mode").toInt(); }
 
 	if (webServer.hasArg("gearN")) { setupController.cfg->gearN = webServer.arg("gearN").toInt(); }
 	if (webServer.hasArg("gear1")) { setupController.cfg->gear1 = webServer.arg("gear1").toInt(); }

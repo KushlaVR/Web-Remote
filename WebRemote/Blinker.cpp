@@ -118,7 +118,14 @@ void VirtualBlinker::write(int pin, int value) {
 
 void extBlinker::write(int pin, int value)
 {
+	if (debug) {
+		Serial.print("pin = ");
+		Serial.print(pin);
+		Serial.print("; value = ");
+		Serial.println(value);
+	}
 	extPort->write(pin, value);
+	delayMicroseconds(100);
 }
 
 void extBlinker::setupPin(int pin)
