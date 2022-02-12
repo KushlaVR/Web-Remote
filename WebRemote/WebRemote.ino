@@ -93,6 +93,7 @@ enum Ignition {
 
 struct State {
 	int speed;
+	int gear;
 
 	bool alarm;
 
@@ -423,8 +424,6 @@ void setup()
 	webServer.on("/api/EventSourceName", EventSourceName);
 	webServer.on("/api/events", Events);
 	webServer.on("/api/post", HTTPMethod::HTTP_POST, Post);
-
-
 
 	portExt0 = new PCF8574(config.port_addr0);
 	portExt0->begin(PIN_I2C_SDA, PIN_I2C_SCL);
@@ -817,25 +816,35 @@ void handle_Y_output() {
 	}
 }
 
-void handle_Gearbox() {
+void SetGearPos(int pos) {
+
 	if (!Gearbox_output.attached()) {
 		Gearbox_output.attach(PIN_GEARBOX_OUTPUT);
 	}
 
+	if (state.gear != pos) {
+		state.gear = pos;
+		Gearbox_output.write(pos);
+		Serial.print("gear selector pos: ");
+		Serial.println(state.gear);
+	}
+}
+
+void handle_Gearbox() {
 	if (config.gearbox_mode == 0) {//Manual mode
 		if (input_CH4.pos > (90 - 45) && input_CH4.pos < (90 + 45))//N
 		{
-			Gearbox_output.write(config.gearN);
+			SetGearPos(config.gearN);
 		}
 		else if (input_CH4.pos < (90 - 45))//Gear 1
 		{
-			Gearbox_output.write(config.gear1);
+			SetGearPos(config.gear1);
 		}
 		else {//Gear 2 (якщо їдемо назад - то включається тільки 1 передача)
 			if (state.speed < 0)//R
-				Gearbox_output.write(config.gear1);
+				SetGearPos(config.gear1);
 			else {
-				Gearbox_output.write(config.gear2);
+				SetGearPos(config.gear2);
 			}
 		}
 	}
@@ -846,8 +855,6 @@ void handle_Gearbox() {
 
 int cmdPos = 0;
 char cmd[256];
-
-
 
 void cmdMotor(String val) {
 
@@ -866,34 +873,32 @@ void cmdStearing(String val) {
 	Serial.println(val);
 }
 
-
 void cmdLight(String val) {
 	Serial.print("cmd-light");
 	Serial.println(val);
 	input_CH3.SetFakeValue(val.toInt());
 }
 
-
 void cmdGearbox(String val) {
-	Serial.print("cmd-gearbox");
+	Serial.print("cmd-gearbox ");
+	val.trim();
+	Serial.println(val);
 	if (val == "a") {
-		Serial.print(" mode auto");
+		Serial.println(" mode auto");
 		config.gearbox_mode = 1;
 		setupController.saveConfig();
 	}
 	else if (val == "m") {
-		Serial.print(" mode manual");
+		Serial.println(" mode manual");
 		config.gearbox_mode = 1;
 		setupController.saveConfig();
 	}
 	else {
 		input_CH4.SetFakeValue(val.toInt());
 	};
-	Serial.println(val);
 }
 
 void cmdInfo(String val) {
-
 
 	JsonString out;
 	setupController.printConfig(&out);
@@ -912,6 +917,7 @@ void cmdInfo(String val) {
 
 
 	Serial.print("state.speed: ");	Serial.println(state.speed);
+	Serial.print("state.gear: ");	Serial.println(state.gear);
 	Serial.print("state.fogLight: ");	Serial.println(state.fogLight);
 	Serial.print("state.headLight: ");	Serial.println(state.headLight);
 	Serial.print("state.highLight: ");	Serial.println(state.highLight);
@@ -920,11 +926,10 @@ void cmdInfo(String val) {
 
 }
 
-
 void handleSerial() {
 	while (Serial.available()) {
 		cmd[cmdPos] = Serial.read();
-		if (cmd[cmdPos] == 10 || cmd[cmdPos] == 13) {
+		if (cmd[cmdPos] == 10 || cmd[cmdPos] == 13 || cmd[cmdPos] == ';') {
 			if (cmdPos > 0) {
 				cmd[cmdPos + 1] = 0;
 				String s = String(cmd);
@@ -945,6 +950,7 @@ void handleSerial() {
 				}
 			}
 			cmdPos = 0;
+			return;
 		}
 		else if (cmdPos == 255) {
 			cmdPos = 0;
@@ -999,7 +1005,6 @@ void loop()
 	if (input_CH4.isChanged) {
 		Serial.printf("Servo CH4 = %i (%i)\n", input_CH4.pos, input_CH4.ImpulsLength);
 	}
-
 
 	if (joypads.getCount() > 0) {
 		handleVeichle();

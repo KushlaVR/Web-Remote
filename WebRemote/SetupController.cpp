@@ -99,6 +99,8 @@ void SetupController::loadConfig()
 	this->cfg->stop_light_duration = cfg.getInt("stop_light_duration");
 	this->cfg->back_light_timeout = cfg.getInt("back_light_timeout");
 
+	this->cfg->gearbox_mode = cfg.getInt("gearbox_mode");
+
 	this->cfg->gearN = cfg.getInt("gearN");
 	this->cfg->gear1 = cfg.getInt("gear1");
 	this->cfg->gear2 = cfg.getInt("gear2");

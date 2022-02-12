@@ -11,6 +11,19 @@ BenchMark::~BenchMark()
 {
 }
 
+void BenchMark::SetFakeValue(ulong v)
+{
+	if (v > 180)
+	{
+		length = v;
+	}
+	else
+	{
+		length = 1000 + ((v * 1000.0) / 180.0);
+	}
+	lastMeasure = millis();
+}
+
 void BenchMark::Start()
 {
 	lastMeasure = millis();

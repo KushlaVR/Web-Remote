@@ -35,7 +35,7 @@ public:
 
 	BenchMark();
 	~BenchMark();
-	void SetFakeValue(ulong v) { length = v; lastMeasure = millis(); }
+	void SetFakeValue(ulong v);
 	void ICACHE_RAM_ATTR Start();
 	void ICACHE_RAM_ATTR Stop();
 	//Чи актуальні результати вимірів
