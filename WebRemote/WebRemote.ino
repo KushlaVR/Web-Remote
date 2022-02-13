@@ -281,7 +281,13 @@ void reloadConfig() {
 	input_CH4.IN_center = config.ch4_min + ((config.ch4_max - config.ch4_min) / 2);
 	input_CH4.IN_min = config.ch4_min;
 
+	input_X.SetFakeValue(input_X.IN_center);
+	input_Y.SetFakeValue(input_Y.IN_center);
+	input_CH3.SetFakeValue(input_CH3.IN_center);
+	input_CH4.SetFakeValue(input_CH4.IN_center);
+
 	gearBox.acceleration_to_100 = config.acceleration_to_100;
+	gearBox.gear_actuator_trigger_gap = config.gear_actuator_trigger_gap;
 
 	gearBox.gearR_min = config.gearR_min;
 	gearBox.gearR_max = config.gearR_max;
@@ -291,6 +297,9 @@ void reloadConfig() {
 
 	gearBox.gear2_min = config.gear2_min;
 	gearBox.gear2_max = config.gear2_max;
+
+
+
 }
 
 void setupBlinkers() {
@@ -836,7 +845,7 @@ void handle_Y_output() {
 	else {//Automatic mode
 
 		int pos = 90.0 - input_Y.pos;
-		gearBox.forwardDirection = pos >= 0;
+		gearBox.forwardDirection = pos <= 0;
 		gearBox.SetAcceleratorPedalPosition(abs(pos) * 100.0 / 90);
 	}
 }

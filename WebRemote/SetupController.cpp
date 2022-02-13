@@ -46,6 +46,7 @@ void SetupController::loadConfig()
 		cfg.AddValue("gearbox_mode", "0");
 
 		cfg.AddValue("acceleration_to_100", "5000");
+		cfg.AddValue("gear_actuator_trigger_gap", "10");
 
 		cfg.AddValue("gearN", "90");
 		cfg.AddValue("gear1", "60");
@@ -103,6 +104,7 @@ void SetupController::loadConfig()
 
 	this->cfg->gearbox_mode = cfg.getInt("gearbox_mode");
 	this->cfg->acceleration_to_100 = cfg.getInt("acceleration_to_100");
+	this->cfg->gear_actuator_trigger_gap = cfg.getInt("gear_actuator_trigger_gap");
 
 	this->cfg->gearN = cfg.getInt("gearN");
 	this->cfg->gear1 = cfg.getInt("gear1");
@@ -159,6 +161,7 @@ void SetupController::printConfig(JsonString* out)
 
 	out->AddValue("gearbox_mode", String(cfg->gearbox_mode));
 	out->AddValue("acceleration_to_100", String(cfg->acceleration_to_100));
+	out->AddValue("gear_actuator_trigger_gap", String(cfg->gear_actuator_trigger_gap));
 
 	out->AddValue("gearN", String(cfg->gearN));
 	out->AddValue("gear1", String(cfg->gear1));
@@ -214,6 +217,7 @@ void SetupController::Setup_Post()
 
 	if (webServer.hasArg("gearbox_mode")) { setupController.cfg->gearbox_mode = webServer.arg("gearbox_mode").toInt(); }
 	if (webServer.hasArg("acceleration_to_100")) { setupController.cfg->acceleration_to_100 = webServer.arg("acceleration_to_100").toInt(); }
+	if (webServer.hasArg("gear_actuator_trigger_gap")) { setupController.cfg->gear_actuator_trigger_gap = webServer.arg("gear_actuator_trigger_gap").toInt(); }
 
 	if (webServer.hasArg("gearN")) { setupController.cfg->gearN = webServer.arg("gearN").toInt(); }
 	if (webServer.hasArg("gear1")) { setupController.cfg->gear1 = webServer.arg("gear1").toInt(); }

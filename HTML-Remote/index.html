@@ -270,7 +270,6 @@
 
                 <h2>Gearbox settings</h2>
 
-
                 <div class="form-group">
                     <label>Mode</label>
                     <div class="input-group">
@@ -294,7 +293,6 @@
                         </div>
                     </div>
                 </div>
-
 
                 <div class="form-group">
                     <label>Gear 1</label>
@@ -324,6 +322,16 @@
                         <input type="number" maxlength="5" name="acceleration_to_100" class="form-control" step="1" min="0" max="5000" required="required" />
                         <div class="input-group-append">
                             <span class="input-group-text">0..5000 (ms)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Gear actuator trigger gap</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="gear_actuator_trigger_gap" class="form-control" step="1" min="0" max="20" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">0..20 (%)</span>
                         </div>
                     </div>
                 </div>

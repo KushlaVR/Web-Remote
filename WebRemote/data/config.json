@@ -30,6 +30,7 @@
   "gearbox_mode": "0",
 
   "acceleration_to_100": "5000",
+  "gear_actuator_trigger_gap": "10",
 
   "gearN": "90",
   "gear1": "60",

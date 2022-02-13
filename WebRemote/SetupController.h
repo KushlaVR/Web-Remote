@@ -42,6 +42,7 @@ public:
 	int gearbox_mode;//0 - manual; 1 - auto
 
 	int acceleration_to_100;//Час розгону від 0 до 100% (ms)
+	int gear_actuator_trigger_gap;//Зазор при переключенні передач вверх/низ
 
 	int gearN;//Положення сервопривода вибору передач - позиція N
 	int gear1;//Положення сервопривода вибору передач - передача 1

@@ -19,6 +19,9 @@ public:
 
 	int acceleration_to_100 = 5000;//Час розгону від 0 до 100% (ms)
 
+	int gear_actuator_trigger_gap;//Зазор при переключенні передач вверх/низ
+	int gear2_StartSpeed = 50;
+
 	int gear1_min;//Мінімальні оберти першої передачі
 	int gear1_max;//Максимальні оберти першої передачі
 
