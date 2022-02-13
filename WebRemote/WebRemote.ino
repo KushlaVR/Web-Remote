@@ -283,6 +283,14 @@ void reloadConfig() {
 
 	gearBox.acceleration_to_100 = config.acceleration_to_100;
 
+	gearBox.gearR_min = config.gearR_min;
+	gearBox.gearR_max = config.gearR_max;
+
+	gearBox.gear1_min = config.gear1_min;
+	gearBox.gear1_max = config.gear1_max;
+
+	gearBox.gear2_min = config.gear2_min;
+	gearBox.gear2_max = config.gear2_max;
 }
 
 void setupBlinkers() {
@@ -438,6 +446,7 @@ void setup()
 	portExt0->write8(0xFF);
 
 	btnLight.bounce = 100;
+	gearBox.debug = true;
 
 	pinMode(PIN_Y_OUTPUT, OUTPUT);
 	pinMode(PIN_GEARBOX_OUTPUT, OUTPUT);
@@ -825,7 +834,10 @@ void handle_Y_output() {
 		SetSpeed(input_Y.ImpulsLength);
 	}
 	else {//Automatic mode
-		gearBox.SetAcceleratorPedalPosition(input_Y.pos * 100.0 / 180.0);
+
+		int pos = 90.0 - input_Y.pos;
+		gearBox.forwardDirection = pos >= 0;
+		gearBox.SetAcceleratorPedalPosition(abs(pos) * 100.0 / 90);
 	}
 }
 
@@ -861,7 +873,6 @@ void handle_Gearbox() {
 		}
 	}
 	else {//Automatic mode
-
 		gearBox.loop();
 	}
 }
