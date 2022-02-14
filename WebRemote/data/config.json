@@ -37,9 +37,11 @@
   "gear2": "120",
 
   "gear1_min": "0",
+  "gear1_start": "80",
   "gear1_max": "100",
 
-  "gear2_min": "40",
+  "gear2_min": "35",
+  "gear2_start": "44",
   "gear2_max": "100",
 
   "gearR_min": "0",

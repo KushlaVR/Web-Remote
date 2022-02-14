@@ -52,14 +52,16 @@ void SetupController::loadConfig()
 		cfg.AddValue("gear1", "60");
 		cfg.AddValue("gear2", "120");
 
-		cfg.AddValue("gear1_min", "60");
-		cfg.AddValue("gear1_max", "120");
+		cfg.AddValue("gear1_min", "0");
+		cfg.AddValue("gear1_start", "80");
+		cfg.AddValue("gear1_max", "100");
 
-		cfg.AddValue("gear2_min", "90");
-		cfg.AddValue("gear3_max", "120");
+		cfg.AddValue("gear2_min", "35");
+		cfg.AddValue("gear2_start", "44");
+		cfg.AddValue("gear2_max", "100");
 
-		cfg.AddValue("gearR_min", "60");
-		cfg.AddValue("gearR_max", "100");
+		cfg.AddValue("gearR_min", "0");
+		cfg.AddValue("gearR_max", "50");
 
 		cfg.endObject();
 
@@ -111,9 +113,11 @@ void SetupController::loadConfig()
 	this->cfg->gear2 = cfg.getInt("gear2");
 
 	this->cfg->gear1_min = cfg.getInt("gear1_min");
+	this->cfg->gear1_start = cfg.getInt("gear1_start");
 	this->cfg->gear1_max = cfg.getInt("gear1_max");
 
 	this->cfg->gear2_min = cfg.getInt("gear2_min");
+	this->cfg->gear2_start = cfg.getInt("gear2_start");
 	this->cfg->gear2_max = cfg.getInt("gear2_max");
 
 	this->cfg->gearR_min = cfg.getInt("gearR_min");
@@ -168,9 +172,11 @@ void SetupController::printConfig(JsonString* out)
 	out->AddValue("gear2", String(cfg->gear2));
 	
 	out->AddValue("gear1_min", String(cfg->gear1_min));
+	out->AddValue("gear1_start", String(cfg->gear1_start));
 	out->AddValue("gear1_max", String(cfg->gear1_max));
 
 	out->AddValue("gear2_min", String(cfg->gear2_min));
+	out->AddValue("gear2_start", String(cfg->gear2_start));
 	out->AddValue("gear2_max", String(cfg->gear2_max));
 
 	out->AddValue("gearR_min", String(cfg->gearR_min));
@@ -224,9 +230,11 @@ void SetupController::Setup_Post()
 	if (webServer.hasArg("gear2")) { setupController.cfg->gear2 = webServer.arg("gear2").toInt(); }
 
 	if (webServer.hasArg("gear1_min")) { setupController.cfg->gear1_min = webServer.arg("gear1_min").toInt(); }
+	if (webServer.hasArg("gear1_start")) { setupController.cfg->gear1_start = webServer.arg("gear1_start").toInt(); }
 	if (webServer.hasArg("gear1_max")) { setupController.cfg->gear1_max = webServer.arg("gear1_max").toInt(); }
 
 	if (webServer.hasArg("gear2_min")) { setupController.cfg->gear2_min = webServer.arg("gear2_min").toInt(); }
+	if (webServer.hasArg("gear2_start")) { setupController.cfg->gear2_start = webServer.arg("gear2_start").toInt(); }
 	if (webServer.hasArg("gear2_max")) { setupController.cfg->gear2_max = webServer.arg("gear2_max").toInt(); }
 
 	if (webServer.hasArg("gearR_min")) { setupController.cfg->gearR_min = webServer.arg("gearR_min").toInt(); }

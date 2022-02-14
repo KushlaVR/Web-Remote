@@ -124,6 +124,7 @@
     <None Include="data\html\driver.html" />
     <None Include="data\html\img\aim.svg" />
     <None Include="data\html\img\cabin.svg" />
+    <None Include="data\html\img\chart1.svg" />
     <None Include="data\html\img\down.svg" />
     <None Include="data\html\img\left.svg" />
     <None Include="data\html\img\light.svg" />

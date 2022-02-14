@@ -293,9 +293,11 @@ void reloadConfig() {
 	gearBox.gearR_max = config.gearR_max;
 
 	gearBox.gear1_min = config.gear1_min;
+	gearBox.gear1_start = config.gear1_start;
 	gearBox.gear1_max = config.gear1_max;
 
 	gearBox.gear2_min = config.gear2_min;
+	gearBox.gear2_start = config.gear2_start;
 	gearBox.gear2_max = config.gear2_max;
 
 
@@ -455,7 +457,7 @@ void setup()
 	portExt0->write8(0xFF);
 
 	btnLight.bounce = 100;
-	gearBox.debug = true;
+	//gearBox.debug = true;
 
 	pinMode(PIN_Y_OUTPUT, OUTPUT);
 	pinMode(PIN_GEARBOX_OUTPUT, OUTPUT);
@@ -835,7 +837,6 @@ void SetSpeed(int pos) {
 		Y_output.writeMicroseconds(pos);
 		Serial.print("speed regulator pos: "); Serial.println(state.speedOutputValue);
 	}
-
 }
 
 void handle_Y_output() {
@@ -883,6 +884,19 @@ void handle_Gearbox() {
 	}
 	else {//Automatic mode
 		gearBox.loop();
+
+		if (gearBox.forwardDirection) {
+			if (gearBox.gear == 1)
+				SetGearPos(config.gear1);
+			else
+				SetGearPos(config.gear2);
+
+			SetSpeed(map(gearBox.regulatorSpeed, 0, 100, 90, 180));
+		}
+		else {
+			SetGearPos(config.gear1);
+			SetSpeed(map(gearBox.regulatorSpeed, 0, 100, 90, 0));
+		}
 	}
 }
 

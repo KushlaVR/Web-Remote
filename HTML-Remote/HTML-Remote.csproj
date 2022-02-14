@@ -156,6 +156,7 @@
     <Content Include="data\css\style.css" />
     <Content Include="data\img\aim.svg" />
     <Content Include="data\img\cabin.svg" />
+    <Content Include="data\img\chart1.svg" />
     <Content Include="data\img\down.svg" />
     <Content Include="data\img\left.svg" />
     <Content Include="data\img\light.svg" />
@@ -171,6 +172,7 @@
     <None Include="data\js\kushlavr.js" />
     <None Include="data\js\slider.js" />
     <Content Include="data\mp3\fire.mp3" />
+    <Content Include="img\chart1.svg" />
     <Content Include="js\bootstrap.js" />
     <Content Include="js\bootstrap.min.js">
       <DependentUpon>bootstrap.js</DependentUpon>

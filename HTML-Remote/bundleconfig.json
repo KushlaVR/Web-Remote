@@ -414,12 +414,15 @@
       "enabled": false
     }
   },
-
   {
-    "outputFileName": "data/mp3/fire.mp3",
+    "outputFileName": "data/img/chart1.svg",
     // An array of relative input file paths. Globbing patterns supported
     "inputFiles": [
-      "mp3/fire.mp3"
-    ]
+      "img/chart1.svg"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    }
   }
 ]

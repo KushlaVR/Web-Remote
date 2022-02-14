@@ -56,25 +56,41 @@ void GearBox::loop()
 
 void GearBox::calculateActuators()
 {
+
 	if (forwardDirection) {
+
+		int gap_start = gear2_StartSpeed - gear_actuator_trigger_gap;
+		int gap_end = gear2_StartSpeed + gear_actuator_trigger_gap;
+
 		if (gear == 0) {
 			gear = 1;
 			regulatorSpeed = 0;
 		}
 		if (gear == 1) {
-			if (speed > (gear2_StartSpeed + gear_actuator_trigger_gap)) {
+			if (speed > gap_end) {
 				gear = 2;
+				calculateActuators();
+				return;
+			}
+			else if (speed > gap_start) {
+				regulatorSpeed = map(speed, gap_start, gap_end, gear1_start, gear1_max);
 			}
 			else {
-				regulatorSpeed = map(speed, 0, gear2_StartSpeed + gear_actuator_trigger_gap, gear1_min, gear1_max);
+				regulatorSpeed = map(speed, 0, gap_start, gear1_min, gear1_start);
 			}
 		}
 		if (gear == 2) {
-			if (speed < (gear2_StartSpeed - gear_actuator_trigger_gap)) {
+			if (speed < gap_start) {
 				gear = 1;
+				calculateActuators();
+				return;
+			}
+			else if (speed < gap_end) {
+				regulatorSpeed = map(speed, gap_start, gap_end, gear2_min, gear2_start);
+
 			}
 			else {
-				regulatorSpeed = map(speed, gear2_StartSpeed - gear_actuator_trigger_gap, 100, gear2_min, gear2_max);
+				regulatorSpeed = map(speed, gap_end, 100, gear2_start, gear2_max);
 			}
 		}
 	}

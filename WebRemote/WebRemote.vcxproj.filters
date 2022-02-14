@@ -60,6 +60,7 @@
     <None Include="data\config-0.json">
       <Filter>Misc Files</Filter>
     </None>
+    <None Include="data\html\img\chart1.svg" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.WebRemote.vsarduino.h">

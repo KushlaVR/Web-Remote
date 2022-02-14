@@ -326,8 +326,10 @@
                     </div>
                 </div>
 
+                <img src="img/chart1.svg" style="width:100%" />
+
                 <div class="form-group">
-                    <label>Gear actuator trigger gap</label>
+                    <label>Gear actuator trigger gap (A-D)</label>
                     <div class="input-group">
                         <input type="number" maxlength="5" name="gear_actuator_trigger_gap" class="form-control" step="1" min="0" max="20" required="required" />
                         <div class="input-group-append">
@@ -335,7 +337,7 @@
                         </div>
                     </div>
                 </div>
-
+                <h3>Yellow line (gear 1->2)</h3>
                 <div class="form-group">
                     <label>Gear 1 minimum motor speed</label>
                     <div class="input-group">
@@ -347,7 +349,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Gear 1 maximum motor speed</label>
+                    <label>Gear 1 maximum motor speed (point A)</label>
                     <div class="input-group">
                         <input type="number" maxlength="5" name="gear1_max" class="form-control" step="1" min="0" max="180" required="required" />
                         <div class="input-group-append">
@@ -357,14 +359,16 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Gear 2 minimum motor speed</label>
+                    <label>Gear 2 start motor speed (poin B)</label>
                     <div class="input-group">
-                        <input type="number" maxlength="5" name="gear2_min" class="form-control" step="1" min="0" max="180" required="required" />
+                        <input type="number" maxlength="5" name="gear2_start" class="form-control" step="1" min="0" max="180" required="required" />
                         <div class="input-group-append">
                             <span class="input-group-text">0<sup>o</sup>..180<sup>o</sup></span>
                         </div>
                     </div>
                 </div>
+
+                <h3>Orange line (gear 2->1)</h3>
 
                 <div class="form-group">
                     <label>Gear 2 maximum motor speed</label>
@@ -375,6 +379,28 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label>Gear 2 minimum motor speed (point C)</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="gear2_min" class="form-control" step="1" min="0" max="180" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">0<sup>o</sup>..180<sup>o</sup></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Gear 1 start motor speed (point D)</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="gear1_start" class="form-control" step="1" min="0" max="180" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">0<sup>o</sup>..180<sup>o</sup></span>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>Reverce</h3>
 
                 <div class="form-group">
                     <label>Gear R minimum motor speed</label>
