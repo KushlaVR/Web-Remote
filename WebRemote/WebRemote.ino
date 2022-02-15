@@ -47,7 +47,7 @@
 
 	В авто режиме
 	P, N, D
-	З=>Включать 1 передачу и на газ не реагировать
+	P=>Включать 1 передачу и на газ не реагировать
 
 */
 
@@ -777,55 +777,108 @@ void handleSpeed() {
 		}
 		return;
 	}
-	int center = 90;
-	int forwardGap = center - input_Y.OUT_min;
-	int reverceGap = center - input_Y.OUT_max;
 
 
-	int forward_limit = (forwardGap * config.reverce_limit) / 100;
-	int reverce_limit = (reverceGap * config.reverce_limit) / 100;
+	int speed = 0;
 
+	if (config.gearbox_mode == 0) {
 
-	int speed = input_Y.pos - center;
-	/*if (input_Y.isChanged) {
-		Serial.printf("delta=%i;f=%i;r=%i;c=%i\n", speed, forward_limit, reverce_limit, center);
-	}*/
+		/*if (input_Y.isChanged) {
+			Serial.printf("delta=%i;f=%i;r=%i;c=%i\n", speed, forward_limit, reverce_limit, center);
+		}*/
 
-	if (speed > forward_limit) {
-		if (BackLight->isRunning()) {
-			Serial.println("BackLight end");
-			BackLight->end();
-		}
-	}
-	else if (speed < reverce_limit) {
-		if (!BackLight->isRunning()) {
-			Serial.println("BackLight begin");
-		}
-		BackLight->begin();
-	}
+		int center = 90;
+		speed = input_Y.pos - center;
+		int forwardGap = center - input_Y.OUT_min;
+		int reverceGap = center - input_Y.OUT_max;
 
-	if (state.speed != speed) {
-		//швидкість змінилась
-		if (abs(state.speed) > 5)//передуваємо в русі
-		{
-			if (abs(speed) < 5) {//Зупинка
-				stopLight->begin();
+		int forward_limit = (forwardGap * config.reverce_limit) / 100;
+		int reverce_limit = (reverceGap * config.reverce_limit) / 100;
+
+		if (speed > forward_limit) {
+			if (BackLight->isRunning()) {
+				Serial.println("BackLight end");
+				BackLight->end();
 			}
-			else
+		}
+		else if (speed < reverce_limit) {
+			if (!BackLight->isRunning()) {
+				Serial.println("BackLight begin");
+			}
+			BackLight->begin();
+		}
+
+
+		if (state.speed != speed) {
+			//швидкість змінилась
+			if (abs(state.speed) > 5)//передуваємо в русі
 			{
-				if (abs(speed) > abs(state.speed)) {//Швидкість зросла
-					stopLight->end();
+				if (abs(speed) < 5) {//Зупинка
+					stopLight->begin();
 				}
-				else {
-					if (abs(state.speed - speed) > 5) {//Швидкість впала більше ніж на 10
-						stopLight->begin();
+				else
+				{
+					if (abs(speed) > abs(state.speed)) {//Швидкість зросла
+						stopLight->end();
+					}
+					else {
+						if (abs(state.speed - speed) > 5) {//Швидкість впала більше ніж на 10
+							stopLight->begin();
+						}
 					}
 				}
 			}
+			state.speed = speed;
 		}
-		state.speed = speed;
 	}
+	else {
+		speed = 0;
+		if (gearBox.state == GearboxState::Reverce) {
+			if (!BackLight->isRunning()) {
+				Serial.println("BackLight begin");
+			}
+			BackLight->begin();
 
+			speed = -gearBox.speed;
+
+		}
+		else {
+			if (BackLight->isRunning()) {
+				Serial.println("BackLight end");
+				BackLight->end();
+			}
+		}
+
+		if (gearBox.state == GearboxState::Drive) {
+			speed = gearBox.speed;
+		}
+
+		if (state.speed != speed) {
+			//швидкість змінилась
+			if (abs(state.speed) > 5)//передуваємо в русі
+			{
+				if (abs(speed) < 5) {//Зупинка
+					if (!stopLight->isRunning()) stopLight->begin();
+					state.speed = speed;
+				}
+				else
+				{
+					if (abs(speed) > abs(state.speed)) {//Швидкість зросла
+						if (stopLight->isRunning()) stopLight->end();
+						state.speed = speed;
+					}
+					else {
+						if (abs(state.speed - speed) > 5) {//Швидкість впала більше ніж на 10
+							if (!stopLight->isRunning()) stopLight->begin();
+							state.speed = speed;
+						}
+					}
+				}
+			}
+			else
+				state.speed = speed;
+		}
+	}
 }
 
 void SetSpeed(int pos) {
@@ -845,9 +898,6 @@ void handle_Y_output() {
 	}
 	else {//Automatic mode
 
-		int pos = 90.0 - input_Y.pos;
-		gearBox.forwardDirection = pos <= 0;
-		gearBox.SetAcceleratorPedalPosition(abs(pos) * 100.0 / 90);
 	}
 }
 
@@ -883,19 +933,67 @@ void handle_Gearbox() {
 		}
 	}
 	else {//Automatic mode
+		int pos = input_Y.pos - 90.0;
+		if (input_CH4.pos > (90 - 45) && input_CH4.pos < (90 + 45))//N
+		{
+			if (gearBox.regulatorSpeed == 0) {
+				gearBox.state = GearboxState::Neutral;
+			}
+			if (gearBox.state == GearboxState::Neutral) {
+				gearBox.SetAcceleratorPedalPosition(abs(pos) * 100.0 / 90);//Газуємо на нейтралці
+			}
+			else {
+				gearBox.SetAcceleratorPedalPosition(0);//Скидаємо щоб перейти на нейтраль
+			}
+		}
+		else if (input_CH4.pos < (90 - 45))//P
+		{
+			gearBox.SetAcceleratorPedalPosition(0);
+			if (gearBox.regulatorSpeed == 0)
+				gearBox.state = GearboxState::Parking;
+		}
+		else
+		{
+			if (pos > 0)//forward
+			{
+				if (gearBox.regulatorSpeed == 0) {//Коли скинули - переходимо в драйв
+					gearBox.state = GearboxState::Drive;
+				}
+				if (gearBox.state == GearboxState::Drive) {
+					gearBox.SetAcceleratorPedalPosition(abs(pos) * 100.0 / 90);//Газуємо в драйві
+				}
+				else {
+					gearBox.SetAcceleratorPedalPosition(0);//Зараз ще діє інший режим, скидаємо до 0
+				}
+			}
+			else if (pos < 0) {//Задня
+				if (gearBox.regulatorSpeed == 0) {//Коли скинули - переходимо на задню
+					gearBox.state = GearboxState::Reverce;
+				}
+				if (gearBox.state == GearboxState::Reverce) {
+					gearBox.SetAcceleratorPedalPosition(abs(pos) * 100.0 / 90);//Газуємо на задній
+				}
+				else {
+					gearBox.SetAcceleratorPedalPosition(0);//Зараз ще діє інший режим, скидаємо до 0
+				}
+			}
+			else {
+				gearBox.SetAcceleratorPedalPosition(0);//Стоїмо
+			}
+		}
 		gearBox.loop();
+		if (gearBox.gear == 1)
+			SetGearPos(config.gear1);
+		else if (gearBox.gear == 2)
+			SetGearPos(config.gear2);
+		else
+			SetGearPos(config.gearN);
 
-		if (gearBox.forwardDirection) {
-			if (gearBox.gear == 1)
-				SetGearPos(config.gear1);
-			else
-				SetGearPos(config.gear2);
-
-			SetSpeed(map(gearBox.regulatorSpeed, 0, 100, 90, 180));
+		if (gearBox.state == GearboxState::Reverce) {
+			SetSpeed(map(gearBox.regulatorSpeed, 0, 100, 90, 0));
 		}
 		else {
-			SetGearPos(config.gear1);
-			SetSpeed(map(gearBox.regulatorSpeed, 0, 100, 90, 0));
+			SetSpeed(map(gearBox.regulatorSpeed, 0, 100, 90, 180));
 		}
 	}
 }
@@ -967,6 +1065,7 @@ void cmdInfo(String val) {
 
 	Serial.print("gearBox.acceleratorPedalPosition: "); Serial.println(gearBox.acceleratorPedalPosition);
 	Serial.print("gearBox.speed: "); Serial.println(gearBox.speed);
+	Serial.print("gearBox.state: "); Serial.println(gearBox.state);
 
 }
 

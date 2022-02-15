@@ -57,7 +57,7 @@ void GearBox::loop()
 void GearBox::calculateActuators()
 {
 
-	if (forwardDirection) {
+	if (state == GearboxState::Drive) {
 
 		int gap_start = gear2_StartSpeed - gear_actuator_trigger_gap;
 		int gap_end = gear2_StartSpeed + gear_actuator_trigger_gap;
@@ -94,9 +94,17 @@ void GearBox::calculateActuators()
 			}
 		}
 	}
-	else {
+	else if (state == GearboxState::Reverce) {
 		gear = 1;
 		regulatorSpeed = map(speed, 0, 100, gearR_min, gearR_max);
+	}
+	else if (state == GearboxState::Neutral) {
+		gear = 0;
+		regulatorSpeed = map(speed, 0, 100, 0, 100);
+	}
+	else {//P
+		gear = 1;
+		regulatorSpeed = 0;
 	}
 }
 
@@ -105,8 +113,8 @@ void GearBox::printValues()
 	if (debug && actuatorsChanged) {
 		Serial.print("speed=");
 		Serial.print(speed);
-		Serial.print("; forward=");
-		Serial.print(forwardDirection);
+		Serial.print("; state=");
+		Serial.print(state);
 		Serial.print("; gear=");
 		Serial.print(gear);
 		Serial.print("; reg=");

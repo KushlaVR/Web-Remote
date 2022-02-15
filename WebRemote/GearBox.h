@@ -7,6 +7,14 @@
 #endif
 
 
+enum GearboxState
+{
+	Parking = 1,
+	Reverce = 2,
+	Neutral = 3,
+	Drive = 4
+};
+
 class GearBox
 {
 
@@ -39,7 +47,8 @@ public:
 	int speed = 0;//Фактична швидкість
 	int regulatorSpeed = 0;
 	int gear = 0;
-	bool forwardDirection = true;
+	GearboxState state = GearboxState::Neutral;
+	//bool forwardDirection = true;
 
 	void SetAcceleratorPedalPosition(int position);
 
