@@ -59,7 +59,7 @@
 #define PIN_SERVO_Y 12//ok - D6
 #define PIN_SERVO_CH3 13//ok - D7
 #define PIN_SERVO_CH4 16//OK D0 - no interrupt
-#define PIN_SERVO_CH5 2//D4 - X_OUTPUT
+#define PIN_SERVO_CH5 2//D4 - Y_OUTPUT
 #define PIN_SERVO_CH6 15//D8 - GEARBOX_OUTPUT
 
 #define PIN_I2C_SCL D1 //pcf8574
@@ -990,10 +990,10 @@ void handle_Gearbox() {
 			SetGearPos(config.gearN);
 
 		if (gearBox.state == GearboxState::Reverce) {
-			SetSpeed(map(gearBox.regulatorSpeed, 0, 100, 90, 0));
+			SetSpeed(map(gearBox.regulatorSpeed, 0, 100, 1500, 1000));
 		}
 		else {
-			SetSpeed(map(gearBox.regulatorSpeed, 0, 100, 90, 180));
+			SetSpeed(map(gearBox.regulatorSpeed, 0, 100, 1500, 2000));
 		}
 	}
 }
