@@ -325,6 +325,30 @@
   },
 
   {
+    "outputFileName": "data/img/afu.svg",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "img/afu.svg"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    }
+  },
+
+  {
+    "outputFileName": "data/img/afu-gf.svg",
+    // An array of relative input file paths. Globbing patterns supported
+    "inputFiles": [
+      "img/afu-gf.svg"
+    ],
+    // Optionally specify minification options
+    "minify": {
+      "enabled": false
+    }
+  },
+
+  {
     "outputFileName": "data/img/aim.svg",
     // An array of relative input file paths. Globbing patterns supported
     "inputFiles": [

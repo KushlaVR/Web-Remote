@@ -11,9 +11,10 @@ body {
 }
 
 .grid {
-    background-image: repeating-linear-gradient(#1C7175 0 1px, transparent 1px 100%), repeating-linear-gradient(90deg, #1C7175 0 1px, transparent 1px 100%);
-    background-size: 10vw 10vw;
+    /*background-image: repeating-linear-gradient(#1C7175 0 1px, transparent 1px 100%), repeating-linear-gradient(90deg, #1C7175 0 1px, transparent 1px 100%);
+    background-size: 10vw 10vw;*/
 }
+
 
 .main {
 }
@@ -21,11 +22,11 @@ body {
     .main .screen {
         display: block;
         position: relative;
-        margin: 10px auto;
+        /*margin: 10px auto;*/
         width: 100vw;
-        height: 50vw;
-        background-color: #001725;
-        border: 1px solid #2DF6FF;
+        height: 47vw;
+        background-color: #6c0334;
+        border: 1px solid #ffe000;
         box-shadow: rgba(0,0,0,0.1) 0px 1px 10px;
         border-radius: 5px;
     }
@@ -41,12 +42,12 @@ body {
 
     .main .form-control {
         background-color: #032A42;
-        color: #2DF6FF;
+        color: #ffe000;
     }
 
     .main .msg,
     .main label {
-        color: #2DF6FF;
+        color: #ffe000;
     }
 
     .main .msg {
@@ -58,9 +59,9 @@ body {
         width: 9vw;
         height: 9vw;
         text-align: center;
-        border: 0.5vw solid #2DF6FF;
+        border: 0.5vw solid #ffe000;
         border-radius: 50%;
-        color: #2DF6FF;
+        color: #ffe000;
         padding: 1vw;
     }
 

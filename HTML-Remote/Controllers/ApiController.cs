@@ -84,7 +84,9 @@ namespace WebUI.Controllers
         /// </summary>
         public void Post()
         {
-            var json = Server.UrlDecode(Request.QueryString[null]);
+            //var json = Server.UrlDecode(Request.QueryString[null]);
+            var rdr = new StreamReader(Request.GetBufferedInputStream());
+            var json = rdr.ReadToEnd();
             Parcel m = JsonConvert.DeserializeObject<Parcel>(json);
             Client client = ws.ClientByID(m.client);
             if (client != null)

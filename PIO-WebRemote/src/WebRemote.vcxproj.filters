@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Misc Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>xml;json;txt;rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="WebRemote.ino" />
+    <None Include="src\arduino folders read me.txt">
+      <Filter>Misc Files</Filter>
+    </None>
+    <None Include="data\css\bootstrap.css" />
+    <None Include="data\css\slider.css" />
+    <None Include="data\css\style.css" />
+    <None Include="data\js\bootstrap.js" />
+    <None Include="data\js\jquery.js" />
+    <None Include="data\js\kushlavr.js" />
+    <None Include="data\js\slider.js" />
+    <None Include="data\html\css\bootstrap.css" />
+    <None Include="data\html\css\slider.css" />
+    <None Include="data\html\css\style.css" />
+    <None Include="data\html\js\bootstrap.js" />
+    <None Include="data\html\js\jquery.js" />
+    <None Include="data\html\js\kushlavr.js" />
+    <None Include="data\html\js\slider.js" />
+    <None Include="data\html\control.html" />
+    <None Include="data\html\manifest.json">
+      <Filter>Misc Files</Filter>
+    </None>
+    <None Include="data\html\index.html" />
+    <None Include="data\html\driver.html" />
+    <None Include="data\html\img\aim.svg" />
+    <None Include="data\html\img\cabin.svg" />
+    <None Include="data\html\img\down.svg" />
+    <None Include="data\html\img\left.svg" />
+    <None Include="data\html\img\light.svg" />
+    <None Include="data\html\img\person.svg" />
+    <None Include="data\html\img\right.svg" />
+    <None Include="data\html\img\settings.svg" />
+    <None Include="data\html\img\speedometer.svg" />
+    <None Include="data\html\img\up.svg" />
+    <None Include="data\html\img\vehicle.svg" />
+    <None Include="data\config.json">
+      <Filter>Misc Files</Filter>
+    </None>
+    <None Include="data\html\sniper.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="__vm\.WebRemote.vsarduino.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Button.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Json.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RoboconMotor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WebUIController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Console.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Collection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Joypad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SetupController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Blinker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Button.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Json.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RoboconMotor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WebUIController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Console.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Collection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Joypad.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SetupController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Blinker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="data\html\mp3\fire2.mp3" />
+    <Media Include="data\html\mp3\fire.mp3" />
+  </ItemGroup>
+</Project>

@@ -12,7 +12,7 @@
         bottom: -3vw;
         left: -3vw;
         right: -3vw;
-        border: 0.5vw solid #2df6ff87;
+        border: 0.5vw solid #ffe00029;
         border-radius: 3vw;
     }
 
@@ -47,7 +47,7 @@
             margin-top: -0.47vw;
             border-radius: 50%;
             background: none;
-            border: 0.5vw solid #2DF6FF;
+            border: 0.5vw solid #ffe000;
         }
 
         .slider .handle::after {
@@ -71,7 +71,7 @@
         }
 
         .slider .handle.blue {
-            background-color: blue;
+            background-color: #001089;
         }
 
         .slider .handle.orange {
