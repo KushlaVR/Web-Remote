@@ -1,1 +1,588 @@
-var __extends=this&&this.__extends||function(){var n=function(t,i){return n=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(n,t){n.__proto__=t}||function(n,t){for(var i in t)t.hasOwnProperty(i)&&(n[i]=t[i])},n(t,i)};return function(t,i){function r(){this.constructor=t}n(t,i);t.prototype=i===null?Object.create(i):(r.prototype=i.prototype,new r)}}(),WorkSpace=function(){function n(n){var t=this;this.inputs=[];this.outputs=[];this.values=new Dictionary;this.sent=new Dictionary;this.tranCount=0;this.timer=0;this.reportInterval=100;this.readonlyFields=[];this.tran=0;this._readyToSend=!0;this.form=n;window.addEventListener("resize",function(){return t.UpdateLayout()},!1)}return n.init=function(t){var i=new n(t[0]);i.registerInputs();i.registerOutputs();i.ConnectAPI()},n.prototype.ConnectAPI=function(){var n=this;$.get("/api/EventSourceName").done(function(t){if(window.EventSource){var i=t,r=decodeURI(i.substring(i.indexOf("?")+1)).replace("%3a",":"),u=JSON.parse(r);n.client=u.client;n.eventSource=new EventSource(t);n.eventSource.onopen=function(){n.setFormat();n.sendData()};n.eventSource.onmessage=function(t){$("#message").text(t.data);n.receiveData(t)};n.eventSource.onerror=function(){$("#message").text("Error...")}}}).fail(function(){$("#message").text("error")})},n.prototype.setFormat=function(){var n=this,t;this.fields=[];t=[];$.each(this.values,function(t){n.fields.push(t)});this.send(JSON.stringify({client:this.client,fields:this.fields}))},n.prototype.readyToSend=function(){return this.eventSource?this._readyToSend:!1},n.prototype.send=function(n){var t=this;this.eventSource&&(this._readyToSend=!1,$.ajax({url:"/api/post",data:n,cache:!1,type:"POST",dataType:"json",contentType:"application/json; charset=utf-8"}).done(function(){console.log("done!");t._readyToSend=!0}).fail(function(){console.log("fail!");t._readyToSend=!0}))},n.prototype.sendData=function(){var f=this,i,r,t,n,u;if(this.timer===0){if(this.readyToSend()==!0){for(i=[],r=!1,t=0;t<this.fields.length;t++)n=this.fields[t],u=this.values[n],i.push(u),this.sent[n]!==this.values[n]&&(r=!0),this.sent[n]=u;r==!0&&(this.tran+=1,this.send(JSON.stringify({client:this.client,tran:this.tran.toString(),values:i})))}this.timer=setTimeout(function(){f.timer=0;f.sendData()},this.reportInterval)}},n.prototype.receiveData=function(n){var u,t,i,r,f;if(n.data){if(u=JSON.parse(n.data),this.tran<u.tran)for(this.tran=parseInt(u.tran,10),t=0;t<this.fields.length;t++)i=this.fields[t],r=u.values[t],this.sent[i]!=r&&(this.sent[i]=r,this.values[i]=r,this.refreshInput(i,r));else for(t=0;t<this.fields.length;t++)for(i=this.fields[t],r=u.values[t],f=0;f<this.readonlyFields.length;f++)if(i==this.readonlyFields[f]){this.values[i]=r;break}this.refreshOutput()}},n.toggleFullScreen=function(){var n=window.document,t=n.documentElement,i=t.requestFullscreen||t.mozRequestFullScreen||t.webkitRequestFullScreen||t.msRequestFullscreen,r=n.exitFullscreen||n.mozCancelFullScreen||n.webkitExitFullscreen||n.msExitFullscreen;n.fullscreenElement||n.mozFullScreenElement||n.webkitFullscreenElement||n.msFullscreenElement?r.call(n):i.call(t)},n.prototype.UpdateLayout=function(){for(var t,n=0;n<this.inputs.length;n++)this.inputs[n].initLayout();for(t=0;t<this.outputs.length;t++)this.outputs[t].initLayout()},n.prototype.registerInputs=function(){var n=this,t=$(".input",this.form);t.each(function(t,i){var r=i,u;u=$(r).hasClass("slider")?new Slider(r):$(r).hasClass("btn")?new Button(r):new Input(r);n.addInput(u)})},n.prototype.addInput=function(n){n.workSpace=this;this.inputs.push(n);n.saveValue()},n.prototype.registerOutputs=function(){var n=this,t=$(".output",this.form);t.each(function(t,i){var r=null;r=new Output(i);n.values[r.name]!=undefined||(n.readonlyFields.push(r.name),n.values[r.name]=0);n.addOutput(r)})},n.prototype.addOutput=function(n){n.workSpace=this;this.outputs.push(n);n.loadValue()},n.prototype.beginTransaction=function(){this.tranCount+=1},n.prototype.endTransaction=function(){if(this.tranCount-=1,this.tranCount===0)for(var n=0;n<this.outputs.length;n++)this.outputs[n].loadValue()},n.prototype.refreshInput=function(n,t){for(var i=0;i<this.inputs.length;i++)this.inputs[i].loadValue(n,t)},n.prototype.refreshOutput=function(){for(var n=0;n<this.outputs.length;n++)this.outputs[n].loadValue()},n}(),Dictionary=function(){function n(n){if(n)for(var t=0;t<n.length;t++)this[n[t].key]=n[t].value}return n}(),Point=function(){function n(){this.x=0;this.y=0}return n}(),Input=function(){function n(n){this.element=n;this.jElement=$(n);this.name=this.jElement.attr("name")}return n.prototype.saveValue=function(){if(this.workSpace){this.workSpace.beginTransaction();var n=this.jElement.attr("value");n&&(this.workSpace.values[this.name]=n);this.workSpace.endTransaction()}},n.prototype.loadValue=function(n,t){n==name&&this.jElement.attr("value",t)},n.prototype.initLayout=function(){},n}(),Slider=function(n){function t(t){var i=n.call(this,t)||this,r;return i.pressed=!1,i.handlePos=new Point,i.value=new Point,i.center=new Point,i.autoCenterX=!1,i.autoCenterY=!1,i.handle=$(".handle",t)[0],r=$(".pot",t),r.length>0&&(i.pot=r[0]),"ontouchstart"in document.documentElement?(i.element.addEventListener("touchstart",function(n){return i.onTouchStart(n)},!1),i.element.addEventListener("touchmove",function(n){return i.onTouchMove(n)},!1),i.element.addEventListener("touchend",function(n){return i.onTouchEnd(n)},!1)):(i.element.addEventListener("mousedown",function(n){return i.onMouseDown(n)},!1),i.element.addEventListener("mousemove",function(n){return i.onMouseMove(n)},!1),i.element.addEventListener("mouseup",function(n){return i.onMouseUp(n)},!1)),i.initLayout(),$(t).data("center")?(i.autoCenterX=!0,i.autoCenterY=!0):$(t).data("center-x")?i.autoCenterX=!0:$(t).data("center-y")&&(i.autoCenterY=!0),i.refreshLayout(!0),i}return __extends(t,n),t.prototype.onTouchStart=function(){this.pressed=!0;this.element.style.zIndex="100"},t.prototype.onTouchMove=function(n){n.preventDefault();this.pressed===!0&&(this.handlePos=t.pointFromTouch(this.element,n.targetTouches[0]),this.refreshLayout(!1),this.saveValue())},t.prototype.onTouchEnd=function(){this.pressed=!1;this.autoCenterX&&(this.handlePos.x=this.center.x);this.autoCenterY&&(this.handlePos.y=this.center.y);this.refreshLayout(!0);this.saveValue();this.element.style.zIndex="0"},t.prototype.onMouseDown=function(){this.pressed=!0;this.element.style.zIndex="100"},t.prototype.onMouseMove=function(n){this.pressed===!0&&(this.handlePos=t.pointFromMouseEvent(this.element,n),this.refreshLayout(!1),this.saveValue())},t.prototype.onMouseUp=function(){this.pressed=!1;this.autoCenterX&&(this.handlePos.x=this.center.x);this.autoCenterY&&(this.handlePos.y=this.center.y);this.refreshLayout(!0);this.saveValue();this.element.style.zIndex="0"},t.prototype.refreshLayout=function(n){var t,i;n&&(this.handlePos.x<0&&(this.handlePos.x=0),this.handlePos.y<0&&(this.handlePos.y=0),this.handlePos.x>this.element.clientWidth&&(this.handlePos.x=this.element.clientWidth),this.handlePos.y>this.element.clientHeight&&(this.handlePos.y=this.element.clientHeight));this.handle.style.left=""+(this.handlePos.x-this.handle.clientWidth/2)+"px";this.handle.style.top=""+(this.handlePos.y-this.handle.clientHeight/2)+"px";t=new Point;t.x=this.handlePos.x;t.y=this.handlePos.y;t.x<0&&(t.x=0);t.y<0&&(t.y=0);t.x>this.element.clientWidth&&(t.x=this.element.clientWidth);t.y>this.element.clientHeight&&(t.y=this.element.clientHeight);i=new Point;i.x=(this.center.x-t.x)*100/(this.element.clientWidth/2);i.y=(this.center.y-t.y)*100/(this.element.clientHeight/2);this.value=i;this.pot&&(this.pot.style.left=""+(t.x-this.pot.clientWidth/2)+"px",this.pot.style.top=""+(t.y-this.pot.clientHeight/2)+"px")},t.prototype.saveValue=function(){var n,i;this.workSpace&&(this.workSpace.beginTransaction(),n=this.name+"_x",this.workSpace.values[n]=t.numToString(this.value.x),i=this.name+"_y",this.workSpace.values[i]=t.numToString(this.value.y),this.workSpace.endTransaction())},t.prototype.loadValue=function(n,t){if(this.pressed!=!0){var r=this.name+"_x",u=this.name+"_y",i=!1;n==r&&(this.value.x=t,i=!0);n==u&&(this.value.y=t,i=!0);i==!0&&this.initLayout()}},t.prototype.initLayout=function(){this.center.x=this.element.clientWidth/2;this.center.y=this.element.clientHeight/2;var n=this.element.clientWidth/2,t=this.element.clientHeight/2;this.handlePos.x=this.center.x-this.value.x*n/100;this.handlePos.y=this.center.y-this.value.y*t/100;this.handle.style.left=""+(this.handlePos.x-this.handle.clientWidth/2)+"px";this.handle.style.top=""+(this.handlePos.y-this.handle.clientHeight/2)+"px";this.pot&&(this.pot.style.left=""+(this.handlePos.x-this.pot.clientWidth/2)+"px",this.pot.style.top=""+(this.handlePos.y-this.pot.clientHeight/2)+"px")},t.numToString=function(n){return(Math.round(n*100)/100).toString(10)},t.pointFromMouseEvent=function(n,t){var r=0,u=0,f=0,e=0,i;if(t||(t=window.event),t.pageX||t.pageY?(r=t.pageX,u=t.pageY):(t.clientX||t.clientY)&&(r=t.clientX+document.body.scrollLeft+document.documentElement.scrollLeft,u=t.clientY+document.body.scrollTop+document.documentElement.scrollTop),n.offsetParent)do f+=n.offsetLeft,e+=n.offsetTop;while(n=n.offsetParent);return i=new Point,i.x=r-f,i.y=u-e,i},t.pointFromTouch=function(n,t){var r=0,u=0,f=0,e=0,i;if(t.pageX||t.pageY?(r=t.pageX,u=t.pageY):(t.clientX||t.clientY)&&(r=t.clientX+document.body.scrollLeft+document.documentElement.scrollLeft,u=t.clientY+document.body.scrollTop+document.documentElement.scrollTop),n.offsetParent)do f+=n.offsetLeft,e+=n.offsetTop;while(n=n.offsetParent);return i=new Point,i.x=r-f,i.y=u-e,i},t}(Input),Button=function(n){function t(t){var i=n.call(this,t)||this,r;return i.audio=null,r=i.jElement.data("sound"),r&&(i.audio=new Audio(r),i.audio.load()),i.sound_duration=i.jElement.data("sound-duration"),"ontouchstart"in document.documentElement?(i.element.addEventListener("touchstart",function(n){return i.onTouchStart(n)},!1),i.element.addEventListener("touchend",function(n){return i.onTouchEnd(n)},!1)):(i.element.addEventListener("mousedown",function(n){return i.onMouseDown(n)},!1),i.element.addEventListener("mouseup",function(n){return i.onMouseUp(n)},!1)),i}return __extends(t,n),t.prototype.onTouchStart=function(n){this.pressed=!0;this.saveValue();this.Activate();this.playSound();n.preventDefault()},t.prototype.onTouchEnd=function(n){this.pressed=!1;this.saveValue();n.preventDefault()},t.prototype.onMouseDown=function(n){this.pressed=!0;this.saveValue();this.Activate();this.playSound();n.preventDefault()},t.prototype.onMouseUp=function(n){this.pressed=!1;this.saveValue();n.preventDefault()},t.prototype.Activate=function(){var n=this;this.jElement.addClass("active");setTimeout(function(){n.jElement.removeClass("active")},200)},t.prototype.playSound=function(){var t=this,n;this.audio!=null&&this.audio.paused&&(this.audio.currentTime=0,n=this.audio.play(),n!==undefined&&n.then(function(){setTimeout(function(){t.audio.pause()},t.sound_duration)}))},t.prototype.saveValue=function(){if(this.workSpace){this.workSpace.beginTransaction();var n=this.name;this.workSpace.values[n]=this.pressed?"1":"0";this.workSpace.endTransaction()}},t}(Input),Output=function(){function n(n){this.element=n;this.jElement=$(n);this.name=this.jElement.data("input")}return n.prototype.loadValue=function(){this.workSpace.values[this.name]==undefined||(this.element.tagName.toUpperCase()=="INPUT"?this.jElement.val(this.workSpace.values[this.name]):this.jElement.text(this.workSpace.values[this.name]))},n.prototype.initLayout=function(){},n}();
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var WorkSpace = (function () {
+    function WorkSpace(form) {
+        var _this = this;
+        this.inputs = new Array();
+        this.outputs = new Array();
+        this.values = new Dictionary();
+        this.sent = new Dictionary();
+        this.tranCount = 0;
+        this.timer = 0;
+        this.reportInterval = 100;
+        this.readonlyFields = new Array();
+        this.tran = 0;
+        this._readyToSend = true;
+        this.form = form;
+        window.addEventListener('resize', function (event) { return _this.UpdateLayout(); }, false);
+    }
+    WorkSpace.init = function (form) {
+        var workSpace = new WorkSpace((form[0]));
+        workSpace.registerInputs();
+        workSpace.registerOutputs();
+        workSpace.ConnectAPI();
+    };
+    WorkSpace.prototype.ConnectAPI = function () {
+        var _this = this;
+        $.get("/api/EventSourceName")
+            .done(function (EventSourceName) {
+            if (window.EventSource) {
+                var s = EventSourceName;
+                var json = decodeURI(s.substring(s.indexOf("?") + 1)).replace("%3a", ":");
+                var parcel = JSON.parse(json);
+                _this.client = parcel.client;
+                _this.eventSource = new EventSource(EventSourceName);
+                _this.eventSource.onopen = function (ev) {
+                    _this.setFormat();
+                    _this.sendData();
+                };
+                _this.eventSource.onmessage = function (msg) {
+                    $("#message").text(msg.data);
+                    _this.receiveData(msg);
+                };
+                _this.eventSource.onerror = function (event) {
+                    $("#message").text("Error...");
+                };
+            }
+        })
+            .fail(function () {
+            $("#message").text("error");
+        });
+    };
+    WorkSpace.prototype.setFormat = function () {
+        var _this = this;
+        this.fields = new Array();
+        var v = new Array();
+        $.each((this.values), function (name, value) {
+            _this.fields.push(name);
+        });
+        this.send(JSON.stringify({ client: this.client, fields: this.fields }));
+    };
+    WorkSpace.prototype.readyToSend = function () {
+        if (this.eventSource)
+            return this._readyToSend;
+        return false;
+    };
+    WorkSpace.prototype.send = function (value) {
+        var _this = this;
+        if (this.eventSource) {
+            this._readyToSend = false;
+            $.ajax({
+                url: "/api/post",
+                data: value,
+                cache: false,
+                type: 'POST',
+                dataType: "json",
+                contentType: 'application/json; charset=utf-8'
+            }).done(function () {
+                console.log("done!");
+                _this._readyToSend = true;
+            }).fail(function () {
+                console.log("fail!");
+                _this._readyToSend = true;
+            });
+        }
+    };
+    WorkSpace.prototype.sendData = function () {
+        var _this = this;
+        if (this.timer === 0) {
+            if (this.readyToSend() == true) {
+                var v = new Array();
+                var changed = false;
+                for (var i = 0; i < this.fields.length; i++) {
+                    var key = this.fields[i];
+                    var value = this.values[key];
+                    v.push(value);
+                    if (this.sent[key] !== this.values[key])
+                        changed = true;
+                    this.sent[key] = value;
+                }
+                if (changed == true) {
+                    this.tran += 1;
+                    this.send(JSON.stringify({ client: this.client, tran: this.tran.toString(), values: v }));
+                }
+            }
+            this.timer = setTimeout(function () {
+                _this.timer = 0;
+                _this.sendData();
+            }, this.reportInterval);
+        }
+    };
+    WorkSpace.prototype.receiveData = function (msg) {
+        if (msg.data) {
+            var parcel = JSON.parse(msg.data);
+            if (this.tran < parcel.tran) {
+                this.tran = parseInt(parcel.tran, 10);
+                for (var i = 0; i < this.fields.length; i++) {
+                    var key = this.fields[i];
+                    var val = parcel.values[i];
+                    if (this.sent[key] != val) {
+                        this.sent[key] = val;
+                        this.values[key] = val;
+                        this.refreshInput(key, val);
+                    }
+                }
+            }
+            else {
+                for (var i = 0; i < this.fields.length; i++) {
+                    var key = this.fields[i];
+                    var val = parcel.values[i];
+                    for (var rIndex = 0; rIndex < this.readonlyFields.length; rIndex++) {
+                        if (key == this.readonlyFields[rIndex]) {
+                            this.values[key] = val;
+                            break;
+                        }
+                    }
+                }
+            }
+            this.refreshOutput();
+        }
+    };
+    WorkSpace.toggleFullScreen = function () {
+        var doc = window.document;
+        var docEl = doc.documentElement;
+        var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+        var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+        if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+            requestFullScreen.call(docEl);
+        }
+        else {
+            cancelFullScreen.call(doc);
+        }
+    };
+    WorkSpace.prototype.UpdateLayout = function () {
+        for (var i = 0; i < this.inputs.length; i++) {
+            this.inputs[i].initLayout();
+        }
+        for (var o = 0; o < this.outputs.length; o++) {
+            this.outputs[o].initLayout();
+        }
+    };
+    WorkSpace.prototype.registerInputs = function () {
+        var _this = this;
+        var inputs = $(".input", this.form);
+        inputs.each(function (index, val) {
+            var element = val;
+            var input;
+            if ($(element).hasClass("slider")) {
+                input = new Slider(element);
+            }
+            else if ($(element).hasClass("btn")) {
+                input = new Button(element);
+            }
+            else {
+                input = new Input(element);
+            }
+            _this.addInput(input);
+        });
+    };
+    WorkSpace.prototype.addInput = function (input) {
+        input.workSpace = this;
+        this.inputs.push(input);
+        input.saveValue();
+    };
+    WorkSpace.prototype.registerOutputs = function () {
+        var _this = this;
+        var outputs = $(".output", this.form);
+        outputs.each(function (index, val) {
+            var output = null;
+            output = new Output(val);
+            if (!(_this.values[output.name] != undefined)) {
+                _this.readonlyFields.push(output.name);
+                _this.values[output.name] = 0;
+            }
+            _this.addOutput(output);
+        });
+    };
+    WorkSpace.prototype.addOutput = function (output) {
+        output.workSpace = this;
+        this.outputs.push(output);
+        output.loadValue();
+    };
+    WorkSpace.prototype.beginTransaction = function () {
+        this.tranCount += 1;
+    };
+    WorkSpace.prototype.endTransaction = function () {
+        this.tranCount -= 1;
+        if (this.tranCount === 0) {
+            for (var i = 0; i < this.outputs.length; i++) {
+                this.outputs[i].loadValue();
+            }
+        }
+    };
+    WorkSpace.prototype.refreshInput = function (key, value) {
+        for (var i = 0; i < this.inputs.length; i++) {
+            this.inputs[i].loadValue(key, value);
+        }
+    };
+    WorkSpace.prototype.refreshOutput = function () {
+        for (var i = 0; i < this.outputs.length; i++) {
+            this.outputs[i].loadValue();
+        }
+    };
+    return WorkSpace;
+}());
+var Dictionary = (function () {
+    function Dictionary(init) {
+        if (init) {
+            for (var x = 0; x < init.length; x++) {
+                this[init[x].key] = init[x].value;
+            }
+        }
+    }
+    return Dictionary;
+}());
+var Point = (function () {
+    function Point() {
+        this.x = 0;
+        this.y = 0;
+    }
+    return Point;
+}());
+var Input = (function () {
+    function Input(element) {
+        this.element = element;
+        this.jElement = $(element);
+        this.name = this.jElement.attr("name");
+    }
+    Input.prototype.saveValue = function () {
+        if (!this.workSpace)
+            return;
+        this.workSpace.beginTransaction();
+        var val = this.jElement.attr("value");
+        if (val) {
+            this.workSpace.values[this.name] = val;
+        }
+        this.workSpace.endTransaction();
+    };
+    Input.prototype.loadValue = function (key, value) {
+        if (key == name) {
+            this.jElement.attr("value", value);
+        }
+    };
+    Input.prototype.initLayout = function () {
+    };
+    return Input;
+}());
+var Slider = (function (_super) {
+    __extends(Slider, _super);
+    function Slider(element) {
+        var _this = _super.call(this, element) || this;
+        _this.pressed = false;
+        _this.handlePos = new Point();
+        _this.value = new Point();
+        _this.center = new Point();
+        _this.autoCenterX = false;
+        _this.autoCenterY = false;
+        _this.handle = $(".handle", element)[0];
+        var pot = $(".pot", element);
+        if (pot.length > 0) {
+            _this.pot = pot[0];
+        }
+        if ("ontouchstart" in document.documentElement) {
+            _this.element.addEventListener('touchstart', function (event) { return _this.onTouchStart(event); }, false);
+            _this.element.addEventListener('touchmove', function (event) { return _this.onTouchMove(event); }, false);
+            _this.element.addEventListener('touchend', function (event) { return _this.onTouchEnd(event); }, false);
+        }
+        else {
+            _this.element.addEventListener('mousedown', function (event) { return _this.onMouseDown(event); }, false);
+            _this.element.addEventListener('mousemove', function (event) { return _this.onMouseMove(event); }, false);
+            _this.element.addEventListener('mouseup', function (event) { return _this.onMouseUp(event); }, false);
+        }
+        _this.initLayout();
+        if ($(element).data("center")) {
+            _this.autoCenterX = true;
+            _this.autoCenterY = true;
+        }
+        else if ($(element).data("center-x")) {
+            _this.autoCenterX = true;
+        }
+        else if ($(element).data("center-y")) {
+            _this.autoCenterY = true;
+        }
+        _this.refreshLayout(true);
+        return _this;
+    }
+    Slider.prototype.onTouchStart = function (event) {
+        this.pressed = true;
+        this.element.style.zIndex = "100";
+    };
+    Slider.prototype.onTouchMove = function (event) {
+        event.preventDefault();
+        if (this.pressed === true) {
+            this.handlePos = Slider.pointFromTouch(this.element, event.targetTouches[0]);
+            this.refreshLayout(false);
+            this.saveValue();
+        }
+    };
+    Slider.prototype.onTouchEnd = function (event) {
+        this.pressed = false;
+        if (this.autoCenterX)
+            this.handlePos.x = this.center.x;
+        if (this.autoCenterY)
+            this.handlePos.y = this.center.y;
+        this.refreshLayout(true);
+        this.saveValue();
+        this.element.style.zIndex = "0";
+    };
+    Slider.prototype.onMouseDown = function (event) {
+        this.pressed = true;
+        this.element.style.zIndex = "100";
+    };
+    Slider.prototype.onMouseMove = function (event) {
+        if (this.pressed === true) {
+            this.handlePos = Slider.pointFromMouseEvent(this.element, event);
+            this.refreshLayout(false);
+            this.saveValue();
+        }
+    };
+    Slider.prototype.onMouseUp = function (event) {
+        this.pressed = false;
+        if (this.autoCenterX)
+            this.handlePos.x = this.center.x;
+        if (this.autoCenterY)
+            this.handlePos.y = this.center.y;
+        this.refreshLayout(true);
+        this.saveValue();
+        this.element.style.zIndex = "0";
+    };
+    Slider.prototype.refreshLayout = function (clip) {
+        if (clip) {
+            if (this.handlePos.x < 0)
+                this.handlePos.x = 0;
+            if (this.handlePos.y < 0)
+                this.handlePos.y = 0;
+            if (this.handlePos.x > this.element.clientWidth)
+                this.handlePos.x = this.element.clientWidth;
+            if (this.handlePos.y > this.element.clientHeight)
+                this.handlePos.y = this.element.clientHeight;
+        }
+        this.handle.style.left = '' + (this.handlePos.x - (this.handle.clientWidth / 2)) + 'px';
+        this.handle.style.top = '' + (this.handlePos.y - (this.handle.clientHeight / 2)) + 'px';
+        var clipped = new Point();
+        clipped.x = this.handlePos.x;
+        clipped.y = this.handlePos.y;
+        if (clipped.x < 0)
+            clipped.x = 0;
+        if (clipped.y < 0)
+            clipped.y = 0;
+        if (clipped.x > this.element.clientWidth)
+            clipped.x = this.element.clientWidth;
+        if (clipped.y > this.element.clientHeight)
+            clipped.y = this.element.clientHeight;
+        var normalized = new Point();
+        normalized.x = (this.center.x - clipped.x) * 100.0 / (this.element.clientWidth / 2.0);
+        normalized.y = (this.center.y - clipped.y) * 100.0 / (this.element.clientHeight / 2.0);
+        this.value = normalized;
+        if (this.pot) {
+            this.pot.style.left = '' + (clipped.x - (this.pot.clientWidth / 2.0)) + 'px';
+            this.pot.style.top = '' + (clipped.y - (this.pot.clientHeight / 2.0)) + 'px';
+        }
+    };
+    Slider.prototype.saveValue = function () {
+        if (!this.workSpace)
+            return;
+        this.workSpace.beginTransaction();
+        var key_x = this.name + "_x";
+        this.workSpace.values[key_x] = Slider.numToString(this.value.x);
+        var key_y = this.name + "_y";
+        this.workSpace.values[key_y] = Slider.numToString(this.value.y);
+        this.workSpace.endTransaction();
+    };
+    Slider.prototype.loadValue = function (key, value) {
+        if (this.pressed == true)
+            return;
+        var key_x = this.name + "_x";
+        var key_y = this.name + "_y";
+        var refresh = false;
+        if (key == key_x) {
+            this.value.x = value;
+            refresh = true;
+        }
+        if (key == key_y) {
+            this.value.y = value;
+            refresh = true;
+        }
+        if (refresh == true) {
+            this.initLayout();
+        }
+    };
+    Slider.prototype.initLayout = function () {
+        this.center.x = this.element.clientWidth / 2;
+        this.center.y = this.element.clientHeight / 2;
+        var x = this.element.clientWidth / 2.0;
+        var y = this.element.clientHeight / 2.0;
+        this.handlePos.x = this.center.x - this.value.x * x / 100.0;
+        this.handlePos.y = this.center.y - this.value.y * y / 100.0;
+        this.handle.style.left = '' + (this.handlePos.x - (this.handle.clientWidth / 2)) + 'px';
+        this.handle.style.top = '' + (this.handlePos.y - (this.handle.clientHeight / 2)) + 'px';
+        if (this.pot) {
+            this.pot.style.left = '' + (this.handlePos.x - (this.pot.clientWidth / 2.0)) + 'px';
+            this.pot.style.top = '' + (this.handlePos.y - (this.pot.clientHeight / 2.0)) + 'px';
+        }
+    };
+    Slider.numToString = function (n) {
+        return (Math.round(n * 100.0) / 100.0).toString(10);
+    };
+    Slider.pointFromMouseEvent = function (container, e) {
+        var m_posx = 0, m_posy = 0, e_posx = 0, e_posy = 0;
+        if (!e) {
+            e = window.event;
+        }
+        if (e.pageX || e.pageY) {
+            m_posx = e.pageX;
+            m_posy = e.pageY;
+        }
+        else if (e.clientX || e.clientY) {
+            m_posx = e.clientX + document.body.scrollLeft
+                + document.documentElement.scrollLeft;
+            m_posy = e.clientY + document.body.scrollTop
+                + document.documentElement.scrollTop;
+        }
+        if (container.offsetParent) {
+            do {
+                e_posx += container.offsetLeft;
+                e_posy += container.offsetTop;
+            } while (container = container.offsetParent);
+        }
+        var pt = new Point();
+        pt.x = (m_posx - e_posx);
+        pt.y = (m_posy - e_posy);
+        return pt;
+    };
+    Slider.pointFromTouch = function (container, e) {
+        var m_posx = 0, m_posy = 0, e_posx = 0, e_posy = 0;
+        if (e.pageX || e.pageY) {
+            m_posx = e.pageX;
+            m_posy = e.pageY;
+        }
+        else if (e.clientX || e.clientY) {
+            m_posx = e.clientX + document.body.scrollLeft
+                + document.documentElement.scrollLeft;
+            m_posy = e.clientY + document.body.scrollTop
+                + document.documentElement.scrollTop;
+        }
+        if (container.offsetParent) {
+            do {
+                e_posx += container.offsetLeft;
+                e_posy += container.offsetTop;
+            } while (container = container.offsetParent);
+        }
+        var pt = new Point();
+        pt.x = (m_posx - e_posx);
+        pt.y = (m_posy - e_posy);
+        return pt;
+    };
+    return Slider;
+}(Input));
+var Button = (function (_super) {
+    __extends(Button, _super);
+    function Button(element) {
+        var _this = _super.call(this, element) || this;
+        _this.audio = null;
+        var sound = _this.jElement.data("sound");
+        if (sound) {
+            _this.audio = new Audio(sound);
+            _this.audio.load();
+        }
+        _this.sound_duration = _this.jElement.data("sound-duration");
+        if ("ontouchstart" in document.documentElement) {
+            _this.element.addEventListener('touchstart', function (event) { return _this.onTouchStart(event); }, false);
+            _this.element.addEventListener('touchend', function (event) { return _this.onTouchEnd(event); }, false);
+        }
+        else {
+            _this.element.addEventListener('mousedown', function (event) { return _this.onMouseDown(event); }, false);
+            _this.element.addEventListener('mouseup', function (event) { return _this.onMouseUp(event); }, false);
+        }
+        return _this;
+    }
+    Button.prototype.onTouchStart = function (event) {
+        this.pressed = true;
+        this.saveValue();
+        this.Activate();
+        this.playSound();
+        event.preventDefault();
+    };
+    Button.prototype.onTouchEnd = function (event) {
+        this.pressed = false;
+        this.saveValue();
+        event.preventDefault();
+    };
+    Button.prototype.onMouseDown = function (event) {
+        this.pressed = true;
+        this.saveValue();
+        this.Activate();
+        this.playSound();
+        event.preventDefault();
+    };
+    Button.prototype.onMouseUp = function (event) {
+        this.pressed = false;
+        this.saveValue();
+        event.preventDefault();
+    };
+    Button.prototype.Activate = function () {
+        var _this = this;
+        this.jElement.addClass("active");
+        setTimeout(function () { _this.jElement.removeClass("active"); }, 200);
+    };
+    Button.prototype.playSound = function () {
+        var _this = this;
+        if (this.audio == null)
+            return;
+        if (!this.audio.paused)
+            return;
+        this.audio.currentTime = 0;
+        var playPromise = this.audio.play();
+        if (playPromise !== undefined) {
+            playPromise.then(function (_) {
+                setTimeout(function () { _this.audio.pause(); }, _this.sound_duration);
+            });
+        }
+    };
+    Button.prototype.saveValue = function () {
+        if (!this.workSpace)
+            return;
+        this.workSpace.beginTransaction();
+        var key = this.name;
+        if (this.pressed) {
+            this.workSpace.values[key] = "1";
+        }
+        else {
+            this.workSpace.values[key] = "0";
+        }
+        this.workSpace.endTransaction();
+    };
+    return Button;
+}(Input));
+var Output = (function () {
+    function Output(element) {
+        this.element = element;
+        this.jElement = $(element);
+        this.name = this.jElement.data("input");
+    }
+    Output.prototype.loadValue = function () {
+        if (!(this.workSpace.values[this.name] == undefined)) {
+            if (this.element.tagName.toUpperCase() == "INPUT") {
+                this.jElement.val(this.workSpace.values[this.name]);
+            }
+            else {
+                this.jElement.text(this.workSpace.values[this.name]);
+            }
+        }
+    };
+    Output.prototype.initLayout = function () {
+    };
+    return Output;
+}());
+//# sourceMappingURL=slider.js.map

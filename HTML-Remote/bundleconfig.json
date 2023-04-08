@@ -87,7 +87,7 @@
     ],
     // Optionally specify minification options
     "minify": {
-      "enabled": true
+      "enabled": false
     },
     "sourceMap": false
   },
@@ -478,13 +478,7 @@
     "minify": {
       "enabled": false
     }
-  },
-
-  {
-    "outputFileName": "data/mp3/fire.mp3",
-    // An array of relative input file paths. Globbing patterns supported
-    "inputFiles": [
-      "mp3/fire.mp3"
-    ]
   }
+
+  
 ]

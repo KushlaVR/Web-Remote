@@ -5,9 +5,9 @@ VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Items", "Items", "{464C4E74-2B7F-473C-AAFE-652525F1D31C}"
 	ProjectSection(SolutionItems) = preProject
-		tools\1 firmware.bat = tools\1 firmware.bat
-		tools\2 SPIFFS.bat = tools\2 SPIFFS.bat
 		tools\copy.bat = tools\copy.bat
+		tools\1 firmware.bat = tools\1 firmware.bat
+		tools\copy-pio.bat = tools\copy-pio.bat
 		tools\data.bat = tools\data.bat
 		README.md = README.md
 	EndProjectSection

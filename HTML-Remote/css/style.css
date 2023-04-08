@@ -5,7 +5,7 @@
 body {
     padding: 0;
     margin: auto;
-    background: #032A42;
+    background: #383a21;
     width: 100vw;
     overflow: hidden;
 }
@@ -22,10 +22,9 @@ body {
     .main .screen {
         display: block;
         position: relative;
-        /*margin: 10px auto;*/
         width: 100vw;
         height: 47vw;
-        background-color: #6c0334;
+        background-color: #6c033461;
         border: 1px solid #ffe000;
         box-shadow: rgba(0,0,0,0.1) 0px 1px 10px;
         border-radius: 5px;
