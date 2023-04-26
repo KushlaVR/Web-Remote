@@ -243,6 +243,7 @@ void reloadConfig() {
 
 
 void EventSourceName() {
+	console.println(webServer.uri());
 	webServer.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
 	webServer.sendHeader("Pragma", "no-cache");
 	webServer.sendHeader("Expires", "-1");
@@ -254,8 +255,9 @@ void EventSourceName() {
 	joypads.add(j);
 
 	String ret = "http://" + apIP.toString() + ":80/api/events?{\"client\":\"" + String(j->id) + "\"}";
-
+	yield();
 	webServer.send(200, "text/plain", ret);
+	console.println(ret);
 
 }
 

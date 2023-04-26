@@ -7,6 +7,7 @@ Joypad::Joypad()
 {
 	Joypad_id++;
 	id = Joypad_id;
+	report = millis();
 }
 
 bool Joypad::keepAlive()
