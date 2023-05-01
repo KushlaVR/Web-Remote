@@ -23,11 +23,8 @@ body {
         display: block;
         position: relative;
         width: 100vw;
-        height: 47vw;
-        background-color: #6c033461;
-        border: 1px solid #ffe000;
-        box-shadow: rgba(0,0,0,0.1) 0px 1px 10px;
-        border-radius: 5px;
+        height: 45vw;
+        background-color: #0E1017;
     }
 
 
@@ -39,6 +36,10 @@ body {
             font-size: 2vw;
         }
 
+        .main .screen a.btn-p-0 {
+            padding: 0;
+        }
+
     .main .form-control {
         background-color: #032A42;
         color: #ffe000;
@@ -46,7 +47,7 @@ body {
 
     .main .msg,
     .main label {
-        color: #ffe000;
+        color: #ffffff;
     }
 
     .main .msg {
@@ -58,7 +59,7 @@ body {
         width: 9vw;
         height: 9vw;
         text-align: center;
-        border: 0.5vw solid #ffe000;
+        border: 0.5vw solid #ffffff00;
         border-radius: 50%;
         color: #ffe000;
         padding: 1vw;
@@ -70,11 +71,11 @@ body {
         }
 
 
-        .full-screen {
-            position: absolute;
-            top: 0;
-            right: 0px;
-        }
+.full-screen {
+    position: absolute;
+    top: 0;
+    right: 0px;
+}
 
 .plate {
     height: 6em;
@@ -93,5 +94,5 @@ body {
 .settings {
     color: whitesmoke;
     max-width: 500px;
-    margin:auto;
+    margin: auto;
 }
