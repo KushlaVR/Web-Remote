@@ -148,9 +148,18 @@
   <ItemGroup>
     <Content Include="data\img\afu-gf.svg" />
     <Content Include="data\img\afu.svg" />
-    <Content Include="data\mp3\fire.mp3" />
+    <Content Include="data\img\bg.png" />
+    <Content Include="data\img\hl.svg" />
+    <Content Include="data\img\jp-l.svg" />
+    <Content Include="data\img\jp-r.svg" />
+    <Content Include="data\img\ll.svg" />
+    <Content Include="data\img\person.svg" />
+    <Content Include="data\img\pl.svg" />
+    <Content Include="data\img\sp.svg" />
+    <Content Include="data\img\speedometer.svg" />
     <Content Include="img\afu-gf.svg" />
     <Content Include="img\afu.svg" />
+    <Content Include="img\bg.png" />
     <Content Include="img\hl.svg" />
     <Content Include="img\jp-l.svg" />
     <Content Include="img\jp-r.svg" />
@@ -160,21 +169,12 @@
     <Content Include="mp3\01692.mp3" />
     <Content Include="mp3\03037.mp3" />
     <Content Include="mp3\03049.mp3" />
-    <Content Include="data\sniper.html" />
     <Content Include="mp3\fire.mp3" />
-    <Content Include="sniper.html" />
-    <Content Include="control - Copy.min.html">
-      <DependentUpon>sniper.html</DependentUpon>
-    </Content>
-    <Content Include="data\driver.html" />
-    <Content Include="data\img\cabin.svg" />
     <Content Include="data\img\down.svg" />
     <Content Include="data\img\left.svg" />
     <Content Include="data\img\light.svg" />
     <Content Include="data\img\right.svg" />
     <Content Include="data\img\up.svg" />
-    <Content Include="data\img\vehicle.svg" />
-    <Content Include="driver.html" />
     <Content Include="control.html" />
     <Content Include="control.min.html">
       <DependentUpon>control.html</DependentUpon>
@@ -196,17 +196,12 @@
     <Content Include="data\css\slider.css" />
     <Content Include="data\css\style.css" />
     <Content Include="data\img\aim.svg" />
-    <Content Include="data\img\person.svg" />
     <Content Include="data\img\settings.svg" />
-    <Content Include="data\img\speedometer.svg" />
     <Content Include="data\index.html" />
     <Content Include="data\js\bootstrap.js" />
     <Content Include="data\js\jquery.js" />
     <Content Include="data\js\kushlavr.js" />
     <Content Include="data\js\slider.js" />
-    <Content Include="driver.min.html">
-      <DependentUpon>driver.html</DependentUpon>
-    </Content>
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -545,9 +540,6 @@
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
-    <Content Include="sniper.min.html">
-      <DependentUpon>sniper.html</DependentUpon>
-    </Content>
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -565,6 +557,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="data\mp3\" />
     <Folder Include="Views\Api\" />
   </ItemGroup>
   <ItemGroup>
