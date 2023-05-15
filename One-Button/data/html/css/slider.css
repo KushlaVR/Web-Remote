@@ -1,0 +1,83 @@
+﻿.slider {
+    display: block;
+    position: absolute;
+    border: 0.5vw solid transparent;
+}
+
+    .slider::after {
+        content: "";
+        display: block;
+        position: absolute;
+        top: -3vw;
+        bottom: -3vw;
+        left: -3vw;
+        right: -3vw;
+    }
+
+
+    .slider .pot {
+        background-color: gray;
+        border: 1px solid gray;
+        opacity: 0.95;
+    }
+
+    .slider .pot,
+    .slider .handle {
+        display: block;
+        position: absolute;
+        width: 6vw;
+        height: 6vw;
+        border-radius: 50%;
+        background-color: #032A42;
+    }
+
+    .slider .handle {
+        background-color: gray;
+    }
+
+        .slider .handle::before {
+            content: "";
+            display: block;
+            position: absolute;
+            width: 6.8vw;
+            height: 6.8vw;
+            margin-left: -0.47vw;
+            margin-top: -0.47vw;
+            border-radius: 50%;
+            background: none;
+            border: 0.5vw solid #ffe000;
+        }
+
+        .slider .handle::after {
+            content: "";
+            display: block;
+            width: 16vw;
+            height: 16vw;
+            margin-left: -5vw;
+            margin-top: -5vw;
+            border-radius: 5vw;
+            background: inherit;
+            opacity: 0.1;
+        }
+
+        .slider .handle.red {
+            background-color: red;
+        }
+
+        .slider .handle.green {
+            background-color: green;
+        }
+
+        .slider .handle.blue {
+            background-color: #001089;
+        }
+
+        .slider .handle.orange {
+            background-color: orange;
+        }
+
+
+.info-img {
+    width: 100%;
+    height: 100%
+}
