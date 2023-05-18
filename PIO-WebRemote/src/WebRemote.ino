@@ -25,6 +25,12 @@
 #define MOTOR_B D7
 #define SERVO_PIN D5
 
+#define LEFT_TURN_LIGHT_PIN D2
+#define RIGHT_TURN_LIGHT_PIN D1
+#define HEAD_LIGHT_PIN D4
+#define STOP_LIGHT_PIN D8
+#define REVERCE_LIGHT_PIN D3
+
 enum Ignition
 {
 	OFF = 0,
@@ -50,9 +56,25 @@ struct State
 
 } state;
 
+struct Config
+{
+
+	String ssid = "WEB_REMOTE";
+	String password = "12345678";
+
+	int inertion = 800;
+
+	int stearing_Center = 90;
+	int stearing_Left = 90 - 45;
+	int stearing_Right = 90 + 45;
+
+	int turnLight_Left = 90 - (45 * 0.5F);	// Condition to enable turn light
+	int turnLight_Right = 90 + (45 * 0.5F); // Condition to enable turn light
+};
+
 void reloadConfig();
 
-ConfigStruct config;
+Config config;
 
 char SSID[32];
 char SSID_password[20];
@@ -118,9 +140,9 @@ void setup()
 		console.println(("Starting..."));
 	}
 
-	setupController.cfg = &config;
-	setupController.reloadConfig = reloadConfig;
-	setupController.loadConfig();
+	// setupController.cfg = &config;
+	// setupController.reloadConfig = reloadConfig;
+	// setupController.loadConfig();
 
 	WiFi.begin();
 	WiFi.disconnect();
@@ -154,6 +176,18 @@ void setup()
 	motor->isEnabled = true;
 
 	stearing.attach(SERVO_PIN);
+
+	leftLight.Add(LEFT_TURN_LIGHT_PIN, 0, LOW);
+	leftLight.Add(LEFT_TURN_LIGHT_PIN, 0, HIGH);
+	leftLight.Add(LEFT_TURN_LIGHT_PIN, 500, LOW);
+	leftLight.Add(LEFT_TURN_LIGHT_PIN, 1000, LOW);
+	leftLight.debug = true;
+
+	rightLight.Add(RIGHT_TURN_LIGHT_PIN, 0, LOW);
+	rightLight.Add(RIGHT_TURN_LIGHT_PIN, 0, HIGH);
+	rightLight.Add(RIGHT_TURN_LIGHT_PIN, 500, LOW);
+	rightLight.Add(RIGHT_TURN_LIGHT_PIN, 1000, LOW);
+	rightLight.debug = true;
 
 	btnStartStop.bounce = 0;
 
@@ -326,11 +360,37 @@ void handleVeichle()
 
 	if (state.ignition >= Ignition::ON)
 	{
-		state.stearing = map(stearing, -100, 100, 0, 180);
+		state.stearing = map(stearing, 100, -100, config.stearing_Left, config.stearing_Right);
 	}
 	else
 	{
-		state.stearing = 90;
+		state.stearing = config.stearing_Center;
+	}
+
+	if (state.stearing < config.turnLight_Left)
+	{
+		if (!leftLight.isRunning())
+			leftLight.begin();
+		if (rightLight.isRunning())
+			rightLight.end();
+	}
+	else
+	{
+		if (leftLight.isRunning())
+			leftLight.end();
+	}
+
+	if (state.stearing > config.turnLight_Right)
+	{
+		if (!rightLight.isRunning())
+			rightLight.begin();
+		if (leftLight.isRunning())
+			leftLight.end();
+	}
+	else
+	{
+		if (rightLight.isRunning())
+			rightLight.end();
 	}
 
 	// Двигуни
