@@ -32,6 +32,14 @@ void btnOne_Press()
 
 VirtualButton buttonOne(btnOne_Press);
 
+void btnTwo_Press()
+{
+  button_counter += 2;
+  joypads.setValue("button_counter", button_counter);
+}
+
+VirtualButton buttonTwo(btnTwo_Press);
+
 void EventSourceName()
 {
   console.println(webServer.uri());
@@ -170,6 +178,7 @@ void loop()
   if (joypads.getCount() > 0)
   {
     buttonOne.setValue(joypads.getValue("button_one"));
+    buttonTwo.setValue(joypads.getValue("button_two"));
   }
   else
   {

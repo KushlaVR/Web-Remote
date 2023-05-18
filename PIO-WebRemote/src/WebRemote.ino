@@ -64,8 +64,6 @@ const byte DNS_PORT = 53;
 DNSServer dnsServer;
 JoypadCollection joypads = JoypadCollection();
 
-// Blinker smokeGenerator = Blinker("Smoke");
-
 void handle_StartStop();
 void btnParkingLight_Pressed();
 void btnHeadLight_Pressed();
