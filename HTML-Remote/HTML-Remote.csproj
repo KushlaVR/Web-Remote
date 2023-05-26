@@ -528,7 +528,6 @@
     <Content Include="js\kushlavr.js.map" />
     <Content Include="js\kushlavr.min.js.map" />
     <Content Include="js\slider.js.map" />
-    <Content Include="js\slider.min.js.map" />
     <Content Include="bundleconfig.json" />
     <None Include="Scripts\jquery-3.5.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.5.0.js" />

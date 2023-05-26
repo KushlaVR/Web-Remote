@@ -24,6 +24,7 @@
 #define MOTOR_A D6
 #define MOTOR_B D7
 #define SERVO_PIN D5
+#define SERVO_HALF_ANGLE 70
 
 #define LEFT_TURN_LIGHT_PIN D2
 #define RIGHT_TURN_LIGHT_PIN D1
@@ -65,11 +66,11 @@ struct Config
 	int inertion = 800;
 
 	int stearing_Center = 90;
-	int stearing_Left = 90 - 45;
-	int stearing_Right = 90 + 45;
+	int stearing_Left = 90 - SERVO_HALF_ANGLE;
+	int stearing_Right = 90 + SERVO_HALF_ANGLE;
 
-	int turnLight_Left = 90 - (45 * 0.5F);	// Condition to enable turn light
-	int turnLight_Right = 90 + (45 * 0.5F); // Condition to enable turn light
+	int turnLight_Left = 90 - (SERVO_HALF_ANGLE * 0.5F);	// Condition to enable turn light
+	int turnLight_Right = 90 + (SERVO_HALF_ANGLE * 0.5F); // Condition to enable turn light
 };
 
 void reloadConfig();
@@ -431,6 +432,7 @@ void loop()
 	}
 	else
 	{
+		state.stearing = config.stearing_Center;
 		state.ignition = Ignition::OFF;
 	}
 

@@ -102,11 +102,11 @@ class WorkSpace {
                 this._readyToSend = true;
             });
         } //else
-            //if (this.socket) {
-            //    this._readyToSend = false;
-            //    this.socket.send(value);
-            //    this._readyToSend = true;
-            //}
+        //if (this.socket) {
+        //    this._readyToSend = false;
+        //    this.socket.send(value);
+        //    this._readyToSend = true;
+        //}
     }
 
     /**
@@ -340,7 +340,7 @@ class Input {
     }
 
     loadValue(key: string, value: string): void {
-        if (key == name) {
+        if (key == this.name) {
             this.jElement.attr("value", value);
         }
     }
@@ -694,6 +694,12 @@ class Output {
         if (!(this.workSpace.values[this.name] == undefined)) {
             if (this.element.tagName.toUpperCase() == "INPUT") {
                 this.jElement.val(this.workSpace.values[this.name]);
+            } if (this.element.tagName.toUpperCase() == "IMG") {
+                if (this.workSpace.values[this.name] == "0") {
+                    this.jElement.addClass("hidden")
+                } else {
+                    this.jElement.removeClass("hidden")
+                }
             } else {
                 this.jElement.text(this.workSpace.values[this.name]);
             }
