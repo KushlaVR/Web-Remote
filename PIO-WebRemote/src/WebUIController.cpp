@@ -166,7 +166,9 @@ bool WebUIController::handleFileRead(String path, bool html)
 	char* contentType = webServer.getContentType(path);
 	String minimized = webServer.getMinimizedPath(path);
 	if (SPIFFS.exists(minimized)) path = minimized;
-	console.println("path=" + path);
+	console.print("path=");
+	console.println(path);
+	console.flush();
 	if (SPIFFS.exists(path)) {
 		File file = SPIFFS.open(path, "r");
 		webServer.sendFile(file, contentType, false);

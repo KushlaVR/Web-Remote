@@ -59,6 +59,8 @@ public:
 	SetupController();
 	~SetupController();
 
+	void setup();
+
 	void loadConfig();
 	void saveConfig();
 	void printConfig(JsonString* out);

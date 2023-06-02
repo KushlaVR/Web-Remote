@@ -91,13 +91,14 @@ void handle_StartStop();
 void btnParkingLight_Pressed();
 void btnHeadLight_Pressed();
 void btnHighLight_Pressed();
+void btnHighLight_Released();
 
 Servo stearing = Servo();
 
 VirtualButton btnStartStop = VirtualButton(handle_StartStop);
 VirtualButton btnParkingLight = VirtualButton(btnParkingLight_Pressed);
 VirtualButton btnHeadLight = VirtualButton(btnHeadLight_Pressed);
-VirtualButton btnHighLight = VirtualButton(btnHighLight_Pressed);
+VirtualButton btnHighLight = VirtualButton(btnHighLight_Pressed, NULL, btnHighLight_Released);
 
 RoboEffects motorEffect = RoboEffects();
 MotorBase *motor = nullptr;
@@ -290,6 +291,39 @@ void Post()
 	}
 }
 
+void setParkingLight(int value)
+{
+	if (state.parkingLight == value)
+		return;
+	state.parkingLight = value;
+	if (value == 0)
+		joypads.setValue("pos_on", 0);
+	else
+		joypads.setValue("pos_on", 1);
+}
+
+void setHeadLight(int value)
+{
+	if (state.headLight == value)
+		return;
+	state.headLight = value;
+	if (value == 0)
+		joypads.setValue("lo_on", 0);
+	else
+		joypads.setValue("lo_on", 1);
+}
+
+void setHighLight(int value)
+{
+	if (state.highLight == value)
+		return;
+	state.highLight = value;
+	if (value == 0)
+		joypads.setValue("hi_on", 0);
+	else
+		joypads.setValue("hi_on", 1);
+}
+
 void handle_StartStop()
 {
 	state.ignition += 1;
@@ -316,13 +350,13 @@ void btnParkingLight_Pressed()
 	Serial.print("Parking Light!");
 	if (state.parkingLight == 0)
 	{
-		state.parkingLight = 1;
+		setParkingLight(1);
 	}
 	else
 	{
-		state.parkingLight = 0;
-		state.headLight = 0;
-		state.highLight = 0;
+		setParkingLight(0);
+		setHeadLight(0);
+		setHighLight(0);
 	}
 }
 
@@ -331,31 +365,42 @@ void btnHeadLight_Pressed()
 	Serial.print("Head Light!");
 	if (state.headLight == 0)
 	{
-		state.parkingLight = 1;
-		state.headLight = 1;
-		state.highLight = 0;
+		setParkingLight(1);
+		setHeadLight(1);
+		setHighLight(0);
 	}
 	else
 	{
-		state.parkingLight = 1;
-		state.headLight = 0;
-		state.highLight = 0;
+		setParkingLight(1);
+		setHeadLight(0);
+		setHighLight(0);
 	}
 }
 
 void btnHighLight_Pressed()
 {
 	Serial.print("High Light!");
-	if (state.highLight == 0)
+	if (state.headLight)
 	{
-		state.headLight = 0;
-		state.highLight = 1;
+		if (state.highLight == 0)
+		{
+			setHighLight(1);
+		}
+		else
+		{
+			setHighLight(0);
+		}
 	}
 	else
 	{
-		state.headLight = 1;
-		state.highLight = 0;
+		setHighLight(1);
 	}
+}
+
+void btnHighLight_Released()
+{
+	if (!state.headLight)
+		setHighLight(0);
 }
 
 void handleVeichle()

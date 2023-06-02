@@ -1,15 +1,17 @@
 #include "SetupController.h"
 
-
-
 SetupController::SetupController()
 {
-	webServer.on("/api/setup", HTTPMethod::HTTP_GET, Setup_Get);
-	webServer.on("/api/setup", HTTPMethod::HTTP_POST, Setup_Post);
 }
 
 SetupController::~SetupController()
 {
+}
+
+void SetupController::setup()
+{
+	webServer.on("/api/setup", HTTPMethod::HTTP_GET, Setup_Get);
+	webServer.on("/api/setup", HTTPMethod::HTTP_POST, Setup_Post);
 }
 
 void SetupController::loadConfig()
@@ -17,7 +19,8 @@ void SetupController::loadConfig()
 	String s;
 	JsonString cfg = "";
 	File cfgFile;
-	if (!SPIFFS.exists("/config.json")) {
+	if (!SPIFFS.exists("/config.json"))
+	{
 		console.println(("Default setting loaded..."));
 		cfg.beginObject();
 		cfg.AddValue("ssid", "WEMOS");
@@ -38,7 +41,7 @@ void SetupController::loadConfig()
 		cfg.AddValue("gun_min", "20");
 		cfg.AddValue("gun_max", "40");
 
-		//cabin
+		// cabin
 		cfg.AddValue("cabin_min", "20");
 		cfg.AddValue("cabin_max", "40");
 		cfg.AddValue("cabin_inertion", "800");
@@ -61,7 +64,8 @@ void SetupController::loadConfig()
 		cfgFile.flush();
 		cfgFile.close();
 	}
-	else {
+	else
+	{
 		console.println(("Reading config..."));
 		cfgFile = SPIFFS.open("/config.json", "r");
 		s = cfgFile.readString();
@@ -99,23 +103,23 @@ void SetupController::loadConfig()
 
 	this->cfg->smoke_min = cfg.getInt("smoke_min");
 	this->cfg->smoke_max = cfg.getInt("smoke_max");
-	
-	this->cfg->light= cfg.getInt("light");
 
+	this->cfg->light = cfg.getInt("light");
 }
 
 void SetupController::saveConfig()
 {
-	JsonString  out = JsonString();
+	JsonString out = JsonString();
 	printConfig(&out);
 	File cfgFile = SPIFFS.open("/config.json", "w");
 	cfgFile.print(out.c_str());
 	cfgFile.flush();
 	cfgFile.close();
-	if (setupController.reloadConfig != nullptr) setupController.reloadConfig();
+	if (setupController.reloadConfig != nullptr)
+		setupController.reloadConfig();
 }
 
-void SetupController::printConfig(JsonString* out)
+void SetupController::printConfig(JsonString *out)
 {
 	out->beginObject();
 	out->AddValue("ssid", cfg->ssid);
@@ -148,7 +152,7 @@ void SetupController::printConfig(JsonString* out)
 
 	out->AddValue("smoke_min", String(cfg->smoke_min));
 	out->AddValue("smoke_max", String(cfg->smoke_max));
-	
+
 	out->AddValue("light", String(cfg->light));
 
 	out->endObject();
@@ -164,45 +168,116 @@ void SetupController::Setup_Get()
 void SetupController::Setup_Post()
 {
 
-	if (webServer.hasArg("ssid")) { setupController.cfg->ssid = webServer.arg("ssid"); }
-	if (webServer.hasArg("password")) { setupController.cfg->password = webServer.arg("password"); }
+	if (webServer.hasArg("ssid"))
+	{
+		setupController.cfg->ssid = webServer.arg("ssid");
+	}
+	if (webServer.hasArg("password"))
+	{
+		setupController.cfg->password = webServer.arg("password");
+	}
 
-	if (webServer.hasArg("min_speed")) { setupController.cfg->min_speed = webServer.arg("min_speed").toInt(); }
-	if (webServer.hasArg("inertion")) { setupController.cfg->inertion = webServer.arg("inertion").toInt(); }
+	if (webServer.hasArg("min_speed"))
+	{
+		setupController.cfg->min_speed = webServer.arg("min_speed").toInt();
+	}
+	if (webServer.hasArg("inertion"))
+	{
+		setupController.cfg->inertion = webServer.arg("inertion").toInt();
+	}
 
-	if (webServer.hasArg("gun_min")) { setupController.cfg->gun_min = webServer.arg("gun_min").toInt(); }
-	if (webServer.hasArg("gun_max")) { setupController.cfg->gun_max = webServer.arg("gun_max").toInt(); }
+	if (webServer.hasArg("gun_min"))
+	{
+		setupController.cfg->gun_min = webServer.arg("gun_min").toInt();
+	}
+	if (webServer.hasArg("gun_max"))
+	{
+		setupController.cfg->gun_max = webServer.arg("gun_max").toInt();
+	}
 
-	if (webServer.hasArg("cabin_min")) { setupController.cfg->cabin_min = webServer.arg("cabin_min").toInt(); }
-	if (webServer.hasArg("cabin_max")) { setupController.cfg->cabin_max = webServer.arg("cabin_max").toInt(); }
-	if (webServer.hasArg("cabin_inertion")) { setupController.cfg->cabin_Inertion = webServer.arg("cabin_inertion").toInt(); }
+	if (webServer.hasArg("cabin_min"))
+	{
+		setupController.cfg->cabin_min = webServer.arg("cabin_min").toInt();
+	}
+	if (webServer.hasArg("cabin_max"))
+	{
+		setupController.cfg->cabin_max = webServer.arg("cabin_max").toInt();
+	}
+	if (webServer.hasArg("cabin_inertion"))
+	{
+		setupController.cfg->cabin_Inertion = webServer.arg("cabin_inertion").toInt();
+	}
 
-	if (webServer.hasArg("fire_min")) { setupController.cfg->fire_min = webServer.arg("fire_min").toInt(); }
-	if (webServer.hasArg("fire_max")) { setupController.cfg->fire_max = webServer.arg("fire_max").toInt(); }
-	if (webServer.hasArg("fire_rollback_start")) { setupController.cfg->fire_rollback_start = webServer.arg("fire_rollback_start").toInt(); }
-	if (webServer.hasArg("fire_rollback_peak")) { setupController.cfg->fire_rollback_peak = webServer.arg("fire_rollback_peak").toInt(); }
-	if (webServer.hasArg("fire_rollback_end")) { setupController.cfg->fire_rollback_end = webServer.arg("fire_rollback_end").toInt(); }
-	if (webServer.hasArg("fire_led_start")) { setupController.cfg->fire_led_start = webServer.arg("fire_led_start").toInt(); }
-	if (webServer.hasArg("fire_led_end")) { setupController.cfg->fire_led_end = webServer.arg("fire_led_end").toInt(); }
-	if (webServer.hasArg("fire_led_pwm")) { setupController.cfg->fire_led_pwm = webServer.arg("fire_led_pwm").toInt(); }
+	if (webServer.hasArg("fire_min"))
+	{
+		setupController.cfg->fire_min = webServer.arg("fire_min").toInt();
+	}
+	if (webServer.hasArg("fire_max"))
+	{
+		setupController.cfg->fire_max = webServer.arg("fire_max").toInt();
+	}
+	if (webServer.hasArg("fire_rollback_start"))
+	{
+		setupController.cfg->fire_rollback_start = webServer.arg("fire_rollback_start").toInt();
+	}
+	if (webServer.hasArg("fire_rollback_peak"))
+	{
+		setupController.cfg->fire_rollback_peak = webServer.arg("fire_rollback_peak").toInt();
+	}
+	if (webServer.hasArg("fire_rollback_end"))
+	{
+		setupController.cfg->fire_rollback_end = webServer.arg("fire_rollback_end").toInt();
+	}
+	if (webServer.hasArg("fire_led_start"))
+	{
+		setupController.cfg->fire_led_start = webServer.arg("fire_led_start").toInt();
+	}
+	if (webServer.hasArg("fire_led_end"))
+	{
+		setupController.cfg->fire_led_end = webServer.arg("fire_led_end").toInt();
+	}
+	if (webServer.hasArg("fire_led_pwm"))
+	{
+		setupController.cfg->fire_led_pwm = webServer.arg("fire_led_pwm").toInt();
+	}
 
-	if (webServer.hasArg("turbine_min")) { setupController.cfg->turbine_min = webServer.arg("turbine_min").toInt(); }
-	if (webServer.hasArg("turbine_max")) { setupController.cfg->turbine_max = webServer.arg("turbine_max").toInt(); }
+	if (webServer.hasArg("turbine_min"))
+	{
+		setupController.cfg->turbine_min = webServer.arg("turbine_min").toInt();
+	}
+	if (webServer.hasArg("turbine_max"))
+	{
+		setupController.cfg->turbine_max = webServer.arg("turbine_max").toInt();
+	}
 
-	if (webServer.hasArg("turbine_frequency_min")) { setupController.cfg->turbine_frequency_min = webServer.arg("turbine_frequency_min").toInt(); }
-	if (webServer.hasArg("turbine_frequency_max")) { setupController.cfg->turbine_frequency_max = webServer.arg("turbine_frequency_max").toInt(); }
+	if (webServer.hasArg("turbine_frequency_min"))
+	{
+		setupController.cfg->turbine_frequency_min = webServer.arg("turbine_frequency_min").toInt();
+	}
+	if (webServer.hasArg("turbine_frequency_max"))
+	{
+		setupController.cfg->turbine_frequency_max = webServer.arg("turbine_frequency_max").toInt();
+	}
 
-	if (webServer.hasArg("smoke_min")) { setupController.cfg->smoke_min = webServer.arg("smoke_min").toInt(); }
-	if (webServer.hasArg("smoke_max")) { setupController.cfg->smoke_max = webServer.arg("smoke_max").toInt(); }
-	
-	if (webServer.hasArg("light")) { setupController.cfg->light = webServer.arg("light").toInt(); }
+	if (webServer.hasArg("smoke_min"))
+	{
+		setupController.cfg->smoke_min = webServer.arg("smoke_min").toInt();
+	}
+	if (webServer.hasArg("smoke_max"))
+	{
+		setupController.cfg->smoke_max = webServer.arg("smoke_max").toInt();
+	}
+
+	if (webServer.hasArg("light"))
+	{
+		setupController.cfg->light = webServer.arg("light").toInt();
+	}
 
 	setupController.saveConfig();
 
 	webServer.sendHeader("Location", String("http://") + WebUIController::ipToString(webServer.client().localIP()), true);
-	webServer.send(302, "text/plain", "");   // Empty content inhibits Content-length header so we have to close the socket ourselves.
-	webServer.client().stop(); // Stop is needed because we sent no content length
+	webServer.send(302, "text/plain", ""); // Empty content inhibits Content-length header so we have to close the socket ourselves.
+	webServer.client().stop();			   // Stop is needed because we sent no content length
 }
-
 
 SetupController setupController;
