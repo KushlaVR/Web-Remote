@@ -36,9 +36,9 @@ body {
             font-size: 2vw;
         }
 
-        .main .screen a.btn-p-0 {
-            padding: 0;
-        }
+            .main .screen a.btn-p-0 {
+                padding: 0;
+            }
 
     .main .form-control {
         background-color: #032A42;
@@ -70,6 +70,9 @@ body {
             transition: background-color linear 0.2s;
         }
 
+    .main .hidden {
+        visibility: collapse;
+    }
 
 .full-screen {
     position: absolute;

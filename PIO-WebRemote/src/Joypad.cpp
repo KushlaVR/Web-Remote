@@ -214,7 +214,7 @@ void JoypadCollection::loop()
 	Joypad* j = (Joypad*)getFirst();
 	while (j != nullptr) {
 		if (j->changed()) {
-			if ((m - j->report) > reportAliveInterval) {
+			if ((m - j->report) > reportInterval) {
 
 				//Serial.print("id=");
 				//Serial.print(j->id);

@@ -147,34 +147,37 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="data\img\afu-gf.svg" />
-    <Content Include="data\img\afu.svg" />
+    <Content Include="data\img\arrow.svg" />
     <Content Include="data\img\bg.png" />
+    <Content Include="data\img\body.png" />
+    <Content Include="data\img\green.png" />
     <Content Include="data\img\hl.svg" />
     <Content Include="data\img\jp-l.svg" />
     <Content Include="data\img\jp-r.svg" />
     <Content Include="data\img\ll.svg" />
-    <Content Include="data\img\person.svg" />
     <Content Include="data\img\pl.svg" />
+    <Content Include="data\img\red.png" />
     <Content Include="data\img\sp.svg" />
-    <Content Include="data\img\speedometer.svg" />
+    <Content Include="data\img\white.png" />
+    <Content Include="data\img\yellow.png" />
     <Content Include="img\afu-gf.svg" />
-    <Content Include="img\afu.svg" />
+    <Content Include="img\arrow.svg" />
     <Content Include="img\bg.png" />
+    <Content Include="img\body.png" />
+    <Content Include="img\green.png" />
     <Content Include="img\hl.svg" />
     <Content Include="img\jp-l.svg" />
     <Content Include="img\jp-r.svg" />
     <Content Include="img\ll.svg" />
     <Content Include="img\pl.svg" />
+    <Content Include="img\red.png" />
     <Content Include="img\sp.svg" />
+    <Content Include="img\white.png" />
+    <Content Include="img\yellow.png" />
     <Content Include="mp3\01692.mp3" />
     <Content Include="mp3\03037.mp3" />
     <Content Include="mp3\03049.mp3" />
     <Content Include="mp3\fire.mp3" />
-    <Content Include="data\img\down.svg" />
-    <Content Include="data\img\left.svg" />
-    <Content Include="data\img\light.svg" />
-    <Content Include="data\img\right.svg" />
-    <Content Include="data\img\up.svg" />
     <Content Include="control.html" />
     <Content Include="control.min.html">
       <DependentUpon>control.html</DependentUpon>
@@ -195,8 +198,6 @@
     <Content Include="data\css\bootstrap.css" />
     <Content Include="data\css\slider.css" />
     <Content Include="data\css\style.css" />
-    <Content Include="data\img\aim.svg" />
-    <Content Include="data\img\settings.svg" />
     <Content Include="data\index.html" />
     <Content Include="data\js\bootstrap.js" />
     <Content Include="data\js\jquery.js" />
@@ -205,16 +206,7 @@
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
-    <Content Include="img\aim.svg" />
-    <Content Include="img\down.svg" />
-    <Content Include="img\headlight.svg" />
-    <Content Include="img\left.svg" />
-    <Content Include="img\light.svg" />
     <Content Include="img\remote-control.svg" />
-    <Content Include="img\right.svg" />
-    <Content Include="img\settings.svg" />
-    <Content Include="img\up.svg" />
-    <Content Include="img\warning.svg" />
     <Content Include="index.html" />
     <Content Include="index.min.html">
       <DependentUpon>index.html</DependentUpon>

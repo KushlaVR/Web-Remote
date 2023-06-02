@@ -17,7 +17,7 @@
 <body>
     <div class="main">
         <form class="screen grid">
-            <img src="/img/bg.png" style="position: absolute; left: 0; top: 0vw; width: 100vw;" />
+            <img src="img/bg.png" style="position: absolute; left: 0; top: 0vw; width: 100vw;" />
 
             <div class="msg"
                  style="position:absolute; left: 5vw; width: 85vw; bottom: 1em;">
@@ -35,26 +35,59 @@
 
             <a href="index.html" class="btn btn-link" style="position:absolute;">Settings</a>
 
-            <label style="position: absolute; left: 45vw; top: 5vw; font-size: 4vw;">
+            <label style="position: absolute; left: 35vw; top: 2vw; font-size: 4vw; width:30vw; text-align:center">
                 <img src="img/sp.svg" class="info-img" style="width:5vw; height:5vw" />
                 <span class="output" data-input="speed">0</span>
                 <span>km/h</span>
             </label>
 
+
+
+            <img src="img/green.png" class="output" data-input="left_on" style="position: absolute; left: 27vw; top:0vw; width: 12vw;" />
+            <img src="img/arrow.svg" style="position: absolute; left: 29vw; top: 2vw; width: 8vw;" />
+
+
+            <img src="img/green.png" class="output" data-input="right_on" style="position: absolute; right: 27vw; top:0vw; width: 12vw;" />
+            <img src="img/arrow.svg" style="position: absolute; right: 29vw; top: 2vw; width: 8vw; transform: rotate(180deg);" />
+
+
+
+            <!--Parking lights-->
+            <img src="img/white.png" class="output" data-input="pos_light" style="position: absolute; left: 37vw; top: 0vw; width: 26vw; height: 49vw;" />
+
+            <!--Viechle-->
+            <img src="img/body.png" style="position: absolute; left: 41vw; top: 9vw; width: 18vw;" />
+
+            <!--Left turn lights-->
+            <img src="img/yellow.png" class="output" data-input="left_on" style="position: absolute; left: 38vw; top: 7vw; width: 12vw;" />
+            <img src="img/yellow.png" class="output" data-input="left_on" style="position: absolute; left: 37vw; top: 16vw; width: 12vw;" />
+            <img src="img/yellow.png" class="output" data-input="left_on" style="position: absolute; left: 38vw; top: 33vw; width: 12vw;" />
+
+            <!--Right turn lights-->
+            <img src="img/yellow.png" class="output" data-input="right_on" style="position: absolute; right: 38vw; top: 7vw; width: 12vw;" />
+            <img src="img/yellow.png" class="output" data-input="right_on" style="position: absolute; right: 37vw; top: 16vw; width: 12vw;" />
+            <img src="img/yellow.png" class="output" data-input="right_on" style="position: absolute; right: 38vw; top: 33vw; width: 12vw;" />
+
+            <!--Stop lights-->
+            <img src="img/red.png" class="output" data-input="stop_on" style="position: absolute; left: 39vw; top: 33vw; width: 12vw;" />
+            <img src="img/red.png" class="output" data-input="stop_on" style="position: absolute; right: 39vw; top: 33vw; width: 12vw;" />
+            <img src="img/red.png" class="output" data-input="stop_on" style="position: absolute; right: 46vw; top: 35vw; width: 8vw;" />
+
+            <!--back lights-->
+            <img src="img/white.png" class="output" data-input="back_on" style="position: absolute; left: 39vw; top: 35vw; width: 22vw; height: 11vw;" />
+
+            <!--Left head lights-->
+            <img src="img/white.png" class="output" data-input="lo_on" style="position: absolute; left: 37vw; top: -5vw; width: 15vw; height: 21vw;" />
+            <img src="img/white.png" class="output" data-input="hi_on" style="position: absolute; left: 39vw; top: -5vw; width: 15vw; height: 21vw;" />
+
+            <!--Right head lights-->
+            <img src="img/white.png" class="output" data-input="lo_on" style="position: absolute; right: 37vw; top: -5vw; width: 15vw; height: 21vw;" />
+            <img src="img/white.png" class="output" data-input="hi_on" style="position: absolute; right: 39vw; top: -5vw; width: 15vw; height: 21vw;" />
+
+
             <label class="text-right" style="position: absolute; left: 47vw; top: 38vw; font-size:4vw;">
                 <span class="output" data-input="vbat">0</span>V
             </label>
-
-            <a href="#" name="pos_light" class="input btn btn-round btn-p-0" style="position: absolute; left: 45vw; top: 12vw;">
-                <img src="img/pl.svg" class="info-img" />
-            </a>
-            <a href="#" name="l_light" class="input btn btn-round btn-p-0" style="position: absolute; left: 45vw; top: 21vw;">
-                <img src="img/ll.svg" class="info-img" />
-            </a>
-            <a href="#" name="h_light" class="input btn btn-round btn-p-0" style="position: absolute; left: 45vw; top: 30vw;">
-                <img src="img/hl.svg" class="info-img" />
-            </a>
-
 
             <div name="motor" class="slider input"
                  style="width:35vw; height: 35vw; left: 2vw; top: 7vw;"
@@ -71,8 +104,20 @@
                 <div class="pot"></div>
                 <div class="handle blue"></div>
             </div>
+            <img src="img/yellow.png" class="output" data-input="pos_light_on" style="position: absolute; right: 0vw; top: 1vw; width:11vw" />
+            <a href="#" name="pos_light" class="input btn btn-round btn-p-0" style="position: absolute; right: 1vw; top: 3vw;">
+                <img src="img/pl.svg" class="info-img" />
+            </a>
 
+            <img src="img/green.png" class="output" data-input="l_light_on" style="position: absolute; left: 0vw; top: 35vw; width: 11vw" />
+            <a href="#" name="l_light" class="input btn btn-round btn-p-0" style="position: absolute; left: 1vw; top: 36vw;">
+                <img src="img/ll.svg" class="info-img" />
+            </a>
 
+            <img src="img/green.png" class="output" data-input="h_light_on" style="position: absolute; right: 0vw; top: 35vw; width: 11vw " />
+            <a href="#" name="h_light" class="input btn btn-round btn-p-0" style="position: absolute; right: 1vw; top: 36vw;">
+                <img src="img/hl.svg" class="info-img" />
+            </a>
 
             <!--<a href="#"
     name="fire"
@@ -82,10 +127,10 @@
     data-sound-duration="800">Fire</a>-->
 
         </form>
-        </div>
+    </div>
 
-        <script>
-            WorkSpace.init($(".main form"));
-        </script>
-    </body>
-    </html>
+    <script>
+        WorkSpace.init($(".main form"));
+    </script>
+</body>
+</html>

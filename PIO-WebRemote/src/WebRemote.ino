@@ -69,7 +69,7 @@ struct Config
 	int stearing_Left = 90 - SERVO_HALF_ANGLE;
 	int stearing_Right = 90 + SERVO_HALF_ANGLE;
 
-	int turnLight_Left = 90 - (SERVO_HALF_ANGLE * 0.5F);	// Condition to enable turn light
+	int turnLight_Left = 90 - (SERVO_HALF_ANGLE * 0.5F);  // Condition to enable turn light
 	int turnLight_Right = 90 + (SERVO_HALF_ANGLE * 0.5F); // Condition to enable turn light
 };
 
@@ -182,12 +182,16 @@ void setup()
 	leftLight.Add(LEFT_TURN_LIGHT_PIN, 0, HIGH);
 	leftLight.Add(LEFT_TURN_LIGHT_PIN, 500, LOW);
 	leftLight.Add(LEFT_TURN_LIGHT_PIN, 1000, LOW);
+	leftLight.attachWriteEvent([](int pin, int value)
+							   { joypads.setValue("left_on", value); });
 	leftLight.debug = true;
 
 	rightLight.Add(RIGHT_TURN_LIGHT_PIN, 0, LOW);
 	rightLight.Add(RIGHT_TURN_LIGHT_PIN, 0, HIGH);
 	rightLight.Add(RIGHT_TURN_LIGHT_PIN, 500, LOW);
 	rightLight.Add(RIGHT_TURN_LIGHT_PIN, 1000, LOW);
+	rightLight.attachWriteEvent([](int pin, int value)
+								{ joypads.setValue("right_on", value); });
 	rightLight.debug = true;
 
 	btnStartStop.bounce = 0;
