@@ -24,10 +24,10 @@
 #define MOTOR_A D6
 #define MOTOR_B D7
 #define SERVO_PIN D5
-#define SERVO_HALF_ANGLE 70
+#define SERVO_HALF_ANGLE 90
 
-#define LEFT_TURN_LIGHT_PIN D2
-#define RIGHT_TURN_LIGHT_PIN D1
+#define LEFT_TURN_LIGHT_PIN D1
+#define RIGHT_TURN_LIGHT_PIN D2
 #define HEAD_LIGHT_PIN D4
 #define STOP_LIGHT_PIN D8
 #define REVERCE_LIGHT_PIN D3
@@ -66,11 +66,17 @@ struct Config
 	int inertion = 800;
 
 	int stearing_Center = 90;
-	int stearing_Left = 90 - SERVO_HALF_ANGLE;
-	int stearing_Right = 90 + SERVO_HALF_ANGLE;
+	int stearing_Left = 90 + SERVO_HALF_ANGLE;
+	int stearing_Right = 90 - SERVO_HALF_ANGLE;
 
-	int turnLight_Left = 90 - (SERVO_HALF_ANGLE * 0.5F);  // Condition to enable turn light
-	int turnLight_Right = 90 + (SERVO_HALF_ANGLE * 0.5F); // Condition to enable turn light
+	int turnLight_Left = 90 + (SERVO_HALF_ANGLE * 0.5F);  // Condition to enable turn light
+	int turnLight_Right = 90 - (SERVO_HALF_ANGLE * 0.5F); // Condition to enable turn light
+
+	int PWM_TurnLight = 60;
+	int PWM_ParkingLight = 40;
+	int PWM_HeadLight = 100;
+	int PWM_HighLight = 220;
+
 };
 
 void reloadConfig();
@@ -142,6 +148,10 @@ void setup()
 		console.println(("Starting..."));
 	}
 
+	pinMode(HEAD_LIGHT_PIN, OUTPUT);
+	pinMode(STOP_LIGHT_PIN, OUTPUT);
+	pinMode(REVERCE_LIGHT_PIN, OUTPUT);
+
 	// setupController.cfg = &config;
 	// setupController.reloadConfig = reloadConfig;
 	// setupController.loadConfig();
@@ -180,7 +190,7 @@ void setup()
 	stearing.attach(SERVO_PIN);
 
 	leftLight.Add(LEFT_TURN_LIGHT_PIN, 0, LOW);
-	leftLight.Add(LEFT_TURN_LIGHT_PIN, 0, HIGH);
+	leftLight.Add(LEFT_TURN_LIGHT_PIN, 0, config.PWM_TurnLight);
 	leftLight.Add(LEFT_TURN_LIGHT_PIN, 500, LOW);
 	leftLight.Add(LEFT_TURN_LIGHT_PIN, 1000, LOW);
 	leftLight.attachWriteEvent([](int pin, int value)
@@ -188,7 +198,7 @@ void setup()
 	leftLight.debug = true;
 
 	rightLight.Add(RIGHT_TURN_LIGHT_PIN, 0, LOW);
-	rightLight.Add(RIGHT_TURN_LIGHT_PIN, 0, HIGH);
+	rightLight.Add(RIGHT_TURN_LIGHT_PIN, 0, config.PWM_TurnLight);
 	rightLight.Add(RIGHT_TURN_LIGHT_PIN, 500, LOW);
 	rightLight.Add(RIGHT_TURN_LIGHT_PIN, 1000, LOW);
 	rightLight.attachWriteEvent([](int pin, int value)
@@ -347,7 +357,7 @@ void handle_StartStop()
 
 void btnParkingLight_Pressed()
 {
-	Serial.print("Parking Light!");
+	Serial.println("Parking Light!");
 	if (state.parkingLight == 0)
 	{
 		setParkingLight(1);
@@ -362,7 +372,7 @@ void btnParkingLight_Pressed()
 
 void btnHeadLight_Pressed()
 {
-	Serial.print("Head Light!");
+	Serial.println("Head Light!");
 	if (state.headLight == 0)
 	{
 		setParkingLight(1);
@@ -379,7 +389,7 @@ void btnHeadLight_Pressed()
 
 void btnHighLight_Pressed()
 {
-	Serial.print("High Light!");
+	Serial.println("High Light!");
 	if (state.headLight)
 	{
 		if (state.highLight == 0)
@@ -410,14 +420,14 @@ void handleVeichle()
 
 	if (state.ignition >= Ignition::ON)
 	{
-		state.stearing = map(stearing, 100, -100, config.stearing_Left, config.stearing_Right);
+		state.stearing = map(stearing, -100, 100, config.stearing_Right, config.stearing_Left);
 	}
 	else
 	{
 		state.stearing = config.stearing_Center;
 	}
 
-	if (state.stearing < config.turnLight_Left)
+	if (state.stearing > config.turnLight_Left)
 	{
 		if (!leftLight.isRunning())
 			leftLight.begin();
@@ -430,7 +440,7 @@ void handleVeichle()
 			leftLight.end();
 	}
 
-	if (state.stearing > config.turnLight_Right)
+	if (state.stearing < config.turnLight_Right)
 	{
 		if (!rightLight.isRunning())
 			rightLight.begin();
@@ -459,6 +469,16 @@ void handleVeichle()
 	else
 	{
 		state.speed = 0;
+	}
+
+	if (state.highLight == 1){
+		analogWrite(HEAD_LIGHT_PIN, config.PWM_HighLight);
+	} else if (state.headLight == 1){
+		analogWrite(HEAD_LIGHT_PIN, config.PWM_HeadLight);
+	} else if (state.parkingLight == 1){
+		analogWrite(HEAD_LIGHT_PIN, config.PWM_ParkingLight);
+	} else {
+		analogWrite(HEAD_LIGHT_PIN, 0);
 	}
 
 	joypads.setValue("rpm", state.rpm);
