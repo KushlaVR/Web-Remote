@@ -65,11 +65,10 @@ var WorkSpace = (function () {
     WorkSpace.prototype.setFormat = function () {
         var _this = this;
         this.fields = new Array();
-        var v = new Array();
         $.each((this.values), function (name, value) {
             _this.fields.push(name);
         });
-        this.send(JSON.stringify({ client: this.client, fields: this.fields }));
+        this.send(JSON.stringify({ client: this.client, fields: this.fields, readonlyFields: this.readonlyFields }));
     };
     WorkSpace.prototype.readyToSend = function () {
         if (this.eventSource)
@@ -142,6 +141,7 @@ var WorkSpace = (function () {
                     var val = parcel.values[i];
                     for (var rIndex = 0; rIndex < this.readonlyFields.length; rIndex++) {
                         if (key == this.readonlyFields[rIndex]) {
+                            this.sent[key] = val;
                             this.values[key] = val;
                             break;
                         }

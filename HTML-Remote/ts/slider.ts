@@ -64,17 +64,15 @@ class WorkSpace {
     }
 
     /** 
-     *  Повідомляємо серверу в якій послідовності розміжено значення елементів керування
+     *  Повідомляємо серверу в якій послідовності розміщено значення елементів керування
      */
     private setFormat(): void {
         this.fields = new Array();
-
-        var v = new Array<string>();
         $.each(<any>(this.values), (name: string, value: string) => {
             this.fields.push(name);
         });
 
-        this.send(JSON.stringify({ client: this.client, fields: this.fields }));
+        this.send(JSON.stringify({ client: this.client, fields: this.fields, readonlyFields: this.readonlyFields  }));
     }
 
     private _readyToSend: boolean = true;
@@ -164,7 +162,7 @@ class WorkSpace {
                     let val = parcel.values[i];
                     for (let rIndex: number = 0; rIndex < this.readonlyFields.length; rIndex++) {
                         if (key == this.readonlyFields[rIndex]) {
-                            //this.sent[key] = val;
+                            this.sent[key] = val;
                             this.values[key] = val;
                             break;
                         }

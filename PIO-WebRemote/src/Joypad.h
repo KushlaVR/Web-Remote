@@ -10,6 +10,7 @@ class Joypadfield : public Item
 {
 public:
 	String name;
+	bool isReadonly = false;
 	double value = 0.0;
 	double sent = 0.0;
 
@@ -38,6 +39,9 @@ public:
 	bool sendValues();
 
 	bool changed();
+
+	Joypadfield * getFieldByName(String name);
+
 };
 
 class JoypadCollection : public Collection
@@ -50,7 +54,7 @@ public:
 	~JoypadCollection(){};
 
 	unsigned long keepAliveInterval = 5000;
-	unsigned long reportInterval = 300;
+	unsigned long reportInterval = 400;
 
 	Joypad *getById(int id);
 	void updateValuesFrom(Joypad *source);
