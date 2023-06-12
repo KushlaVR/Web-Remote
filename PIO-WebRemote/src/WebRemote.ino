@@ -43,6 +43,7 @@ struct State
 {
 	int stearing;
 	int speed;
+	int last_speed_for_stop_light;
 
 	int rpm;
 	int ignition;
@@ -77,6 +78,12 @@ struct Config
 	int PWM_HeadLight = 100;
 	int PWM_HighLight = 220;
 
+	int PWM_StopLigh = 100;
+	int stopLightDuration = 3000;
+	int StopLightCondidion = 10;
+
+	int PWM_BackLigh = 100;
+	int backLightDuration = 1000;
 };
 
 void reloadConfig();
@@ -204,6 +211,22 @@ void setup()
 	rightLight.attachWriteEvent([](int pin, int value)
 								{ joypads.setValue("right_on", value); });
 	rightLight.debug = true;
+
+	stopLight.Add(STOP_LIGHT_PIN, 0, LOW);
+	stopLight.Add(STOP_LIGHT_PIN, 0, config.PWM_StopLigh);
+	stopLight.Add(STOP_LIGHT_PIN, config.stopLightDuration, LOW);
+	stopLight.repeat = false;
+	stopLight.attachWriteEvent([](int pin, int value)
+							   { joypads.setValue("stop_on", value); });
+	stopLight.debug = true;
+
+	backLight.Add(REVERCE_LIGHT_PIN, 0, LOW);
+	backLight.Add(REVERCE_LIGHT_PIN, 0, config.PWM_BackLigh);
+	backLight.Add(REVERCE_LIGHT_PIN, config.backLightDuration, LOW);
+	backLight.repeat = true;
+	backLight.attachWriteEvent([](int pin, int value)
+							   { joypads.setValue("back_on", value); });
+	backLight.debug = true;
 
 	btnStartStop.bounce = 0;
 
@@ -464,20 +487,49 @@ void handleVeichle()
 		{
 			state.rpm = rpm;
 		}
-		motor->setSpeed(map(speed, -100, 100, -255, 255));
+		state.speed = speed;
+		motor->setSpeed(map(state.speed, -100, 100, -255, 255));
+
+		// if speen decrease -> turn stop ligh ON
+		int deltaSpeed = abs(state.speed) - state.last_speed_for_stop_light;
+		if (deltaSpeed < -config.StopLightCondidion)
+		{
+			state.last_speed_for_stop_light = abs(state.speed);
+			stopLight.begin();
+		}
+		else if (deltaSpeed >= config.StopLightCondidion)
+		{
+			state.last_speed_for_stop_light = abs(state.speed);
+			stopLight.end();
+		}
+
+		if (state.speed < 0)
+		{
+			backLight.repeat = true;
+			backLight.begin();
+		} else {
+			backLight.repeat = false;
+		}
 	}
 	else
 	{
 		state.speed = 0;
 	}
 
-	if (state.highLight == 1){
+	if (state.highLight == 1)
+	{
 		analogWrite(HEAD_LIGHT_PIN, config.PWM_HighLight);
-	} else if (state.headLight == 1){
+	}
+	else if (state.headLight == 1)
+	{
 		analogWrite(HEAD_LIGHT_PIN, config.PWM_HeadLight);
-	} else if (state.parkingLight == 1){
+	}
+	else if (state.parkingLight == 1)
+	{
 		analogWrite(HEAD_LIGHT_PIN, config.PWM_ParkingLight);
-	} else {
+	}
+	else
+	{
 		analogWrite(HEAD_LIGHT_PIN, 0);
 	}
 
