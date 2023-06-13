@@ -160,6 +160,7 @@
     <Content Include="data\img\sp.svg" />
     <Content Include="data\img\white.png" />
     <Content Include="data\img\yellow.png" />
+    <Content Include="data\mp3\click.mp3" />
     <Content Include="img\afu-gf.svg" />
     <Content Include="img\arrow.svg" />
     <Content Include="img\bg.png" />
@@ -174,10 +175,6 @@
     <Content Include="img\sp.svg" />
     <Content Include="img\white.png" />
     <Content Include="img\yellow.png" />
-    <Content Include="mp3\01692.mp3" />
-    <Content Include="mp3\03037.mp3" />
-    <Content Include="mp3\03049.mp3" />
-    <Content Include="mp3\fire.mp3" />
     <Content Include="control.html" />
     <Content Include="control.min.html">
       <DependentUpon>control.html</DependentUpon>
@@ -522,6 +519,7 @@
     <Content Include="js\slider.js.map" />
     <Content Include="bundleconfig.json" />
     <None Include="Scripts\jquery-3.5.0.intellisense.js" />
+    <Content Include="mp3\click.mp3" />
     <Content Include="Scripts\jquery-3.5.0.js" />
     <Content Include="Scripts\jquery-3.5.0.min.js" />
     <Content Include="Scripts\jquery-3.5.0.slim.js" />
@@ -548,7 +546,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="data\mp3\" />
     <Folder Include="Views\Api\" />
   </ItemGroup>
   <ItemGroup>

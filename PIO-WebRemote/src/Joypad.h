@@ -54,7 +54,7 @@ public:
 	~JoypadCollection(){};
 
 	unsigned long keepAliveInterval = 5000;
-	unsigned long reportInterval = 400;
+	unsigned long reportInterval = 200;
 
 	Joypad *getById(int id);
 	void updateValuesFrom(Joypad *source);

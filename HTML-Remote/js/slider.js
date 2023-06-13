@@ -569,29 +569,58 @@ var Button = (function (_super) {
 }(Input));
 var Output = (function () {
     function Output(element) {
+        this.audio = null;
         this.element = element;
         this.jElement = $(element);
         this.name = this.jElement.data("input");
+        var sound = this.jElement.data("sound");
+        if (sound) {
+            this.audio = new Audio(sound);
+            this.audio.load();
+            this.sound_duration = this.jElement.data("sound-duration");
+        }
     }
     Output.prototype.loadValue = function () {
         if (!(this.workSpace.values[this.name] == undefined)) {
+            var newValue = this.workSpace.values[this.name];
             if (this.element.tagName.toUpperCase() == "INPUT") {
-                this.jElement.val(this.workSpace.values[this.name]);
+                this.jElement.val(newValue);
             }
             if (this.element.tagName.toUpperCase() == "IMG") {
-                if (this.workSpace.values[this.name] == "0") {
+                if (newValue == "0") {
                     this.jElement.addClass("hidden");
                 }
                 else {
                     this.jElement.removeClass("hidden");
                 }
             }
-            else {
-                this.jElement.text(this.workSpace.values[this.name]);
+            if (this.element.classList.contains("progress-bar")) {
+                this.jElement.width((newValue) + "%");
             }
+            else {
+                this.jElement.text(newValue);
+            }
+            if (this.value == "0" && !(newValue == "0")) {
+                this.playSound();
+            }
+            this.value = newValue;
         }
     };
     Output.prototype.initLayout = function () {
+    };
+    Output.prototype.playSound = function () {
+        var _this = this;
+        if (this.audio == null)
+            return;
+        if (!this.audio.paused)
+            return;
+        this.audio.currentTime = 0;
+        var playPromise = this.audio.play();
+        if (playPromise !== undefined && this.sound_duration !== undefined) {
+            playPromise.then(function (_) {
+                setTimeout(function () { _this.audio.pause(); }, _this.sound_duration);
+            });
+        }
     };
     return Output;
 }());

@@ -72,7 +72,7 @@ class WorkSpace {
             this.fields.push(name);
         });
 
-        this.send(JSON.stringify({ client: this.client, fields: this.fields, readonlyFields: this.readonlyFields  }));
+        this.send(JSON.stringify({ client: this.client, fields: this.fields, readonlyFields: this.readonlyFields }));
     }
 
     private _readyToSend: boolean = true;
@@ -681,31 +681,66 @@ class Output {
     element: HTMLElement;
     jElement: JQuery;
     name: string;
+    value: string;
+
+    sound_duration: number;
+    audio: HTMLAudioElement = null;
 
     constructor(element: any) {
         this.element = element;
         this.jElement = $(element);
         this.name = this.jElement.data("input");
+
+        let sound: string = this.jElement.data("sound");
+        if (sound) {
+            this.audio = new Audio(sound);
+            this.audio.load();
+
+            this.sound_duration = this.jElement.data("sound-duration");
+
+        }
     }
 
     loadValue(): void {
         if (!(this.workSpace.values[this.name] == undefined)) {
+            let newValue = this.workSpace.values[this.name];
             if (this.element.tagName.toUpperCase() == "INPUT") {
-                this.jElement.val(this.workSpace.values[this.name]);
+                this.jElement.val(newValue);
             } if (this.element.tagName.toUpperCase() == "IMG") {
-                if (this.workSpace.values[this.name] == "0") {
+                if (newValue == "0") {
                     this.jElement.addClass("hidden")
                 } else {
                     this.jElement.removeClass("hidden")
                 }
-            } else {
-                this.jElement.text(this.workSpace.values[this.name]);
+            } if (this.element.classList.contains("progress-bar")) {
+                this.jElement.width(<string>(newValue) + "%");
             }
+            else {
+                this.jElement.text(newValue);
+            }
+
+            if (this.value == "0" && !(newValue == "0")) {
+                this.playSound();
+            }
+            this.value = newValue;
         }
     }
 
     initLayout(): void {
 
+    }
+
+    private playSound(): void {
+        if (this.audio == null) return;
+        if (!this.audio.paused) return;
+
+        this.audio.currentTime = 0;
+        let playPromise = this.audio.play();
+        if (playPromise !== undefined && this.sound_duration !== undefined) {
+            playPromise.then(_ => {
+                setTimeout(() => { this.audio.pause(); }, this.sound_duration);
+            })
+        }
     }
 
 }
