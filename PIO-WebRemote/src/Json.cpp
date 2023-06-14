@@ -1,9 +1,11 @@
 #include "Json.h"
 
-JsonString::JsonString(const char * cstr) :String(cstr) {}
+JsonString::JsonString(const char *cstr) : String(cstr) {}
 
-void JsonString::appendComa() {
-	if (endsWith("\"") || endsWith("}") || endsWith("]")) *this += ",";
+void JsonString::appendComa()
+{
+	if (endsWith("\"") || endsWith("}") || endsWith("]"))
+		*this += ",";
 }
 
 void JsonString::AddValue(String name, String value)
@@ -20,10 +22,9 @@ void JsonString::beginObject()
 
 void JsonString::endObject()
 {
-	String s = *static_cast<String*> (this);
+	String s = *static_cast<String *>(this);
 	*this += "}";
 }
-
 
 void JsonString::beginArray(String arrayName)
 {
@@ -36,20 +37,39 @@ void JsonString::endArray()
 	*this += "]";
 }
 
-String JsonString::getValue(char * key)
+bool JsonString::containsKey(char *key)
 {
 	int p = indexOf(key);
-	if (p > 0) {
+	if (p > 0)
+	{
 		p = indexOf(":", p + 1);
-		if (p > 0) {
+		if (p > 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+String JsonString::getValue(char *key)
+{
+	int p = indexOf(key);
+	if (p > 0)
+	{
+		p = indexOf(":", p + 1);
+		if (p > 0)
+		{
 			int startIndex = indexOf("\"", p + 1);
-			if (startIndex <= 0) startIndex = p + 1;
-			if (startIndex > 0) {
+			if (startIndex <= 0)
+				startIndex = p + 1;
+			if (startIndex > 0)
+			{
 				startIndex++;
 				int endIndex = indexOf("\"", startIndex);
-				if (endIndex <=0)
+				if (endIndex <= 0)
 					endIndex = indexOf(",", startIndex);
-				if (endIndex > 0) {
+				if (endIndex > 0)
+				{
 					return substring(startIndex, endIndex);
 				}
 			}
@@ -58,7 +78,7 @@ String JsonString::getValue(char * key)
 	return "";
 }
 
-int JsonString::getInt(char * key)
+int JsonString::getInt(char *key)
 {
 	String s = getValue(key);
 	return s.toInt();

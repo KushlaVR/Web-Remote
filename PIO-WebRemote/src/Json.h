@@ -4,12 +4,13 @@
 #define _JSON_h
 
 #if defined(ARDUINO) && ARDUINO >= 100
-	#include "arduino.h"
+#include "arduino.h"
 #else
-	#include "WProgram.h"
+#include "WProgram.h"
 #endif
 
-class JsonString :public String {
+class JsonString : public String
+{
 public:
 	JsonString(const char *cstr = "");
 	void appendComa();
@@ -18,8 +19,9 @@ public:
 	void endObject();
 	void beginArray(String arrayName);
 	void endArray();
-	String getValue(char* key);
-	int getInt(char* key);
+	bool containsKey(char *key);
+	String getValue(char *key);
+	int getInt(char *key);
 };
 
 #endif

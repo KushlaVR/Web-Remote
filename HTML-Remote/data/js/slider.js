@@ -594,12 +594,16 @@ var Output = (function () {
                     this.jElement.removeClass("hidden");
                 }
             }
+            if (this.element.classList.contains("progress-bar")) {
+                this.jElement.width((newValue) + "%");
+            }
             else {
                 this.jElement.text(newValue);
             }
             if (this.value == "0" && !(newValue == "0")) {
                 this.playSound();
             }
+            ;
             this.value = newValue;
         }
     };

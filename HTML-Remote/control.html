@@ -42,18 +42,16 @@
             </label>
 
 
-
-            <label data-input="left_on" class="output" style="visibility:hidden" data-sound="/mp3/click.mp3"></label>
+            <label data-input="left_on" class="output" style="visibility:hidden" data-sound="/mp3/click.mp3" data-sound-duration="700"></label>
             <img src="img/green.png" class="output" data-input="left_on" style="position: absolute; left: 27vw; top:0vw; width: 12vw;" />
             <img src="img/arrow.svg" style="position: absolute; left: 29vw; top: 2vw; width: 8vw;opacity:0.2" />
             <img src="img/arrow.svg" class="output" data-input="left_on" style="position: absolute; left: 29vw; top: 2vw; width: 8vw;" />
 
 
-            <label data-input="right_on" class="output" style="visibility:hidden" data-sound="/mp3/click.mp3"></label>
+            <label data-input="right_on" class="output" style="visibility:hidden" data-sound="/mp3/click.mp3" data-sound-duration="700"></label>
             <img src="img/green.png" class="output" data-input="right_on" style="position: absolute; right: 27vw; top:0vw; width: 12vw;" />
             <img src="img/arrow.svg" style="position: absolute; right: 29vw; top: 2vw; width: 8vw; transform: rotate(180deg);opacity:0.2" />
             <img src="img/arrow.svg" class="output" data-input="right_on" style="position: absolute; right: 29vw; top: 2vw; width: 8vw; transform: rotate(180deg);" />
-
 
 
             <!--Parking lights-->
@@ -89,11 +87,11 @@
             <img src="img/white.png" class="output" data-input="hi_on" style="position: absolute; right: 39vw; top: -5vw; width: 15vw; height: 21vw;" />
 
             <!--Battary level-->
-            <div class="progress" style="position: absolute; left: 41vw; top: 38.5vw; width: 17vw; height: 5vw; background: transparent; border: 0.1vw solid white;" >
-                <div class="output progress-bar bg-success" data-input="lbat"></div>
+            <div class="progress" style="position: absolute; left: 41vw; top: 43vw; width: 17vw; height: 2vw; background: transparent; border: 0.1vw solid white;">
+                <div class="output progress-bar bg-success" data-input="bat_level"></div>
             </div>
             <label class="text-right" style="position: absolute; left: 47vw; top: 38vw; font-size:4vw;">
-                <span class="output" data-input="vbat">0</span>V
+                <span class="output" data-input="bat_v">0</span>V
             </label>
 
 
@@ -129,11 +127,11 @@
 
 
             <!--<a href="#"
-    name="fire"
-    class="input btn btn-round"
-    style="position: absolute; left: 45vw; top: 12vw;"
-    data-sound="/mp3/fire.mp3"
-    data-sound-duration="800">Fire</a>-->
+            name="fire"
+            class="input btn btn-round"
+            style="position: absolute; left: 45vw; top: 12vw;"
+            data-sound="/mp3/fire.mp3"
+            data-sound-duration="800">Fire</a>-->
 
         </form>
     </div>

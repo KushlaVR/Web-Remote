@@ -31,6 +31,7 @@
 #define HEAD_LIGHT_PIN D4
 #define STOP_LIGHT_PIN D8
 #define REVERCE_LIGHT_PIN D3
+#define BATTERY_PIN A0
 
 enum Ignition
 {
@@ -56,6 +57,10 @@ struct State
 	int rightTurnLight;
 	int reverseLight;
 
+	unsigned long last_battery_read = 0;
+	int battary_level = 50;
+	int battary_mv = 7200;
+
 } state;
 
 struct Config
@@ -64,6 +69,7 @@ struct Config
 	String ssid = "WEB_REMOTE";
 	String password = "12345678";
 
+	int min_speed = 10;
 	int inertion = 800;
 
 	int stearing_Center = 90;
@@ -84,6 +90,14 @@ struct Config
 
 	int PWM_BackLigh = 100;
 	int backLightDuration = 1000;
+
+	int battery_read_inteval = 10000;
+
+	int battery_ADC_min = 561; // ADC value for minimum battery voltage
+	int battery_ADC_max = 785; // ADC value for maximum battery voltage
+
+	int battery_mv_min = 6000; // min battery voltage in millivolts
+	int battery_mv_max = 8400; // max battery voltage in millivolts
 };
 
 void reloadConfig();
@@ -121,6 +135,126 @@ Blinker rightLight = Blinker("Right light");
 Blinker stopLight = Blinker("Stop light");
 Blinker backLight = Blinker("Back light");
 
+void printConfig()
+{
+	JsonString cfg = "";
+	buildConfig(&cfg);
+	Serial.println(cfg.c_str());
+}
+
+void loadConfig(JsonString *json)
+{
+	if (json->containsKey("ssid"))
+		config.ssid = String(json->getValue("ssid"));
+	if (json->containsKey("password"))
+		config.password = String(json->getValue("password"));
+	if (json->containsKey("min_speed"))
+		config.min_speed = json->getInt("min_speed");
+	if (json->containsKey("inertion"))
+		config.inertion = json->getInt("inertion");
+	if (json->containsKey("stearing_Center"))
+		config.stearing_Center = json->getInt("stearing_Center");
+	if (json->containsKey("stearing_Left"))
+		config.stearing_Left = json->getInt("stearing_Left");
+	if (json->containsKey("stearing_Right"))
+		config.stearing_Right = json->getInt("stearing_Right");
+	if (json->containsKey("turnLight_Left"))
+		config.turnLight_Left = json->getInt("turnLight_Left");
+	if (json->containsKey("turnLight_Right"))
+		config.turnLight_Right = json->getInt("turnLight_Right");
+	if (json->containsKey("PWM_BackLigh"))
+		config.PWM_BackLigh = json->getInt("PWM_BackLigh");
+	if (json->containsKey("PWM_HeadLight"))
+		config.PWM_HeadLight = json->getInt("PWM_HeadLight");
+	if (json->containsKey("PWM_HighLight"))
+		config.PWM_HighLight = json->getInt("PWM_HighLight");
+	if (json->containsKey("PWM_ParkingLight"))
+		config.PWM_ParkingLight = json->getInt("PWM_ParkingLight");
+	if (json->containsKey("PWM_TurnLight"))
+		config.PWM_TurnLight = json->getInt("PWM_TurnLight");
+	if (json->containsKey("PWM_StopLigh"))
+		config.PWM_StopLigh = json->getInt("PWM_StopLigh");
+	if (json->containsKey("stopLightDuration"))
+		config.stopLightDuration = json->getInt("stopLightDuration");
+	if (json->containsKey("StopLightCondidion"))
+		config.StopLightCondidion = json->getInt("StopLightCondidion");
+	if (json->containsKey("backLightDuration"))
+		config.backLightDuration = json->getInt("backLightDuration");
+	if (json->containsKey("battery_read_inteval"))
+		config.battery_read_inteval = json->getInt("battery_read_inteval");
+	if (json->containsKey("battery_ADC_min"))
+		config.battery_ADC_min = json->getInt("battery_ADC_min");
+	if (json->containsKey("battery_ADC_max"))
+		config.battery_ADC_max = json->getInt("battery_ADC_max");
+	if (json->containsKey("battery_mv_min"))
+		config.battery_mv_min = json->getInt("battery_mv_min");
+	if (json->containsKey("battery_mv_max"))
+		config.battery_mv_max = json->getInt("battery_mv_max");
+}
+
+void buildConfig(JsonString *json)
+{
+	json->beginObject();
+	json->AddValue("ssid", config.ssid);
+	json->AddValue("password", config.password);
+
+	json->AddValue("min_speed", String(config.min_speed));
+	json->AddValue("inertion", String(config.inertion));
+
+	json->AddValue("stearing_Center", String(config.stearing_Center));
+	json->AddValue("stearing_Left", String(config.stearing_Left));
+	json->AddValue("stearing_Right", String(config.stearing_Right));
+	json->AddValue("turnLight_Left", String(config.turnLight_Left));
+	json->AddValue("turnLight_Right", String(config.turnLight_Right));
+
+	json->AddValue("PWM_BackLigh", String(config.PWM_BackLigh));
+	json->AddValue("PWM_HeadLight", String(config.PWM_HeadLight));
+	json->AddValue("PWM_HighLight", String(config.PWM_HighLight));
+	json->AddValue("PWM_ParkingLight", String(config.PWM_ParkingLight));
+	json->AddValue("PWM_TurnLight", String(config.PWM_TurnLight));
+	json->AddValue("PWM_StopLigh", String(config.PWM_StopLigh));
+	json->AddValue("stopLightDuration", String(config.stopLightDuration));
+	json->AddValue("StopLightCondidion", String(config.StopLightCondidion));
+	json->AddValue("backLightDuration", String(config.backLightDuration));
+
+	json->AddValue("battery_read_inteval", String(config.battery_read_inteval));
+	json->AddValue("battery_ADC_min", String(config.battery_ADC_min));
+	json->AddValue("battery_ADC_max", String(config.battery_ADC_max));
+	json->AddValue("battery_mv_min", String(config.battery_mv_min));
+	json->AddValue("battery_mv_max", String(config.battery_mv_max));
+
+	json->endObject();
+}
+
+void readConfig()
+{
+	String s;
+	JsonString cfg = "";
+	File cfgFile;
+	if (!SPIFFS.exists("/config.json"))
+	{
+		console.println(("Default setting loaded..."));
+		saveConfig();
+	}
+	console.println(("Reading config..."));
+	cfgFile = SPIFFS.open("/config.json", "r");
+	s = cfgFile.readString();
+	cfg = JsonString(s.c_str());
+	cfgFile.close();
+	loadConfig(&cfg);
+}
+
+void saveConfig()
+{
+	String path = "/config.json";
+	JsonString content = "";
+	buildConfig(&content);
+	File file = SPIFFS.open(path, "w");
+	file.write(content.c_str());
+	file.flush();
+	file.close();
+}
+
 void setup()
 {
 	Serial.begin(115200);
@@ -155,13 +289,22 @@ void setup()
 		console.println(("Starting..."));
 	}
 
+	readConfig();
+	printConfig();
+
 	pinMode(HEAD_LIGHT_PIN, OUTPUT);
 	pinMode(STOP_LIGHT_PIN, OUTPUT);
 	pinMode(REVERCE_LIGHT_PIN, OUTPUT);
+	pinMode(BATTERY_PIN, INPUT);
 
-	// setupController.cfg = &config;
-	// setupController.reloadConfig = reloadConfig;
-	// setupController.loadConfig();
+	setupController.setup();
+	setupController.buildConfig = buildConfig;
+	setupController.saveConfig = [](JsonString *json)
+	{
+		loadConfig(json);
+		saveConfig();
+		printConfig();
+	};
 
 	WiFi.begin();
 	WiFi.disconnect();
@@ -231,15 +374,6 @@ void setup()
 	btnStartStop.bounce = 0;
 
 	state.ignition = Ignition::OFF;
-}
-
-void reloadConfig()
-{
-	// leftMotor->setWeight(config.inertion);
-	// rightMotor->setWeight(config.inertion);
-	// cabinMotor->setWeight(config.cabin_Inertion);
-	// turbineBlinker.item(1)->offset = (1000 / config.turbine_frequency_min) / 2;
-	// turbineBlinker.item(2)->offset = (1000 / config.turbine_frequency_min);
 }
 
 void EventSourceName()
@@ -507,7 +641,9 @@ void handleVeichle()
 		{
 			backLight.repeat = true;
 			backLight.begin();
-		} else {
+		}
+		else
+		{
 			backLight.repeat = false;
 		}
 	}
@@ -534,6 +670,27 @@ void handleVeichle()
 	}
 
 	joypads.setValue("rpm", state.rpm);
+	joypads.setValue("speed", abs(state.speed));
+}
+
+void handleBattery()
+{
+
+	if (millis() - state.last_battery_read > config.battery_read_inteval)
+	{
+		state.last_battery_read = millis();
+		int battary_adc = analogRead(BATTERY_PIN);
+		state.battary_level = map(battary_adc, config.battery_ADC_min, config.battery_ADC_max, 0, 100);
+		state.battary_mv = map(battary_adc, config.battery_ADC_min, config.battery_ADC_max, config.battery_mv_min, config.battery_mv_max);
+		joypads.setValue("bat_v", (double)state.battary_mv / 1000.0);
+		joypads.setValue("bat_level", state.battary_level);
+		Serial.print("Bat V=");
+		Serial.print(state.battary_mv);
+		Serial.print(" lvl=");
+		Serial.print(state.battary_level);
+		Serial.print(" adc=");
+		Serial.println(battary_adc);
+	}
 }
 
 void loop()
@@ -556,6 +713,8 @@ void loop()
 		state.stearing = config.stearing_Center;
 		state.ignition = Ignition::OFF;
 	}
+
+	handleBattery();
 
 	motor->loop();
 	stearing.write(state.stearing);

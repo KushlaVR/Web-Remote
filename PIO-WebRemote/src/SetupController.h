@@ -49,26 +49,21 @@ public:
 
 };
 
-typedef void(*myFunctionPointer) ();
+typedef void(*jsonFunctionPointer) (JsonString * json);
 
 class SetupController
 {
 public:
-	ConfigStruct* cfg;
-
 	SetupController();
 	~SetupController();
 
 	void setup();
 
-	void loadConfig();
-	void saveConfig();
-	void printConfig(JsonString* out);
-
 	static void Setup_Get();
 	static void Setup_Post();
 
-	myFunctionPointer reloadConfig = nullptr;
+	jsonFunctionPointer saveConfig = nullptr;
+	jsonFunctionPointer buildConfig = nullptr;
 };
 
 

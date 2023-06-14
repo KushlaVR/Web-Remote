@@ -721,7 +721,7 @@ class Output {
 
             if (this.value == "0" && !(newValue == "0")) {
                 this.playSound();
-            }
+            };
             this.value = newValue;
         }
     }

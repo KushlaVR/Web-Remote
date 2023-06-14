@@ -18,7 +18,7 @@
         TODO:
         + Блимання стрілочками поворотів
         + Звуковий супровід вказівників поворотів
-        * Відображення заряду батареї
+        + Відображення заряду батареї
         * Редагування Config з вебінтерфейсу
     -->
 
@@ -54,7 +54,7 @@
                     <div class="input-group">
                         <input type="number" maxlength="5" name="min_speed" class="form-control" step="1" min="0" max="100" required="required" />
                         <div class="input-group-append">
-                            <span class="input-group-text">0..100<sub>%</sub></span>
+                            <span class="input-group-text">0..100<sup>%</sup></span>
                         </div>
                     </div>
                 </div>
@@ -69,201 +69,181 @@
                     </div>
                 </div>
 
-                <h2>Smoke</h2>
-                <h3>Turbine</h3>
+                <h3>Stearing</h3>
                 <div class="form-group ml-4">
-                    <label>min PWM</label>
+                    <label>Center</label>
                     <div class="input-group">
-                        <input type="number" maxlength="5" name="turbine_min" class="form-control" step="1" min="-100" max="100" required="required" />
-                        <div class="input-group-append">
-                            <span class="input-group-text">-100..100<sub>%</sub></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group ml-4">
-                    <label>max PWM</label>
-                    <div class="input-group">
-                        <input type="number" maxlength="5" name="turbine_max" class="form-control" step="1" min="-100" max="100" required="required" />
-                        <div class="input-group-append">
-                            <span class="input-group-text">-100..100<sub>%</sub></span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group ml-4">
-                    <label>min frequency</label>
-                    <div class="input-group">
-                        <input type="number" maxlength="5" name="turbine_frequency_min" class="form-control" step="1" min="0" max="100" required="required" />
-                        <div class="input-group-append">
-                            <span class="input-group-text">0..100<sub>Hz</sub></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group ml-4">
-                    <label>max frequency</label>
-                    <div class="input-group">
-                        <input type="number" maxlength="5" name="turbine_frequency_max" class="form-control" step="1" min="0" max="100" required="required" />
-                        <div class="input-group-append">
-                            <span class="input-group-text">0..100<sub>Hz</sub></span>
-                        </div>
-                    </div>
-                </div>
-
-                <h3>Smoke</h3>
-                <div class="form-group ml-4">
-                    <label>min PWM</label>
-                    <div class="input-group">
-                        <input type="number" maxlength="5" name="smoke_min" class="form-control" step="1" min="0" max="100" required="required" />
-                        <div class="input-group-append">
-                            <span class="input-group-text">0..100<sub>%</sub></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group ml-4">
-                    <label>max PWM</label>
-                    <div class="input-group">
-                        <input type="number" maxlength="5" name="smoke_max" class="form-control" step="1" min="0" max="100" required="required" />
-                        <div class="input-group-append">
-                            <span class="input-group-text">0..100<sub>%</sub></span>
-                        </div>
-                    </div>
-                </div>
-
-                <h2>Tank Turrent</h2>
-                <h3>Motor</h3>
-                <div class="form-group ml-4">
-                    <label>min speed</label>
-                    <div class="input-group">
-                        <input type="number" maxlength="5" name="cabin_min" class="form-control" step="1" min="0" max="100" required="required" />
-                        <div class="input-group-append">
-                            <span class="input-group-text">0..100<sup>o</sup></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group ml-4">
-                    <label>max speed</label>
-                    <div class="input-group">
-                        <input type="number" maxlength="5" name="cabin_max" class="form-control" step="1" min="0" max="100" required="required" />
-                        <div class="input-group-append">
-                            <span class="input-group-text">0..100<sup>o</sup></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group ml-4">
-                    <label>Inertion</label>
-                    <div class="input-group">
-                        <input type="number" maxlength="5" name="cabin_inertion" class="form-control" step="1" min="0" max="10000" required="required" />
-                        <div class="input-group-append">
-                            <span class="input-group-text">0..10000</span>
-                        </div>
-                    </div>
-                </div>
-
-                <h3>Barrel servo</h3>
-                <div class="form-group ml-4">
-                    <label>min position</label>
-                    <div class="input-group">
-                        <input type="number" maxlength="5" name="gun_min" class="form-control" step="1" min="0" max="180" required="required" />
+                        <input type="number" maxlength="5" name="stearing_Center" class="form-control" step="1" min="0" max="180" required="required" />
                         <div class="input-group-append">
                             <span class="input-group-text">0..180<sup>o</sup></span>
                         </div>
                     </div>
-                </div>
-                <div class="form-group ml-4">
-                    <label>max position</label>
+
+                    <label>Left</label>
                     <div class="input-group">
-                        <input type="number" maxlength="5" name="gun_max" class="form-control" step="1" min="0" max="180" required="required" />
+                        <input type="number" maxlength="5" name="stearing_Left" class="form-control" step="1" min="0" max="180" required="required" />
                         <div class="input-group-append">
                             <span class="input-group-text">0..180<sup>o</sup></span>
                         </div>
                     </div>
-                </div>
-                <h3>Barrel rollback servo</h3>
-                <div class="form-group ml-4">
-                    <label>min position</label>
+
+                    <label>Right</label>
                     <div class="input-group">
-                        <input type="number" maxlength="5" name="fire_min" class="form-control" step="1" min="0" max="180" required="required" />
+                        <input type="number" maxlength="5" name="stearing_Right" class="form-control" step="1" min="0" max="180" required="required" />
                         <div class="input-group-append">
                             <span class="input-group-text">0..180<sup>o</sup></span>
                         </div>
                     </div>
+
                 </div>
+
+                <h3>Turn Lights</h3>
                 <div class="form-group ml-4">
-                    <label>max position</label>
+                    <label>Left</label>
                     <div class="input-group">
-                        <input type="number" maxlength="5" name="fire_max" class="form-control" step="1" min="0" max="180" required="required" />
+                        <input type="number" maxlength="5" name="turnLight_Left" class="form-control" step="1" min="0" max="180" required="required" />
                         <div class="input-group-append">
                             <span class="input-group-text">0..180<sup>o</sup></span>
                         </div>
                     </div>
-                </div>
-                <div class="form-group ml-4">
-                    <label>animation start time</label>
+
+                    <label>Right</label>
                     <div class="input-group">
-                        <input type="number" maxlength="5" name="fire_rollback_start" class="form-control" step="1" min="0" max="2000" required="required" />
+                        <input type="number" maxlength="5" name="turnLight_Right" class="form-control" step="1" min="0" max="180" required="required" />
                         <div class="input-group-append">
-                            <span class="input-group-text">0..2000<sub>ms</sub></span>
+                            <span class="input-group-text">0..180<sup>o</sup></span>
                         </div>
                     </div>
+
+                    <label>PWM</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="PWM_TurnLight" class="form-control" step="1" min="0" max="255" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">0..255<sup>%</sup></span>
+                        </div>
+                    </div>
+
                 </div>
 
+
+                <h3>Light brightness</h3>
                 <div class="form-group ml-4">
-                    <label>animation peak time</label>
+                    <label>Parking Light PWM</label>
                     <div class="input-group">
-                        <input type="number" maxlength="5" name="fire_rollback_peak" class="form-control" step="1" min="0" max="2000" required="required" />
+                        <input type="number" maxlength="5" name="PWM_ParkingLight" class="form-control" step="1" min="0" max="255" required="required" />
                         <div class="input-group-append">
-                            <span class="input-group-text">0..2000<sub>ms</sub></span>
+                            <span class="input-group-text">0..255<sup>%</sup></span>
                         </div>
                     </div>
+
+                    <label>Head Light PWM</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="PWM_HeadLight" class="form-control" step="1" min="0" max="255" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">0..255<sup>%</sup></span>
+                        </div>
+                    </div>
+
+                    <label>High Light PWM</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="PWM_HighLight" class="form-control" step="1" min="0" max="255" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">0..255<sup>%</sup></span>
+                        </div>
+                    </div>
+
                 </div>
 
+                <h3>Stop Light</h3>
                 <div class="form-group ml-4">
-                    <label>animation end time</label>
+                    <label>PWM</label>
                     <div class="input-group">
-                        <input type="number" maxlength="5" name="fire_rollback_end" class="form-control" step="1" min="0" max="2000" required="required" />
+                        <input type="number" maxlength="5" name="PWM_StopLigh" class="form-control" step="1" min="0" max="255" required="required" />
                         <div class="input-group-append">
-                            <span class="input-group-text">0..2000<sub>ms</sub></span>
+                            <span class="input-group-text">0..255<sup>%</sup></span>
                         </div>
                     </div>
-                </div>
 
-                <div class="form-group ml-4">
-                    <label>gun led on time</label>
+                    <label>Duration</label>
                     <div class="input-group">
-                        <input type="number" maxlength="5" name="fire_led_start" class="form-control" step="1" min="0" max="2000" required="required" />
+                        <input type="number" maxlength="5" name="stopLightDuration" class="form-control" step="1" min="0" max="5000" required="required" />
                         <div class="input-group-append">
-                            <span class="input-group-text">0..2000<sub>ms</sub></span>
+                            <span class="input-group-text">0..5000<sup>ms</sup></span>
                         </div>
                     </div>
-                </div>
-                <div class="form-group ml-4">
-                    <label>gun led off time</label>
-                    <div class="input-group">
-                        <input type="number" maxlength="5" name="fire_led_end" class="form-control" step="1" min="0" max="2000" required="required" />
-                        <div class="input-group-append">
-                            <span class="input-group-text">0..2000<sub>ms</sub></span>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="form-group ml-4">
-                    <label>gun led  PWM</label>
+                    <label>Condition</label>
                     <div class="input-group">
-                        <input type="number" maxlength="5" name="fire_led_pwm" class="form-control" step="1" min="0" max="100" required="required" />
+                        <input type="number" maxlength="5" name="StopLightCondidion" class="form-control" step="1" min="0" max="100" required="required" />
                         <div class="input-group-append">
                             <span class="input-group-text">0..100<sup>%</sup></span>
                         </div>
                     </div>
+
+
                 </div>
 
 
-                <h3>Light</h3>
+                <h3>Back Light</h3>
                 <div class="form-group ml-4">
-                    <label>light PWM</label>
+                    <label>PWM</label>
                     <div class="input-group">
-                        <input type="number" maxlength="5" name="light" class="form-control" step="1" min="0" max="100" required="required" />
+                        <input type="number" maxlength="5" name="PWM_BackLigh" class="form-control" step="1" min="0" max="255" required="required" />
                         <div class="input-group-append">
-                            <span class="input-group-text">0..100<sup>%</sup></span>
+                            <span class="input-group-text">0..255<sup>%</sup></span>
+                        </div>
+                    </div>
+
+                    <label>Duration</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="backLightDuration" class="form-control" step="1" min="0" max="5000" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">0..5000<sup>ms</sup></span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <h3>Battery</h3>
+                <div class="form-group ml-4">
+                    <label>Read Interval</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="battery_read_inteval" class="form-control" step="1" min="0" max="60000" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">0..60000<sup>ms</sup></span>
+                        </div>
+                    </div>
+
+                    <label>ADC min</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="battery_ADC_min" class="form-control" step="1" min="0" max="1024" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">0..1024<sup>pt</sup></span>
+                        </div>
+                    </div>
+
+
+                    <label>ADC max</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="battery_ADC_max" class="form-control" step="1" min="0" max="1024" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">0..1024<sup>pt</sup></span>
+                        </div>
+                    </div>
+
+                    <label>Millivolts min</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="battery_mv_min" class="form-control" step="1" min="0" max="24000" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">0..24000<sup>mv</sup></span>
+                        </div>
+                    </div>
+
+                    <label>Millivolts max</label>
+                    <div class="input-group">
+                        <input type="number" maxlength="5" name="battery_mv_max" class="form-control" step="1" min="0" max="24000" required="required" />
+                        <div class="input-group-append">
+                            <span class="input-group-text">0..24000<sup>mv</sup></span>
                         </div>
                     </div>
                 </div>
